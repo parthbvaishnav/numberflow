@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "76329452861",
+    "project_id": "numberflow-41f43",
+    "storage_bucket": "numberflow-41f43.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76329452861:android:3b1ca665264b532467b154",
+        "android_client_info": {
+          "package_name": "com.numberflow.game"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjQsTdmyJfIc4jmhCmtTpiGlvEe6X7i9Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
