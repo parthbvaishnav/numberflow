@@ -1,44 +1,21 @@
 /**
- * ZipGameScreen.jsx  —  Ad-integrated version
+ * ZipGameScreen.jsx  —  Coin-system integrated version
  *
- * What changed vs the original:
- *
- *   • Removed mock ad modal entirely (real ads via AdManager).
- *   • Retry  button → Interstitial  (AdManager 'inter')
- *   • Next   button → Interstitial  (AdManager 'inter'), then navigate
- *   • Skip   button → Rewarded Interstitial (AdManager 'interReward'); level
- *                     skip only happens if reward was earned
- *   • Hint   button → Rewarded (AdManager 'rewarded'); hint granted only on
- *                     reward callback
- *   • +15sec button → Rewarded (AdManager 'rewarded'); timer extended only on
- *                     reward callback
- *
- * Everything else (level gen, timer, path logic, win detection) is unchanged.
+ * New features:
+ *  • Coins earned on level complete (random 50–89)
+ *  • Win modal has 3 options: Retry / Next / 2x Coins (rewarded ad)
+ *  • Hint button uses CoinManager for hint state
+ *  • Coins & hints synced via CoinManager
  */
 
 import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
+  useState, useEffect, useRef, useCallback, useMemo,
 } from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Dimensions,
-  PanResponder,
-  Animated,
-  Platform,
-  StatusBar,
-  SafeAreaView,
-  InteractionManager,
+  View, Text, TouchableOpacity, Modal, ScrollView,
+  StyleSheet, Dimensions, PanResponder, Animated,
+  Platform, StatusBar, SafeAreaView, InteractionManager,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import Svg, { Line, Polyline, G } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -46,6 +23,9 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { generateLevel, wallKey, preloadLevelBatch, levelCache } from '../utils/levelGenerator';
 import AdManager from '../ads/AdManager';
 import Video from 'react-native-video';
+import {
+  getCoins, addCoins, getHints, addHints, spendHint, getLevelCoinReward,
+} from '../utils/CoinManager';
 
 // ─────────────────────────────────────────────
 // CONSTANTS & THEME
@@ -70,8 +50,6 @@ const COLORS = {
 
 const LS = {
   LEVEL: 'zipCurrentLevel',
-  HINTS: 'zipHintsV2',
-  BOUGHT: 'zipBoughtV2',
 };
 
 const MAX_TIME = 20;
@@ -85,13 +63,6 @@ async function getSavedLevel() {
 }
 async function saveCurrentLevel(n) {
   try { await AsyncStorage.setItem(LS.LEVEL, String(n)); } catch {}
-}
-async function getHintsStored() {
-  try { return Math.max(0, parseInt((await AsyncStorage.getItem(LS.HINTS)) || '0', 10)); }
-  catch { return 0; }
-}
-async function setHintsStored(n) {
-  try { await AsyncStorage.setItem(LS.HINTS, String(Math.max(0, n))); } catch {}
 }
 
 // ─────────────────────────────────────────────
@@ -111,11 +82,17 @@ export default function ZipGameScreen() {
   const [statusMsg, setStatusMsg] = useState('');
   const [statusType, setStatusType] = useState('');
 
-  // ── Hints ──
+  // ── Coins & Hints ──
+  const [coins, setCoinsState] = useState(0);
   const [hints, setHintsState] = useState(0);
+  const hintBtnLocked = useRef(false);
+
+  // ── Win coin reward ──
+  const [levelCoinReward, setLevelCoinReward] = useState(0);
+
+  // ── Hint cell ──
   const [hintCell, setHintCell] = useState(null);
   const hintPulse = useRef(new Animated.Value(1)).current;
-  const hintBtnLocked = useRef(false);
 
   // ── Timer ──
   const [timerSecs, setTimerSecs] = useState(0);
@@ -132,6 +109,8 @@ export default function ZipGameScreen() {
   const [showWin, setShowWin] = useState(false);
   const [showTimeUp, setShowTimeUp] = useState(false);
   const [showSkip, setShowSkip] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [paused, setPaused] = useState(false);
 
   // ── Win modal info ──
   const [winTime, setWinTime] = useState('0:00');
@@ -157,6 +136,14 @@ export default function ZipGameScreen() {
   useEffect(() => { levelDataRef.current = levelData; }, [levelData]);
 
   // ─────────────────────────────────────────────
+  // REFRESH COINS & HINTS
+  // ─────────────────────────────────────────────
+  const refreshBalance = useCallback(async () => {
+    setCoinsState(await getCoins());
+    setHintsState(await getHints());
+  }, []);
+
+  // ─────────────────────────────────────────────
   // TOAST
   // ─────────────────────────────────────────────
   const showToastMsg = useCallback((msg) => {
@@ -168,29 +155,6 @@ export default function ZipGameScreen() {
       Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
     ]).start();
   }, [toastOpacity]);
-
-  // ─────────────────────────────────────────────
-  // HINTS helpers
-  // ─────────────────────────────────────────────
-  const addHints = useCallback((n) => {
-    setHintsState(prev => {
-      const next = prev + n;
-      setHintsStored(next);
-      return next;
-    });
-  }, []);
-
-  const spendHintFn = useCallback(() => {
-    let spent = false;
-    setHintsState(prev => {
-      if (prev <= 0) return prev;
-      spent = true;
-      const next = prev - 1;
-      setHintsStored(next);
-      return next;
-    });
-    return spent;
-  }, []);
 
   // ─────────────────────────────────────────────
   // TIMER
@@ -260,7 +224,6 @@ export default function ZipGameScreen() {
     }
   }, []);
 
-  // Stable time-up handler (wired via ref to avoid stale closures in interval)
   const handleTimeUp = useCallback(() => {
     setStatus('Time is up! ⏰', 'bad');
     setShowTimeUp(true);
@@ -283,10 +246,7 @@ export default function ZipGameScreen() {
     timerStarted.current = false;
     setTimerSecs(0);
     setStatus(`Start from 1 · fill all ${lv.size * lv.size} cells`);
-
-    if (n % 10 === 0) {
-      preloadLevelBatch(n + 1);
-    }
+    if (n % 10 === 0) preloadLevelBatch(n + 1);
   }, [stopTimer, setStatus]);
 
   const loadLevel = useCallback((n) => {
@@ -320,8 +280,8 @@ export default function ZipGameScreen() {
   useEffect(() => {
     const params = route.params || {};
     (async () => {
-      const savedHints = await getHintsStored();
-      setHintsState(savedHints);
+      await refreshBalance();
+      checkFirstTimeUser();
 
       if (params.pregenLevelNum && params.pregenLevelData) {
         applyLevelData(params.pregenLevelNum, params.pregenLevelData);
@@ -344,6 +304,16 @@ export default function ZipGameScreen() {
     }
   }, [hintCell]);
 
+  const checkFirstTimeUser = async () => {
+    try {
+      const alreadySeen = await AsyncStorage.getItem('HOW_TO_PLAY_SHOWN');
+      if (!alreadySeen) {
+        setShowModal(true);
+        await AsyncStorage.setItem('HOW_TO_PLAY_SHOWN', 'true');
+      }
+    } catch (e) {}
+  };
+
   // ─────────────────────────────────────────────
   // WIN DETECTION
   // ─────────────────────────────────────────────
@@ -364,10 +334,17 @@ export default function ZipGameScreen() {
     setSolved(true); solvedRef.current = true;
     stopTimer(); setHintCell(null);
 
+    const coinReward = getLevelCoinReward();
+    setLevelCoinReward(coinReward);
+
     (async () => {
       const saved = await getSavedLevel();
       if (levelNum >= saved) await saveCurrentLevel(levelNum + 1);
-      if ((levelNum + 1) % 5 === 0) addHints(1);
+      // Hint bonus every 5 levels
+      if ((levelNum + 1) % 5 === 0) await addHints(1);
+      // Award coins
+      await addCoins(coinReward);
+      await refreshBalance();
     })();
 
     setTimerSecs(prev => {
@@ -377,12 +354,12 @@ export default function ZipGameScreen() {
     const isReward = (levelNum + 1) % 5 === 0;
     setWinSub(
       isReward
-        ? `All ${total} cells filled · ${nodes.length} nodes in order\n💡 Bonus: +1 Hint!`
-        : `All ${total} cells filled · ${nodes.length} nodes in order`,
+        ? `All ${total} cells filled · ${nodes.length} nodes\n💡 Bonus: +1 Hint!`
+        : `All ${total} cells filled · ${nodes.length} nodes`,
     );
     setStatus('Level complete! 🎉', 'good');
     setTimeout(() => setShowWin(true), 450);
-  }, [levelNum, stopTimer, addHints, setStatus]);
+  }, [levelNum, stopTimer, refreshBalance, setStatus]);
 
   // ─────────────────────────────────────────────
   // BOARD HELPERS / PAN RESPONDER
@@ -499,16 +476,17 @@ export default function ZipGameScreen() {
   // ─────────────────────────────────────────────
   // HINT
   // ─────────────────────────────────────────────
-  const useHint = useCallback(async () => {
+  const useHintAction = useCallback(async () => {
     if (hintBtnLocked.current || solvedRef.current) return;
 
     // If out of hints, show a rewarded ad to earn one
     if (hints <= 0) {
       setAdLoading(true);
       hintBtnLocked.current = true;
-      const rewarded = await AdManager.showAd('rewarded', () => {
-        addHints(1);
-        showToastMsg('💡 +1 Hints earned!');
+      const rewarded = await AdManager.showAd('rewarded', async () => {
+        await addHints(1);
+        await refreshBalance();
+        showToastMsg('💡 +1 Hint earned!');
       });
       setAdLoading(false);
       hintBtnLocked.current = false;
@@ -524,9 +502,12 @@ export default function ZipGameScreen() {
 
     if (pathRef.current.length === 0) {
       const [r, c] = solution[0].split(',').map(Number);
-      spendHintFn();
-      setHintCell({ r, c });
-      setStatus('Hint used · start at node 1');
+      const ok = await spendHint();
+      if (ok) {
+        await refreshBalance();
+        setHintCell({ r, c });
+        setStatus('Hint used · start at node 1');
+      }
       setTimeout(() => { hintBtnLocked.current = false; }, 200);
       return;
     }
@@ -559,27 +540,27 @@ export default function ZipGameScreen() {
 
     const nextKey = solution[solIdx + 1];
     const [r, c] = nextKey.split(',').map(Number);
-    spendHintFn();
-    setHintCell({ r, c });
-    setStatus(`Hint used · row ${r + 1}, col ${c + 1}`);
+    const ok = await spendHint();
+    if (ok) {
+      await refreshBalance();
+      setHintCell({ r, c });
+      setStatus(`Hint used · row ${r + 1}, col ${c + 1}`);
+    }
     setTimeout(() => { hintBtnLocked.current = false; }, 200);
-  }, [hints, spendHintFn, addHints, setStatus, showToastMsg]);
+  }, [hints, refreshBalance, setStatus, showToastMsg]);
 
   // ─────────────────────────────────────────────
   // SKIP  →  Rewarded Interstitial
-  // Level advances only if reward is earned.
   // ─────────────────────────────────────────────
   const triggerSkip = useCallback(async () => {
     setAdLoading(true);
     const rewarded = await AdManager.showAd('interReward', async () => {
-      // Reward callback: advance the level
       await goLevel(levelNum + 1);
       showToastMsg('Level skipped!');
     });
     setAdLoading(false);
 
     if (!rewarded) {
-      // Ad not available — fall back to the old countdown skip
       skipTimersRef.current.forEach(clearTimeout);
       skipTimersRef.current = [];
       setSkipCount(5);
@@ -617,60 +598,41 @@ export default function ZipGameScreen() {
   // ─────────────────────────────────────────────
   // WIN MODAL BUTTONS
   // ─────────────────────────────────────────────
-
-  // Retry → Interstitial, then reset
   const handleRetry = useCallback(async () => {
     setShowWin(false);
     setAdLoading(true);
-    await AdManager.showAd('inter'); // fire-and-forget; game continues either way
+    await AdManager.showAd('inter');
     setAdLoading(false);
     resetLevel();
   }, [resetLevel]);
 
-  const [showModal, setShowModal] = useState(false);
-  const [paused, setPaused] = useState(false);
-  
-  useEffect(() => {
-    checkFirstTimeUser();
-  }, []);
-
-  // ✅ Check first time
-  const checkFirstTimeUser = async () => {
-    try {
-      const alreadySeen = await AsyncStorage.getItem("HOW_TO_PLAY_SHOWN");
-
-      if (!alreadySeen) {
-        setShowModal(true);
-
-        // Save so next time not auto open
-        await AsyncStorage.setItem("HOW_TO_PLAY_SHOWN", "true");
-      }
-    } catch (e) {
-      console.log("Error:", e);
-    }
-  };
-
-  // ✅ Button click
-  const handleShowHowWork = () => {
-    setShowModal(true);
-  };
-
-  // Next → Interstitial, then advance
   const handleNext = useCallback(async () => {
     setShowWin(false);
     setAdLoading(true);
     await AdManager.showAd('inter');
     setAdLoading(false);
-    setLevelData(true)
     goLevel(levelNum + 1);
-    setLevelData(false)
   }, [levelNum, goLevel]);
+
+  // 2x Coins — rewarded ad
+  const handle2xCoins = useCallback(async () => {
+    setAdLoading(true);
+    const rewarded = await AdManager.showAd('rewarded', async () => {
+      await addCoins(levelCoinReward); // add the same amount again = 2x total
+      await refreshBalance();
+      showToastMsg(`🪙 ×2 Coins! +${levelCoinReward} extra!`);
+    });
+    setAdLoading(false);
+    if (!rewarded) {
+      showToastMsg('Ad not available — try again later.');
+    }
+    setShowWin(false);
+    goLevel(levelNum + 1);
+  }, [levelNum, levelCoinReward, goLevel, refreshBalance, showToastMsg]);
 
   // ─────────────────────────────────────────────
   // TIME UP MODAL BUTTONS
   // ─────────────────────────────────────────────
-
-  // Retry from Time Up → Interstitial, then reset
   const handleTimeUpRetry = useCallback(async () => {
     setShowTimeUp(false);
     setAdLoading(true);
@@ -679,7 +641,6 @@ export default function ZipGameScreen() {
     resetLevel();
   }, [resetLevel]);
 
-  // +15 seconds → Rewarded ad; timer extended only on reward
   const handleWatchForTime = useCallback(async () => {
     setShowTimeUp(false);
     setAdLoading(true);
@@ -696,7 +657,6 @@ export default function ZipGameScreen() {
 
     if (!rewarded) {
       showToastMsg('Ad not available — try again later.');
-      // Still give them a chance to retry
       setShowTimeUp(true);
     }
   }, [resumeTimer, showToastMsg]);
@@ -706,9 +666,9 @@ export default function ZipGameScreen() {
   // ─────────────────────────────────────────────
   if (!levelData) {
     return (
-      <SafeAreaView style={[s.root,{alignItems: 'center', width:'100%', justifyContent:'center',}]}>
+      <SafeAreaView style={[s.root, { alignItems: 'center', justifyContent: 'center' }]}>
         <ActivityIndicator color={COLORS.muted} size="large" />
-        <Text style={{ color: COLORS.muted, marginTop: 5, textAlign: 'center',}}>Loading…</Text>
+        <Text style={{ color: COLORS.muted, marginTop: 5, textAlign: 'center' }}>Loading…</Text>
       </SafeAreaView>
     );
   }
@@ -749,17 +709,26 @@ export default function ZipGameScreen() {
 
       {/* ── Top bar ── */}
       <View style={s.topbar}>
-        <TouchableOpacity style={s.navBtn} onPress={() => navigation.goBack()}>
+        <TouchableOpacity style={s.navBtn} onPress={() => 
+          navigation.goBack()
+          }>
           <Text style={s.navBtnText}>‹</Text>
         </TouchableOpacity>
         <Text style={s.timer}>⏱ {fmtTime(timerSecs)}</Text>
         <View style={s.levelBadge}>
           <Text style={s.levelBadgeText}>Level {levelNum}</Text>
         </View>
-        <TouchableOpacity style={s.navBtn} onPress={handleRetry}>
+        {/* Balance chips */}
+        <View style={s.balChip}>
+          <Text style={s.balChipText}>🪙{coins}</Text>
+        </View>
+        {/* <View style={s.balChip}>
+          <Text style={s.balChipText}>💡{hints}</Text>
+        </View> */}
+        {/* <TouchableOpacity style={s.navBtn} onPress={handleRetry}>
           <Text style={s.navBtnText}>↺</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={s.navBtn} onPress={handleShowHowWork}>
+        </TouchableOpacity> */}
+        <TouchableOpacity style={s.navBtn} onPress={() => setShowModal(true)}>
           <Text style={s.navBtnText}>?</Text>
         </TouchableOpacity>
       </View>
@@ -850,14 +819,22 @@ export default function ZipGameScreen() {
       {/* ── Bottom bar ── */}
       <View style={s.bottomBar}>
         <TouchableOpacity
+          style={[s.actionBtn]}
+          onPress={handleRetry}>
+          <Text style={s.navBtnText}>↺</Text>
+        </TouchableOpacity>
+         {/* <TouchableOpacity style={s.navBtn} onPress={handleRetry}>
+          <Text style={s.navBtnText}>↺</Text>
+        </TouchableOpacity> */}
+        {/* <TouchableOpacity
           style={[s.actionBtn, path.length === 0 && s.actionBtnDisabled]}
           onPress={undoStep} disabled={path.length === 0}>
           <Text style={s.actionBtnText}>Undo</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <TouchableOpacity
           style={[s.actionBtn, s.actionBtnPrimary, adLoading && s.actionBtnDisabled]}
-          onPress={useHint} disabled={adLoading}>
+          onPress={useHintAction} disabled={adLoading}>
           <Text style={s.actionBtnTextPrimary}>Hint </Text>
           <View style={[s.hintBadge, hints === 0 && s.hintBadgeEmpty]}>
             <Text style={s.hintBadgeText}>{hints > 999 ? '999+' : hints}</Text>
@@ -879,6 +856,12 @@ export default function ZipGameScreen() {
             <Text style={s.modalTitle}>Level Complete!</Text>
             <Text style={s.modalSub}>{winSub}</Text>
             <Text style={s.winTime}>{winTime}</Text>
+
+            {/* Coin reward earned */}
+            <View style={s.coinRewardBadge}>
+              <Text style={s.coinRewardText}>🪙 +{levelCoinReward} Coins Earned!</Text>
+            </View>
+
             {(() => {
               const remaining = 5 - ((levelNum + 1) % 5 || 5);
               const isReward = (levelNum + 1) % 5 === 0;
@@ -887,11 +870,12 @@ export default function ZipGameScreen() {
                   <Text style={s.hintRewardText}>
                     {isReward
                       ? '💡 +1 Hint earned!'
-                      : `Complete ${remaining} more level${remaining > 1 ? 's' : ''} to get 1 hint`}
+                      : `${remaining} more level${remaining > 1 ? 's' : ''} for a hint`}
                   </Text>
                 </View>
               );
             })()}
+
             <View style={s.modalActions}>
               {/* Retry → Interstitial */}
               <TouchableOpacity style={[s.mbtn, s.mbtnGhost]} onPress={handleRetry}>
@@ -902,6 +886,22 @@ export default function ZipGameScreen() {
                 <Text style={s.mbtnTextLight}>Next →</Text>
               </TouchableOpacity>
             </View>
+
+            {/* 2x Coins rewarded ad */}
+            <TouchableOpacity
+              style={[s.mbtn, s.mbtn2x, { marginTop: 8, marginBottom:25 }]}
+              onPress={handle2xCoins}
+              disabled={adLoading}
+              activeOpacity={0.85}
+            >
+              <Text
+                style={s.mbtn2xText}
+                numberOfLines={2}
+                adjustsFontSizeToFit
+              >
+                📺 Watch Ad · 2× Coins (+{levelCoinReward})
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -914,11 +914,9 @@ export default function ZipGameScreen() {
             <Text style={s.modalTitle}>Time's Up!</Text>
             <Text style={s.modalSub}>Your time has run out</Text>
             <View style={s.modalActions}>
-              {/* Retry → Interstitial */}
               <TouchableOpacity style={[s.mbtn, s.mbtnGhost, { width: 70 }]} onPress={handleTimeUpRetry}>
                 <Text style={s.mbtnTextLight}>↺ Retry</Text>
               </TouchableOpacity>
-              {/* +15 sec → Rewarded */}
               <TouchableOpacity style={[s.mbtn, s.mbtnAccent]} onPress={handleWatchForTime}>
                 <Text style={s.mbtnTextLight}>📺 Watch Ad +15s</Text>
               </TouchableOpacity>
@@ -927,7 +925,7 @@ export default function ZipGameScreen() {
         </View>
       </Modal>
 
-      {/* ══ SKIP COUNTDOWN MODAL (fallback when no ad available) ══ */}
+      {/* ══ SKIP COUNTDOWN MODAL ══ */}
       <Modal visible={showSkip} transparent animationType="fade">
         <View style={s.overlay}>
           <View style={s.modalCard}>
@@ -945,14 +943,13 @@ export default function ZipGameScreen() {
         </View>
       </Modal>
 
-       {/* ✅ Modal */}
+      {/* ✅ How To Play Modal */}
       <Modal visible={showModal} animationType="slide" transparent={true}>
-        <View style={s.container}>
-          <View style={s.modalBox}>
-            <Text style={s.modalTitle}>How it's Play</Text>
-            {/* 🎥 Video */}
+        <View style={s.htpOverlay}>
+          <View style={s.htpBox}>
+            <Text style={s.modalTitle}>How to Play</Text>
             <Video
-              source={require("../assets/howitwork.mp4")}
+              source={require('../assets/howitwork.mp4')}
               style={s.video}
               muted={true}
               controls={false}
@@ -960,24 +957,9 @@ export default function ZipGameScreen() {
               repeat={true}
               paused={paused}
             />
-
-            {/* ▶️ Play / Pause Button */}
-            {/* <TouchableOpacity
-              style={s.closeBtn}
-              onPress={() => setPaused(!paused)}
-            >
-              <Text style={{ color: "#000" }}>
-                {paused ? "Play" : "Pause"}
-              </Text>
-            </TouchableOpacity> */}
-            {/* Close Button */}
-            <TouchableOpacity
-              style={s.closeBtn}
-              onPress={() => setShowModal(false)}
-            >
-              <Text style={{ color: "#000" }}>Close</Text>
+            <TouchableOpacity style={s.closeBtn} onPress={() => setShowModal(false)}>
+              <Text style={{ color: '#000', fontWeight: '700' }}>Close</Text>
             </TouchableOpacity>
-
           </View>
         </View>
       </Modal>
@@ -1003,28 +985,33 @@ const s = StyleSheet.create({
   adOverlayText: { color: COLORS.muted, marginTop: 12, fontSize: 14 },
   topbar: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 20, paddingVertical: 14,
-    gap: 12, justifyContent: 'space-between',
-    borderBottomWidth: 1, borderBottomColor: COLORS.border, backgroundColor: COLORS.bg,
+    paddingHorizontal: 12, paddingVertical: 10,
+    gap: 8, justifyContent: 'space-between',
+    borderBottomWidth: 1, borderBottomColor: COLORS.border,
   },
   timer: {
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 14, color: COLORS.muted, flex: 1,
+    fontSize: 13, color: COLORS.muted,
   },
   levelBadge: {
     borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 20,
-    paddingHorizontal: 12, paddingVertical: 4, backgroundColor: COLORS.surfaceRaised,
+    paddingHorizontal: 10, paddingVertical: 4, backgroundColor: COLORS.surfaceRaised,
   },
   levelBadgeText: {
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 12, color: COLORS.textSub, fontWeight: '600',
+    fontSize: 11, color: COLORS.textSub, fontWeight: '600',
   },
+  balChip: {
+    backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.border,
+    borderRadius: 14, paddingHorizontal: 8, paddingVertical: 4,
+  },
+  balChipText: { fontSize: 11, fontWeight: '700', color: COLORS.text },
   navBtn: {
-    width: 36, height: 36, borderRadius: 18, borderWidth: 1.5,
+    width: 32, height: 32, borderRadius: 16, borderWidth: 1.5,
     borderColor: COLORS.border, backgroundColor: COLORS.surfaceRaised,
     alignItems: 'center', justifyContent: 'center',
   },
-  navBtnText: { fontSize: 18, color: COLORS.textSub, lineHeight: 22 },
+  navBtnText: { fontSize: 16, color: COLORS.textSub, lineHeight: 20 },
   boardArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
   boardOuter: {
     backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border,
@@ -1043,7 +1030,7 @@ const s = StyleSheet.create({
     borderTopWidth: 1, borderTopColor: COLORS.border, backgroundColor: COLORS.bg,
   },
   actionBtn: {
-    flex: 1, paddingVertical: 13, borderRadius: 40, borderWidth: 1.5,
+    flex: 1, paddingVertical: 10, borderRadius: 40, borderWidth: 1.5,
     borderColor: COLORS.border, backgroundColor: COLORS.surfaceRaised,
     alignItems: 'center', justifyContent: 'center', flexDirection: 'row',
   },
@@ -1054,7 +1041,7 @@ const s = StyleSheet.create({
   actionBtnTextPrimary: { fontSize: 14, fontWeight: '500', color: COLORS.bg },
   hintBadge: {
     backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 10,
-    paddingHorizontal: 7, paddingVertical: 1, minWidth: 22, alignItems: 'center',
+    paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center',
   },
   hintBadgeEmpty: { opacity: 0.6 },
   hintBadgeText: {
@@ -1067,7 +1054,7 @@ const s = StyleSheet.create({
   },
   modalCard: {
     backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border,
-    borderRadius: 24, padding: 28, width: '100%', maxWidth: 380,
+    borderRadius: 24, padding: 24, width: '100%', maxWidth: 380,
     shadowColor: '#000', shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.4, shadowRadius: 24, elevation: 12,
   },
@@ -1076,15 +1063,21 @@ const s = StyleSheet.create({
   modalSub: { color: COLORS.muted, fontSize: 13, textAlign: 'center' },
   winTime: {
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 16, color: COLORS.accent, textAlign: 'center', marginVertical: 8,
+    fontSize: 16, color: COLORS.accent, textAlign: 'center', marginVertical: 6,
   },
+  coinRewardBadge: {
+    alignSelf: 'center', backgroundColor: 'rgba(251,191,36,0.15)',
+    borderWidth: 1.5, borderColor: COLORS.warn, borderRadius: 20,
+    paddingHorizontal: 16, paddingVertical: 6, marginTop: 6, marginBottom: 4,
+  },
+  coinRewardText: { color: COLORS.warn, fontWeight: '800', fontSize: 15 },
   hintRewardTag: {
-    alignSelf: 'center', backgroundColor: 'rgba(52,211,153,0.15)',
+    alignSelf: 'center', backgroundColor: 'rgba(52,211,153,0.12)',
     borderWidth: 1.5, borderColor: COLORS.good, borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 4, marginTop: 8, marginBottom: 16,
+    paddingHorizontal: 14, paddingVertical: 4, marginTop: 6, marginBottom: 14,
   },
-  hintRewardText: { color: COLORS.good, fontWeight: '700', fontSize: 13 },
-  modalActions: { flexDirection: 'row', gap: 10, marginTop: 18 },
+  hintRewardText: { color: COLORS.good, fontWeight: '700', fontSize: 12 },
+  modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   mbtn: {
     flex: 1, paddingVertical: 13, borderRadius: 40,
     alignItems: 'center', justifyContent: 'center',
@@ -1092,6 +1085,25 @@ const s = StyleSheet.create({
   },
   mbtnGhost: { backgroundColor: COLORS.surfaceRaised },
   mbtnAccent: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  mbtn2x: {
+    backgroundColor: 'rgba(251,191,36,0.15)',
+    borderColor: COLORS.warn,
+    borderWidth: 1.5,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
+  },
+
+  mbtn2xText: {
+    color: COLORS.warn,
+    fontWeight: '800',
+    fontSize: 14,
+    textAlign: 'center',
+    flexShrink: 1,
+  },
   mbtnTextLight: { fontSize: 14, fontWeight: '600', color: COLORS.text },
   skipCountWrap: {
     width: 72, height: 72, borderRadius: 36,
@@ -1104,30 +1116,18 @@ const s = StyleSheet.create({
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     fontSize: 28, fontWeight: '500', color: '#fb923c',
   },
-  container: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
+  htpOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center', alignItems: 'center',
   },
-  modalBox: {
-    width: "90%",
-    backgroundColor: COLORS.surface,
-    borderRadius: 10,
-    padding: 10,
+  htpBox: {
+    width: '90%', backgroundColor: COLORS.surface,
+    borderRadius: 10, padding: 10,
   },
-  video: {
-    width: "100%",
-    height: 200,
-    borderRadius:15,
-    overflow:'hidden'
-  },
+  video: { width: '100%', height: 200, borderRadius: 15, overflow: 'hidden' },
   closeBtn: {
-    marginTop: 10,
-    backgroundColor: COLORS.accent,
-    padding: 10,
-    alignItems: "center",
-    borderRadius: 5,
+    marginTop: 10, backgroundColor: COLORS.accent,
+    padding: 10, alignItems: 'center', borderRadius: 5,
   },
   toast: {
     position: 'absolute', bottom: 80, alignSelf: 'center',

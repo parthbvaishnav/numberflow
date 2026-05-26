@@ -28,7 +28,7 @@ class NotificationService {
           'Push ID:',
           OneSignal.User.pushSubscription.getId()
         );
-
+ 
         console.log(
           'Push Token:',
           OneSignal.User.pushSubscription.getToken()
