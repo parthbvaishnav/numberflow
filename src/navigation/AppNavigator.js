@@ -13,6 +13,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import HomeScreen from '../screens/HomeScreen';
 import ZipGameScreen from '../screens/ZipGameScreen';
+import SpinWheelScreen from '../screens/SpinWheelScreen';
 
 import RemoteConfigService from '../services/RemoteConfigService';
 import AppOpenAdManager from '../ads/Appopenadmanager';
@@ -43,6 +44,7 @@ export default function AppNavigator() {
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Game" component={ZipGameScreen} />
+            <Stack.Screen name="SpinWheel" component={SpinWheelScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </View>
