@@ -53,9 +53,9 @@ export default function SpinWheel({ onResult, disabled,  }) {
     try {
       setSpinning(true);
 
-      // Rewarded Interstitial show
+      // Rewarded show
       const adShown = await AdManager.showAd(
-        'interReward',
+        'rewarded',
         () => {
           console.log('Reward earned');
         }

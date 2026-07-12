@@ -20,19 +20,18 @@ class RemoteConfigService {
 
   _initialized = false;
 
-  constructor() {
-
-    const app = getApp();
-
-    this.remoteConfig =
-      getRemoteConfig(app);
-  }
+  remoteConfig = null;
 
   async init() {
 
     if (this._initialized) return;
 
     try {
+
+      const app = getApp();
+
+      this.remoteConfig =
+        getRemoteConfig(app);
 
       // Check internet
       const netState =

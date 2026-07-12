@@ -13,33 +13,33 @@ const KEYS = {
 
 // ── Daily reward schedule ──────────────────────────────────────────────────
 export const DAILY_REWARDS = [
-  { day: 1, coins: 50, hints: 0 },
-  { day: 2, coins: 0,  hints: 1 },
-  { day: 3, coins: 65, hints: 0 },
-  { day: 4, coins: 85, hints: 0 },
-  { day: 5, coins: 85, hints: 1 },
-  { day: 6, coins: 95, hints: 2 },
-  { day: 7, coins: 105, hints: 3 },
+  { day: 1, coins: 30, hints: 0 },
+  { day: 2, coins: 0, hints: 1 },
+  { day: 3, coins: 40, hints: 0 },
+  { day: 4, coins: 0, hints: 2 },
+  { day: 5, coins: 50, hints: 0 },
+  { day: 6, coins: 0, hints: 3 },
+  { day: 7, coins: 30, hints: 4 },
 ];
 
 // ── Hint purchase plans ────────────────────────────────────────────────────
 export const HINT_PLANS = [
-  { id: 'h1', coins: 69,  hints: 2  },
-  { id: 'h2', coins: 119, hints: 3  },
-  { id: 'h3', coins: 229, hints: 4  },
-  { id: 'h4', coins: 449, hints: 6  },
-  { id: 'h5', coins: 849, hints: 8  },
+  { id: 'h1', coins: 169, hints: 2 },
+  { id: 'h2', coins: 219, hints: 3 },
+  { id: 'h3', coins: 429, hints: 4 },
+  { id: 'h4', coins: 649, hints: 6 },
+  { id: 'h5', coins: 949, hints: 8 },
 ];
 
 // ── Spin wheel segments ────────────────────────────────────────────────────
 export const SPIN_SEGMENTS = [
-  { label: '50 Coins',  type: 'coins', value: 50,  color: '#f59e0b' },
-  { label: '1 Hint',    type: 'hints', value: 1,   color: '#34d399' },
-  { label: '25 Coins',  type: 'coins', value: 25,  color: '#60a5fa' },
-  { label: '2 Hints',   type: 'hints', value: 2,   color: '#a78bfa' },
+  { label: '50 Coins', type: 'coins', value: 50, color: '#f59e0b' },
+  { label: '1 Hint', type: 'hints', value: 1, color: '#34d399' },
+  { label: '25 Coins', type: 'coins', value: 25, color: '#60a5fa' },
+  { label: '2 Hints', type: 'hints', value: 2, color: '#a78bfa' },
   { label: '100 Coins', type: 'coins', value: 100, color: '#fb923c' },
-  { label: '75 Coins',  type: 'coins', value: 75,  color: '#f472b6' },
-  { label: '3 Hints',   type: 'hints', value: 3,   color: '#4ade80' },
+  { label: '75 Coins', type: 'coins', value: 75, color: '#f472b6' },
+  { label: '3 Hints', type: 'hints', value: 3, color: '#4ade80' },
   { label: '150 Coins', type: 'coins', value: 150, color: '#fbbf24' },
 ];
 
@@ -51,7 +51,7 @@ export async function getCoins() {
 }
 
 export async function setCoins(n) {
-  try { await AsyncStorage.setItem(KEYS.COINS, String(Math.max(0, n))); } catch {}
+  try { await AsyncStorage.setItem(KEYS.COINS, String(Math.max(0, n))); } catch { }
 }
 
 export async function addCoins(amount) {
@@ -76,7 +76,7 @@ export async function getHints() {
 }
 
 export async function setHints(n) {
-  try { await AsyncStorage.setItem(KEYS.HINTS, String(Math.max(0, n))); } catch {}
+  try { await AsyncStorage.setItem(KEYS.HINTS, String(Math.max(0, n))); } catch { }
 }
 
 export async function addHints(amount) {
@@ -159,7 +159,7 @@ export async function canSpin() {
 export async function recordSpin() {
   try {
     await AsyncStorage.setItem(KEYS.SPIN_LAST, String(Date.now()));
-  } catch {}
+  } catch { }
 }
 
 export async function getSpinTimeRemaining() {
@@ -214,7 +214,7 @@ export async function recordRewardAd() {
       KEYS.REWARD_AD_LAST,
       String(Date.now())
     );
-  } catch {}
+  } catch { }
 }
 
 export async function getRewardAdRemaining() {
@@ -228,7 +228,7 @@ export async function getRewardAdRemaining() {
 
     const elapsed =
       Date.now() -
-      parseInt(last,10);
+      parseInt(last, 10);
 
     return Math.max(
       0,

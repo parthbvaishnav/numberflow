@@ -61,11 +61,15 @@ export function generateLevel(levelNum) {
     rng,
   );
 
+  const maxSteps = 3000;
   for (const [sr, sc] of startCandidates.slice(0, 8)) {
     const visited = Array.from({ length: size }, () => new Array(size).fill(false));
     const result = [];
+    let steps = 0;
 
     function dfs(r, c) {
+      steps++;
+      if (steps > maxSteps) return false;
       visited[r][c] = true;
       result.push(`${r},${c}`);
       if (result.length === total) return true;

@@ -26,12 +26,12 @@ class NotificationService {
 
         console.log(
           'Push ID:',
-          OneSignal.User.pushSubscription.getId()
+          OneSignal.User.pushSubscription.id
         );
  
         console.log(
           'Push Token:',
-          OneSignal.User.pushSubscription.getToken()
+          OneSignal.User.pushSubscription.token
         );
       });
 
@@ -96,7 +96,7 @@ class NotificationService {
 
     try {
 
-      return OneSignal.User.pushSubscription.getId();
+      return OneSignal.User.pushSubscription.id;
 
     } catch (e) {
 

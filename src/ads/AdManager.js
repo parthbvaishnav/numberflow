@@ -73,6 +73,12 @@ class AdManager {
 
       if (shown) {
         console.log(`[AdManager] ${ad.provider} showed "${type}" successfully.`);
+        try {
+          const { incrementMissionProgress } = require('../utils/ProfileManager');
+          incrementMissionProgress('ads', 1);
+        } catch (e) {
+          console.warn('[AdManager] failed to increment ad progress:', e);
+        }
         break;
       } else {
         console.log(`[AdManager] ${ad.provider} failed for "${type}" — trying fallback…`);

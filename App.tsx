@@ -3,6 +3,7 @@ import { AppState } from "react-native";
 import AppNavigator from "./src/navigation/AppNavigator";
 import RemoteConfigService from './src/services/RemoteConfigService';
 import notificationService from './src/services/NotificationServices';
+import { ThemeProvider } from './src/constants/theme';
 
 export default function App() {
   useEffect(() => {
@@ -29,7 +30,11 @@ export default function App() {
     };
   }, []);
 
-  return <AppNavigator />;
+  return (
+    <ThemeProvider>
+      <AppNavigator />
+    </ThemeProvider>
+  );
 }
 
 // import React from "react";

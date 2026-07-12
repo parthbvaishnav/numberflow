@@ -8,10 +8,13 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import LinearGradient from 'react-native-linear-gradient';
 import Ionicons from '@react-native-vector-icons/ionicons';
+import { useTheme } from '../constants/theme';
 
 import {
   getDailyRewardStatus,
@@ -20,25 +23,27 @@ import {
   formatCountdown,
 } from '../utils/CoinManager';
 
-const COLORS = {
-  bg: '#0f1923',
-  surface: '#16212b',
-  border: '#2a3a4a',
-  text: '#f0f6ff',
-  muted: '#6a8fa8',
-  accent: '#4da9ff',
-  good: '#34d399',
-  warn: '#fbbf24',
-};
+import AdManager from '../ads/AdManager';
+import RemoteConfigService from '../services/RemoteConfigService';
+import { isAdEnabled } from '../ads/AdSelector';
+
+
+
 
 export default function DailyRewardModal({
   visible,
   onClose,
   onClaimed,
 }) {
+  const { theme } = useTheme();
+  const styles = getStyles(theme);
+  const good = theme.good || '#34d399';
+  const warn = theme.warn || '#fbbf24';
+  const bad = theme.bad || '#f87171';
   const [status, setStatus] = useState(null);
   const [claimed, setClaimed] = useState(null);
   const [countdown, setCountdown] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (visible) {
@@ -96,17 +101,50 @@ export default function DailyRewardModal({
   };
 
   const handleClaim = async () => {
-    const result = await claimDailyReward();
+    if (loading) return;
+    setLoading(true);
 
-    if (result) {
-      setClaimed(result);
+    try {
+      const config = RemoteConfigService.getAdsConfig();
+      const rewardedEnabled = isAdEnabled('rewarded', config);
 
-      onClaimed && onClaimed(result);
+      if (rewardedEnabled) {
+        let claimResult = null;
+        const ok = await AdManager.showAd('rewarded', async () => {
+          claimResult = await claimDailyReward();
+        });
 
-      setTimeout(() => {
-        setClaimed(null);
-        onClose && onClose();
-      }, 2200);
+        if (ok && claimResult) {
+          setClaimed(claimResult);
+          onClaimed && onClaimed(claimResult);
+
+          setTimeout(() => {
+            setClaimed(null);
+            onClose && onClose();
+          }, 2200);
+        } else if (!ok) {
+          Alert.alert(
+            'Ad Error',
+            'Ad not available or was closed early. Try again later.'
+          );
+        }
+      } else {
+        const result = await claimDailyReward();
+        if (result) {
+          setClaimed(result);
+          onClaimed && onClaimed(result);
+
+          setTimeout(() => {
+            setClaimed(null);
+            onClose && onClose();
+          }, 2200);
+        }
+      }
+    } catch (e) {
+      console.warn('[DailyRewardModal] claim error:', e);
+      Alert.alert('Error', 'Something went wrong while claiming your reward.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -152,7 +190,7 @@ export default function DailyRewardModal({
                     <Ionicons
                       name="close-circle"
                       size={28}
-                      color={COLORS.accent}
+                      color={theme.primary}
                       style={styles.topIcon}
                     />
                 </TouchableOpacity>
@@ -192,7 +230,7 @@ export default function DailyRewardModal({
                         <Ionicons
                           name="checkmark-circle"
                           size={18}
-                          color={COLORS.good}
+                          color={good}
                           style={styles.topIcon}
                         />
                       )}
@@ -201,7 +239,7 @@ export default function DailyRewardModal({
                         <Ionicons
                           name="lock-closed-outline"
                           size={16}
-                          color={COLORS.accent}
+                          color={theme.primary}
                           style={styles.topIcon}
                         />
                       )}
@@ -245,28 +283,34 @@ export default function DailyRewardModal({
                         <TouchableOpacity
                           disabled={
                             !isToday ||
-                            !status?.canClaim
+                            !status?.canClaim ||
+                            loading
                           }
                           onPress={handleClaim}
                           style={[
                             styles.collectBtn,
                             (!isToday ||
-                              !status?.canClaim) &&
+                              !status?.canClaim ||
+                              loading) &&
                               styles.disabledBtn,
                           ]}
                         >
-                          <Text
-                            style={[
-                              styles.collectText,
-                              (!isToday ||
-                                !status?.canClaim) &&
-                                styles.disabledText,
-                            ]}
-                          >
-                            {status?.canClaim
-                              ? 'Collect'
-                              : 'Wait'}
-                          </Text>
+                          {loading && isToday ? (
+                            <ActivityIndicator size="small" color="#fff" />
+                          ) : (
+                            <Text
+                              style={[
+                                styles.collectText,
+                                (!isToday ||
+                                  !status?.canClaim) &&
+                                  styles.disabledText,
+                              ]}
+                            >
+                              {status?.canClaim
+                                ? 'Collect'
+                                : 'Wait'}
+                            </Text>
+                          )}
                         </TouchableOpacity>
                       )}
                     </LinearGradient>
@@ -306,7 +350,11 @@ export default function DailyRewardModal({
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => {
+  const good = theme.good || '#34d399';
+  const warn = theme.warn || '#fbbf24';
+  const bad = theme.bad || '#f87171';
+  return StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.85)',
@@ -317,13 +365,13 @@ const styles = StyleSheet.create({
 
   container: {
     width: '100%',
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 22,
     padding: 10,
     borderWidth: 1,
     borderColor: '#4da9ff40',
 
-    shadowColor: COLORS.accent,
+    shadowColor: theme.primary,
     shadowOffset: {
       width: 0,
       height: 0,
@@ -336,13 +384,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '800',
-    color: COLORS.text,
+    color: theme.text,
     // textAlign: 'center',
   },
 
   subTitle: {
     fontSize: 13,
-    color: COLORS.muted,
+    color: theme.muted,
     // textAlign: 'center',
     marginTop: 6,
     marginBottom: 20,
@@ -365,8 +413,8 @@ const styles = StyleSheet.create({
   },
 
   activeCard: {
-    borderColor: COLORS.accent,
-    shadowColor: COLORS.accent,
+    borderColor: theme.primary,
+    shadowColor: theme.primary,
     shadowOpacity: 0.6,
     shadowRadius: 10,
   },
@@ -389,23 +437,23 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 16,
     fontWeight: '800',
-    color: COLORS.text,
+    color: theme.text,
   },
 
   label: {
     fontSize: 10,
-    color: COLORS.muted,
+    color: theme.muted,
   },
 
   dayText: {
     fontSize: 10,
-    color: COLORS.muted,
+    color: theme.muted,
     marginBottom: 2,
     // marginTop: 4,
   },
 
   collectBtn: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: theme.primary,
     paddingVertical: 5,
     paddingHorizontal: 14,
     borderRadius: 8,
@@ -444,12 +492,12 @@ const styles = StyleSheet.create({
   },
 
   countdownLabel: {
-    color: COLORS.muted,
+    color: theme.muted,
     fontSize: 12,
   },
 
   countdown: {
-    color: COLORS.warn,
+    color: warn,
     fontSize: 26,
     fontWeight: '800',
     marginTop: 6,
@@ -461,7 +509,7 @@ const styles = StyleSheet.create({
   },
 
   closeBtnText: {
-    color: COLORS.muted,
+    color: theme.muted,
     fontSize: 14,
   },
 
@@ -476,16 +524,17 @@ const styles = StyleSheet.create({
   },
 
   claimedTitle: {
-    color: COLORS.text,
+    color: theme.text,
     fontSize: 24,
     fontWeight: '800',
     marginBottom: 10,
   },
 
   claimedLine: {
-    color: COLORS.good,
+    color: good,
     fontSize: 20,
     marginTop: 6,
     fontWeight: '700',
   },
-});
+  });
+};

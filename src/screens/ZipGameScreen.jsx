@@ -12,6 +12,9 @@ import React, {
   useState, useEffect, useRef, useCallback, useMemo,
 } from 'react';
 import {
+  completeLevel, incrementMissionProgress,
+} from '../utils/ProfileManager';
+import {
   View, Text, TouchableOpacity, Modal, ScrollView,
   StyleSheet, Dimensions, PanResponder, Animated,
   Platform, StatusBar, SafeAreaView, InteractionManager,
@@ -21,6 +24,7 @@ import Svg, { Line, Polyline, G } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { generateLevel, wallKey, preloadLevelBatch, levelCache } from '../utils/levelGenerator';
+import { useTheme } from '../constants/theme';
 import AdManager from '../ads/AdManager';
 import Video from 'react-native-video';
 import {
@@ -30,23 +34,7 @@ import {
 // ─────────────────────────────────────────────
 // CONSTANTS & THEME
 // ─────────────────────────────────────────────
-const COLORS = {
-  bg:            '#0f1923',
-  surface:       '#16212b',
-  surfaceRaised: '#1c2d3a',
-  border:        '#2a3a4a',
-  borderStrong:  '#3a4f63',
-  text:          '#f0f6ff',
-  textSub:       '#c8dcea',
-  muted:         '#6a8fa8',
-  accent:        '#4da9ff',
-  accentLight:   '#8ecbff',
-  accentFill:    'rgba(77,169,255,0.18)',
-  good:          '#34d399',
-  bad:           '#f87171',
-  warn:          '#fbbf24',
-  overlay:       'rgba(10,18,26,0.88)',
-};
+
 
 const LS = {
   LEVEL: 'zipCurrentLevel',
@@ -69,10 +57,16 @@ async function saveCurrentLevel(n) {
 // MAIN COMPONENT
 // ─────────────────────────────────────────────
 export default function ZipGameScreen() {
+  const { theme } = useTheme();
+  const s = getStyles(theme);
+  const good = theme.good || '#34d399';
+  const warn = theme.warn || '#fbbf24';
+  const bad = theme.bad || '#f87171';
   const screenWidth = Dimensions.get('window').width;
   const CELL = Math.floor((screenWidth - 48) / 6);
   const navigation = useNavigation();
   const route = useRoute();
+  const usedHintThisLevel = useRef(false);
 
   // ── Game state ──
   const [levelNum, setLevelNum] = useState(1);
@@ -240,11 +234,13 @@ export default function ZipGameScreen() {
     levelDataRef.current = lv;
     setPath([]); pathRef.current = [];
     setSolved(false); solvedRef.current = false;
+    usedHintThisLevel.current = false;
     setHintCell(null); hintBtnLocked.current = false;
     setShowWin(false); setShowTimeUp(false);
     setExtraTime(0); extraTimeRef.current = 0;
     timerStarted.current = false;
     setTimerSecs(0);
+    usedHintThisLevel.current = false;
     setStatus(`Start from 1 · fill all ${lv.size * lv.size} cells`);
     if (n % 10 === 0) preloadLevelBatch(n + 1);
   }, [stopTimer, setStatus]);
@@ -344,6 +340,16 @@ export default function ZipGameScreen() {
       if ((levelNum + 1) % 5 === 0) await addHints(1);
       // Award coins
       await addCoins(coinReward);
+      try {
+        const difficulty = levelNum <= 4 ? 'Easy' : 'Medium';
+        const res = await completeLevel(levelNum, timerSecs, usedHintThisLevel.current, difficulty);
+        if (res && res.promoted) {
+          showToastMsg(res.promotionMsg);
+        }
+      } catch (e) {
+        console.warn('Failed to complete level in profile:', e);
+      }
+      usedHintThisLevel.current = false;
       await refreshBalance();
     })();
 
@@ -542,6 +548,8 @@ export default function ZipGameScreen() {
     const [r, c] = nextKey.split(',').map(Number);
     const ok = await spendHint();
     if (ok) {
+      usedHintThisLevel.current = true;
+      try { await incrementMissionProgress('hints', 1); } catch (e) {}
       await refreshBalance();
       setHintCell({ r, c });
       setStatus(`Hint used · row ${r + 1}, col ${c + 1}`);
@@ -600,18 +608,18 @@ export default function ZipGameScreen() {
   // ─────────────────────────────────────────────
   const handleRetry = useCallback(async () => {
     setShowWin(false);
-    setAdLoading(true);
-    await AdManager.showAd('inter');
-    setAdLoading(false);
     resetLevel();
   }, [resetLevel]);
 
   const handleNext = useCallback(async () => {
     setShowWin(false);
-    setAdLoading(true);
-    await AdManager.showAd('inter');
-    setAdLoading(false);
-    goLevel(levelNum + 1);
+    const nextLevel = levelNum + 1;
+    if (nextLevel % 3 === 0) {
+      setAdLoading(true);
+      await AdManager.showAd('inter');
+      setAdLoading(false);
+    }
+    goLevel(nextLevel);
   }, [levelNum, goLevel]);
 
   // 2x Coins — rewarded ad
@@ -635,9 +643,6 @@ export default function ZipGameScreen() {
   // ─────────────────────────────────────────────
   const handleTimeUpRetry = useCallback(async () => {
     setShowTimeUp(false);
-    setAdLoading(true);
-    await AdManager.showAd('inter');
-    setAdLoading(false);
     resetLevel();
   }, [resetLevel]);
 
@@ -667,8 +672,8 @@ export default function ZipGameScreen() {
   if (!levelData) {
     return (
       <SafeAreaView style={[s.root, { alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator color={COLORS.muted} size="large" />
-        <Text style={{ color: COLORS.muted, marginTop: 5, textAlign: 'center' }}>Loading…</Text>
+        <ActivityIndicator color={theme.muted} size="large" />
+        <Text style={{ color: theme.muted, marginTop: 5, textAlign: 'center' }}>Loading…</Text>
       </SafeAreaView>
     );
   }
@@ -697,12 +702,12 @@ export default function ZipGameScreen() {
 
   return (
     <SafeAreaView style={s.root}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
+      <StatusBar barStyle="light-content" backgroundColor={theme.background} />
 
       {/* ── Ad loading overlay ── */}
       {adLoading && (
         <View style={s.adOverlay}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
+          <ActivityIndicator size="large" color={theme.primary} />
           <Text style={s.adOverlayText}>Loading Ad…</Text>
         </View>
       )}
@@ -748,21 +753,21 @@ export default function ZipGameScreen() {
             <Svg width={BOARD_W} height={BOARD_W} style={StyleSheet.absoluteFill} pointerEvents="none">
               {Array.from({ length: size + 1 }, (_, i) => (
                 <G key={`grid-${i}`}>
-                  <Line x1={0} y1={i * CELL} x2={BOARD_W} y2={i * CELL} stroke={COLORS.border} strokeWidth={1} />
-                  <Line x1={i * CELL} y1={0} x2={i * CELL} y2={BOARD_W} stroke={COLORS.border} strokeWidth={1} />
+                  <Line x1={0} y1={i * CELL} x2={BOARD_W} y2={i * CELL} stroke={theme.border} strokeWidth={1} />
+                  <Line x1={i * CELL} y1={0} x2={i * CELL} y2={BOARD_W} stroke={theme.border} strokeWidth={1} />
                 </G>
               ))}
               {wallSegments.map(w => (
                 <Line key={w.key} x1={w.x1} y1={w.y1} x2={w.x2} y2={w.y2}
-                  stroke={COLORS.text} strokeWidth={5} strokeLinecap="round" />
+                  stroke={theme.text} strokeWidth={5} strokeLinecap="round" />
               ))}
               {path.length >= 2 && (
                 <>
                   <Polyline points={pathPoints} fill="none"
-                    stroke={COLORS.accentLight} strokeWidth={CELL * 0.28}
+                    stroke={theme.primaryLight} strokeWidth={CELL * 0.28}
                     strokeLinecap="round" strokeLinejoin="round" opacity={0.4} />
                   <Polyline points={pathPoints} fill="none"
-                    stroke={COLORS.accent} strokeWidth={CELL * 0.13}
+                    stroke={theme.primary} strokeWidth={CELL * 0.13}
                     strokeLinecap="round" strokeLinejoin="round" />
                 </>
               )}
@@ -773,7 +778,7 @@ export default function ZipGameScreen() {
                 <View key={`cell-${r}-${c}`} pointerEvents="none" style={{
                   position: 'absolute', left: c * CELL + 1, top: r * CELL + 1,
                   width: CELL - 2, height: CELL - 2, borderRadius: 4,
-                  backgroundColor: pathSet.has(`${r},${c}`) ? COLORS.accentFill : 'transparent',
+                  backgroundColor: pathSet.has(`${r},${c}`) ? theme.accentGlow : 'transparent',
                 }} />
               ))
             )}
@@ -784,7 +789,7 @@ export default function ZipGameScreen() {
                 left: hintCell.c * CELL + 4, top: hintCell.r * CELL + 4,
                 width: CELL - 8, height: CELL - 8, borderRadius: 6,
                 backgroundColor: 'rgba(251,191,36,0.25)',
-                borderWidth: 2.5, borderColor: COLORS.warn,
+                borderWidth: 2.5, borderColor: warn,
                 opacity: hintPulse, transform: [{ scale: hintPulse }],
               }} />
             )}
@@ -796,16 +801,16 @@ export default function ZipGameScreen() {
                 <View key={`node-${i}`} pointerEvents="none" style={{
                   position: 'absolute', left: cx - 17, top: cy - 17,
                   width: 34, height: 34, borderRadius: 17,
-                  backgroundColor: reached ? COLORS.accent : COLORS.surfaceRaised,
-                  borderWidth: 2, borderColor: reached ? COLORS.accent : COLORS.borderStrong,
+                  backgroundColor: reached ? theme.primary : theme.surfaceRaised,
+                  borderWidth: 2, borderColor: reached ? theme.primary : theme.border,
                   alignItems: 'center', justifyContent: 'center', zIndex: 10,
                   transform: [{ scale: reached ? 1.07 : 1 }],
-                  shadowColor: reached ? COLORS.accent : '#000',
+                  shadowColor: reached ? theme.primary : '#000',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: reached ? 0.5 : 0.3,
                   shadowRadius: 4, elevation: 5,
                 }}>
-                  <Text style={{ color: COLORS.text, fontWeight: '700', fontSize: 13 }}>{i + 1}</Text>
+                  <Text style={{ color: theme.text, fontWeight: '700', fontSize: 13 }}>{i + 1}</Text>
                 </View>
               );
             })}
@@ -844,7 +849,7 @@ export default function ZipGameScreen() {
         <TouchableOpacity
           style={[s.actionBtn, s.skipBtn, adLoading && s.actionBtnDisabled]}
           onPress={triggerSkip} disabled={adLoading}>
-          <Text style={[s.actionBtnText, { color: COLORS.muted }]}>Skip</Text>
+          <Text style={[s.actionBtnText, { color: theme.muted }]}>Skip</Text>
         </TouchableOpacity>
       </View>
 
@@ -975,70 +980,74 @@ export default function ZipGameScreen() {
 // ─────────────────────────────────────────────
 // STYLES
 // ─────────────────────────────────────────────
-const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.bg },
+const getStyles = (theme) => {
+  const good = theme.good || '#34d399';
+  const warn = theme.warn || '#fbbf24';
+  const bad = theme.bad || '#f87171';
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: theme.background },
   adOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(10,18,26,0.75)',
     alignItems: 'center', justifyContent: 'center', zIndex: 999,
   },
-  adOverlayText: { color: COLORS.muted, marginTop: 12, fontSize: 14 },
+  adOverlayText: { color: theme.muted, marginTop: 12, fontSize: 14 },
   topbar: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 12, paddingVertical: 10,
     gap: 8, justifyContent: 'space-between',
-    borderBottomWidth: 1, borderBottomColor: COLORS.border,
+    borderBottomWidth: 1, borderBottomColor: theme.border,
   },
   timer: {
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 13, color: COLORS.muted,
+    fontSize: 13, color: theme.muted,
   },
   levelBadge: {
-    borderWidth: 1.5, borderColor: COLORS.border, borderRadius: 20,
-    paddingHorizontal: 10, paddingVertical: 4, backgroundColor: COLORS.surfaceRaised,
+    borderWidth: 1.5, borderColor: theme.border, borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 4, backgroundColor: theme.surfaceRaised,
   },
   levelBadgeText: {
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 11, color: COLORS.textSub, fontWeight: '600',
+    fontSize: 11, color: theme.text, fontWeight: '600',
   },
   balChip: {
-    backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: theme.surfaceRaised, borderWidth: 1, borderColor: theme.border,
     borderRadius: 14, paddingHorizontal: 8, paddingVertical: 4,
   },
-  balChipText: { fontSize: 11, fontWeight: '700', color: COLORS.text },
+  balChipText: { fontSize: 11, fontWeight: '700', color: theme.text },
   navBtn: {
     width: 32, height: 32, borderRadius: 16, borderWidth: 1.5,
-    borderColor: COLORS.border, backgroundColor: COLORS.surfaceRaised,
+    borderColor: theme.border, backgroundColor: theme.surfaceRaised,
     alignItems: 'center', justifyContent: 'center',
   },
-  navBtnText: { fontSize: 16, color: COLORS.textSub, lineHeight: 20 },
+  navBtnText: { fontSize: 16, color: theme.text, lineHeight: 20 },
   boardArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
   boardOuter: {
-    backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border,
+    backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border,
     borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 16, elevation: 8,
   },
   status: {
-    marginTop: 12, fontSize: 12, color: COLORS.muted,
+    marginTop: 12, fontSize: 12, color: theme.muted,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     textAlign: 'center', paddingHorizontal: 16,
   },
-  statusBad: { color: COLORS.bad },
-  statusGood: { color: COLORS.good },
+  statusBad: { color: bad },
+  statusGood: { color: good },
   bottomBar: {
     flexDirection: 'row', gap: 10, paddingVertical: 14, paddingHorizontal: 16,
-    borderTopWidth: 1, borderTopColor: COLORS.border, backgroundColor: COLORS.bg,
+    borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.background,
   },
   actionBtn: {
     flex: 1, paddingVertical: 10, borderRadius: 40, borderWidth: 1.5,
-    borderColor: COLORS.border, backgroundColor: COLORS.surfaceRaised,
+    borderColor: theme.border, backgroundColor: theme.surfaceRaised,
     alignItems: 'center', justifyContent: 'center', flexDirection: 'row',
   },
   actionBtnDisabled: { opacity: 0.35 },
-  actionBtnPrimary: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  actionBtnPrimary: { backgroundColor: theme.primary, borderColor: theme.primary },
   skipBtn: { flex: 0.7 },
-  actionBtnText: { fontSize: 14, fontWeight: '500', color: COLORS.textSub },
-  actionBtnTextPrimary: { fontSize: 14, fontWeight: '500', color: COLORS.bg },
+  actionBtnText: { fontSize: 14, fontWeight: '500', color: theme.text },
+  actionBtnTextPrimary: { fontSize: 14, fontWeight: '500', color: theme.background },
   hintBadge: {
     backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 10,
     paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center',
@@ -1046,48 +1055,48 @@ const s = StyleSheet.create({
   hintBadgeEmpty: { opacity: 0.6 },
   hintBadgeText: {
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 12, color: COLORS.bg, fontWeight: '600',
+    fontSize: 12, color: theme.background, fontWeight: '600',
   },
   overlay: {
-    flex: 1, backgroundColor: COLORS.overlay,
+    flex: 1, backgroundColor: theme.overlay || 'rgba(10,18,26,0.88)',
     alignItems: 'center', justifyContent: 'center', padding: 16,
   },
   modalCard: {
-    backgroundColor: COLORS.surface, borderWidth: 1.5, borderColor: COLORS.border,
+    backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border,
     borderRadius: 24, padding: 24, width: '100%', maxWidth: 380,
     shadowColor: '#000', shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.4, shadowRadius: 24, elevation: 12,
   },
   modalEmoji: { fontSize: 36, textAlign: 'center', marginBottom: 8 },
-  modalTitle: { fontWeight: '700', fontSize: 20, color: COLORS.text, textAlign: 'center', marginBottom: 4 },
-  modalSub: { color: COLORS.muted, fontSize: 13, textAlign: 'center' },
+  modalTitle: { fontWeight: '700', fontSize: 20, color: theme.text, textAlign: 'center', marginBottom: 4 },
+  modalSub: { color: theme.muted, fontSize: 13, textAlign: 'center' },
   winTime: {
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 16, color: COLORS.accent, textAlign: 'center', marginVertical: 6,
+    fontSize: 16, color: theme.primary, textAlign: 'center', marginVertical: 6,
   },
   coinRewardBadge: {
     alignSelf: 'center', backgroundColor: 'rgba(251,191,36,0.15)',
-    borderWidth: 1.5, borderColor: COLORS.warn, borderRadius: 20,
+    borderWidth: 1.5, borderColor: warn, borderRadius: 20,
     paddingHorizontal: 16, paddingVertical: 6, marginTop: 6, marginBottom: 4,
   },
-  coinRewardText: { color: COLORS.warn, fontWeight: '800', fontSize: 15 },
+  coinRewardText: { color: warn, fontWeight: '800', fontSize: 15 },
   hintRewardTag: {
     alignSelf: 'center', backgroundColor: 'rgba(52,211,153,0.12)',
-    borderWidth: 1.5, borderColor: COLORS.good, borderRadius: 20,
+    borderWidth: 1.5, borderColor: good, borderRadius: 20,
     paddingHorizontal: 14, paddingVertical: 4, marginTop: 6, marginBottom: 14,
   },
-  hintRewardText: { color: COLORS.good, fontWeight: '700', fontSize: 12 },
+  hintRewardText: { color: good, fontWeight: '700', fontSize: 12 },
   modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   mbtn: {
     flex: 1, paddingVertical: 13, borderRadius: 40,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: COLORS.border,
+    borderWidth: 1.5, borderColor: theme.border,
   },
-  mbtnGhost: { backgroundColor: COLORS.surfaceRaised },
-  mbtnAccent: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
+  mbtnGhost: { backgroundColor: theme.surfaceRaised },
+  mbtnAccent: { backgroundColor: theme.primary, borderColor: theme.primary },
   mbtn2x: {
     backgroundColor: 'rgba(251,191,36,0.15)',
-    borderColor: COLORS.warn,
+    borderColor: warn,
     borderWidth: 1.5,
     paddingVertical: 13,
     paddingHorizontal: 16,
@@ -1098,13 +1107,13 @@ const s = StyleSheet.create({
   },
 
   mbtn2xText: {
-    color: COLORS.warn,
+    color: warn,
     fontWeight: '800',
     fontSize: 14,
     textAlign: 'center',
     flexShrink: 1,
   },
-  mbtnTextLight: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  mbtnTextLight: { fontSize: 14, fontWeight: '600', color: theme.text },
   skipCountWrap: {
     width: 72, height: 72, borderRadius: 36,
     borderWidth: 3.5, borderColor: '#f97316',
@@ -1121,20 +1130,21 @@ const s = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   htpBox: {
-    width: '90%', backgroundColor: COLORS.surface,
+    width: '90%', backgroundColor: theme.surface,
     borderRadius: 10, padding: 10,
   },
   video: { width: '100%', height: 200, borderRadius: 15, overflow: 'hidden' },
   closeBtn: {
-    marginTop: 10, backgroundColor: COLORS.accent,
+    marginTop: 10, backgroundColor: theme.primary,
     padding: 10, alignItems: 'center', borderRadius: 5,
   },
   toast: {
     position: 'absolute', bottom: 80, alignSelf: 'center',
-    backgroundColor: COLORS.surfaceRaised, borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: theme.surfaceRaised, borderWidth: 1, borderColor: theme.border,
     borderRadius: 40, paddingHorizontal: 22, paddingVertical: 10,
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 10, elevation: 8,
   },
-  toastText: { color: COLORS.text, fontSize: 13, fontWeight: '500' },
-});
+  toastText: { color: theme.text, fontSize: 13, fontWeight: '500' },
+  });
+};

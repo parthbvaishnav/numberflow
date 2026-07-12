@@ -20,14 +20,16 @@ import {
   HINT_PLANS,
 } from '../utils/CoinManager';
 import AdManager from '../ads/AdManager';
+import { useTheme } from '../constants/theme';
 
-const COLORS = {
-  bg: '#0f1923', surface: '#16212b', surfaceRaised: '#1c2d3a',
-  border: '#2a3a4a', text: '#f0f6ff', muted: '#6a8fa8',
-  accent: '#4da9ff', good: '#34d399', bad: '#f87171', warn: '#fbbf24',
-};
+
 
 export default function CoinShopModal({ visible, onClose, onUpdate }) {
+  const { theme } = useTheme();
+  const s = getStyles(theme);
+  const good = theme.good || '#34d399';
+  const warn = theme.warn || '#fbbf24';
+  const bad = theme.bad || '#f87171';
   const [coins, setCoinsState] = useState(0);
   const [hints, setHintsState] = useState(0);
   const [hintLoading, setHintLoading] = useState(false);
@@ -117,7 +119,7 @@ export default function CoinShopModal({ visible, onClose, onUpdate }) {
               activeOpacity={0.8}
             >
               {hintLoading ? (
-                <ActivityIndicator size="small" color={COLORS.accent} />
+                <ActivityIndicator size="small" color={theme.primary} />
               ) : (
                 <>
                   <Text style={s.adRowIcon}>📺</Text>
@@ -137,7 +139,7 @@ export default function CoinShopModal({ visible, onClose, onUpdate }) {
               activeOpacity={0.8}
             >
               {coinLoading ? (
-                <ActivityIndicator size="small" color={COLORS.accent} />
+                <ActivityIndicator size="small" color={theme.primary} />
               ) : (
                 <>
                   <Text style={s.adRowIcon}>📺</Text>
@@ -182,50 +184,54 @@ export default function CoinShopModal({ visible, onClose, onUpdate }) {
   );
 }
 
-const s = StyleSheet.create({
+const getStyles = (theme) => {
+  const good = theme.good || '#34d399';
+  const warn = theme.warn || '#fbbf24';
+  const bad = theme.bad || '#f87171';
+  return StyleSheet.create({
   overlay: {
     flex: 1, backgroundColor: 'rgba(10,18,26,0.88)',
     justifyContent: 'flex-end',
   },
   card: {
-    backgroundColor: COLORS.surface, borderTopLeftRadius: 28,
-    borderTopRightRadius: 28, borderWidth: 1.5, borderColor: COLORS.border,
+    backgroundColor: theme.surface, borderTopLeftRadius: 28,
+    borderTopRightRadius: 28, borderWidth: 1.5, borderColor: theme.border,
     padding: 24, maxHeight: '85%',
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  title: { fontSize: 20, fontWeight: '800', color: COLORS.text },
+  title: { fontSize: 20, fontWeight: '800', color: theme.text },
   closeX: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: COLORS.surfaceRaised,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: COLORS.border,
+    width: 32, height: 32, borderRadius: 16, backgroundColor: theme.surfaceRaised,
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: theme.border,
   },
-  closeXText: { color: COLORS.muted, fontSize: 13, fontWeight: '700' },
+  closeXText: { color: theme.muted, fontSize: 13, fontWeight: '700' },
   balanceRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
   balancePill: {
     flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: COLORS.surfaceRaised, borderRadius: 14,
-    borderWidth: 1.5, borderColor: COLORS.border, padding: 12,
+    backgroundColor: theme.surfaceRaised, borderRadius: 14,
+    borderWidth: 1.5, borderColor: theme.border, padding: 12,
   },
   balanceIcon: { fontSize: 20 },
-  balanceVal: { fontSize: 20, fontWeight: '800', color: COLORS.text },
+  balanceVal: { fontSize: 20, fontWeight: '800', color: theme.text },
   sectionTitle: {
-    fontSize: 12, fontWeight: '700', color: COLORS.muted,
+    fontSize: 12, fontWeight: '700', color: theme.muted,
     letterSpacing: 1.5, marginBottom: 10, marginTop: 4, textTransform: 'uppercase',
   },
   planRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: COLORS.surfaceRaised, borderRadius: 14,
-    borderWidth: 1.5, borderColor: COLORS.border,
+    backgroundColor: theme.surfaceRaised, borderRadius: 14,
+    borderWidth: 1.5, borderColor: theme.border,
     padding: 14, marginBottom: 8,
   },
   planRowDisabled: { opacity: 0.45 },
   planLeft: {},
-  planHints: { fontSize: 16, fontWeight: '700', color: COLORS.text },
-  planCost: { fontSize: 12, color: COLORS.muted, marginTop: 2 },
+  planHints: { fontSize: 16, fontWeight: '700', color: theme.text },
+  planCost: { fontSize: 12, color: theme.muted, marginTop: 2 },
   planBtn: {
-    backgroundColor: COLORS.accent, borderRadius: 20,
+    backgroundColor: theme.primary, borderRadius: 20,
     paddingHorizontal: 20, paddingVertical: 8,
   },
-  planBtnDisabled: { backgroundColor: COLORS.border },
+  planBtnDisabled: { backgroundColor: theme.border },
   planBtnText: { color: '#000', fontWeight: '800', fontSize: 13 },
   adRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -236,14 +242,15 @@ const s = StyleSheet.create({
   },
   adRowIcon: { fontSize: 22 },
   adRowMiddle: { flex: 1 },
-  adRowTitle: { fontSize: 14, fontWeight: '700', color: COLORS.text },
-  adRowSub: { fontSize: 11, color: COLORS.muted, marginTop: 2 },
-  adRowReward: { fontSize: 16, fontWeight: '800', color: COLORS.warn },
+  adRowTitle: { fontSize: 14, fontWeight: '700', color: theme.text },
+  adRowSub: { fontSize: 11, color: theme.muted, marginTop: 2 },
+  adRowReward: { fontSize: 16, fontWeight: '800', color: warn },
   toast: {
     position: 'absolute', bottom: 24, left: 24, right: 24,
-    backgroundColor: COLORS.surfaceRaised, borderRadius: 14,
-    borderWidth: 1, borderColor: COLORS.border,
+    backgroundColor: theme.surfaceRaised, borderRadius: 14,
+    borderWidth: 1, borderColor: theme.border,
     padding: 14, alignItems: 'center',
   },
-  toastText: { color: COLORS.text, fontWeight: '600', fontSize: 14 },
-});
+  toastText: { color: theme.text, fontWeight: '600', fontSize: 14 },
+  });
+};
