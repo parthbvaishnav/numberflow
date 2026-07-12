@@ -41,7 +41,7 @@ function segmentPath(index) {
   };
 }
 
-export default function SpinWheel({ onResult, disabled,  }) {
+export default function SpinWheel({ onResult, disabled, }) {
   const spinAnim = useRef(new Animated.Value(0)).current;
   const currentRotation = useRef(0);
   const [spinning, setSpinning] = useState(false);

@@ -34,12 +34,12 @@ export default function AppNavigator() {
   }, []);
 
   return (
-    <SafeAreaView style={[ styles.container, {backgroundColor: theme.background}]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Navigation */}
       <View style={styles.content}>
         <NavigationContainer>
-          <Stack.Navigator screenOptions={{headerShown: false}}>
-            <Stack.Screen  name="Home" component={HomeScreen}/>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Game" component={ZipGameScreen} />
             <Stack.Screen name="SpinWheel" component={SpinWheelScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
@@ -47,7 +47,7 @@ export default function AppNavigator() {
         </NavigationContainer>
       </View>
       {/* Bottom Banner */}
-      <View style={[styles.banner,{ backgroundColor: theme.background }]}>
+      <View style={[styles.banner, { backgroundColor: theme.background }]}>
         <BannerAdComponent />
       </View>
     </SafeAreaView>
@@ -55,14 +55,14 @@ export default function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
-  container:{
-    flex:1
+  container: {
+    flex: 1
   },
-  content:{
-    flex:1
+  content: {
+    flex: 1
   },
-  banner:{
-    alignItems:'center',
-    justifyContent:'center'
+  banner: {
+    alignItems: 'center',
+    justifyContent: 'center'
   }
 });

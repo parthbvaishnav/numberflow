@@ -187,12 +187,12 @@ export default function DailyRewardModal({
                   <Text style={styles.subTitle}>Come every day and collect rewards</Text>
                 </View>
                 <TouchableOpacity onPress={onClose}>
-                    <Ionicons
-                      name="close-circle"
-                      size={28}
-                      color={theme.primary}
-                      style={styles.topIcon}
-                    />
+                  <Ionicons
+                    name="close-circle"
+                    size={28}
+                    color={theme.primary}
+                    style={styles.topIcon}
+                  />
                 </TouchableOpacity>
               </View>
 
@@ -220,9 +220,9 @@ export default function DailyRewardModal({
                       style={[
                         styles.rewardCard,
                         isToday &&
-                          styles.activeCard,
+                        styles.activeCard,
                         isPast &&
-                          styles.pastCard,
+                        styles.pastCard,
                       ]}
                     >
                       {/* Top Icon */}
@@ -292,7 +292,7 @@ export default function DailyRewardModal({
                             (!isToday ||
                               !status?.canClaim ||
                               loading) &&
-                              styles.disabledBtn,
+                            styles.disabledBtn,
                           ]}
                         >
                           {loading && isToday ? (
@@ -303,7 +303,7 @@ export default function DailyRewardModal({
                                 styles.collectText,
                                 (!isToday ||
                                   !status?.canClaim) &&
-                                  styles.disabledText,
+                                styles.disabledText,
                               ]}
                             >
                               {status?.canClaim
@@ -355,186 +355,186 @@ const getStyles = (theme) => {
   const warn = theme.warn || '#fbbf24';
   const bad = theme.bad || '#f87171';
   return StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.85)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
-  },
-
-  container: {
-    width: '100%',
-    backgroundColor: theme.surface,
-    borderRadius: 22,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#4da9ff40',
-
-    shadowColor: theme.primary,
-    shadowOffset: {
-      width: 0,
-      height: 0,
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.85)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 10,
     },
-    shadowOpacity: 0.5,
-    shadowRadius: 18,
-    elevation: 10,
-  },
 
-  title: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: theme.text,
-    // textAlign: 'center',
-  },
+    container: {
+      width: '100%',
+      backgroundColor: theme.surface,
+      borderRadius: 22,
+      padding: 10,
+      borderWidth: 1,
+      borderColor: '#4da9ff40',
 
-  subTitle: {
-    fontSize: 13,
-    color: theme.muted,
-    // textAlign: 'center',
-    marginTop: 6,
-    marginBottom: 20,
-  },
+      shadowColor: theme.primary,
+      shadowOffset: {
+        width: 0,
+        height: 0,
+      },
+      shadowOpacity: 0.5,
+      shadowRadius: 18,
+      elevation: 10,
+    },
 
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
+    title: {
+      fontSize: 24,
+      fontWeight: '800',
+      color: theme.text,
+      // textAlign: 'center',
+    },
 
-  rewardCard: {
-    width: '31%',
-    borderRadius: 14,
-    padding: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#4da9ff60',
-    marginBottom: 12,
-  },
+    subTitle: {
+      fontSize: 13,
+      color: theme.muted,
+      // textAlign: 'center',
+      marginTop: 6,
+      marginBottom: 20,
+    },
 
-  activeCard: {
-    borderColor: theme.primary,
-    shadowColor: theme.primary,
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-  },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+    },
 
-  pastCard: {
-    opacity: 0.6,
-  },
+    rewardCard: {
+      width: '31%',
+      borderRadius: 14,
+      padding: 8,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: '#4da9ff60',
+      marginBottom: 12,
+    },
 
-  topIcon: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-  },
+    activeCard: {
+      borderColor: theme.primary,
+      shadowColor: theme.primary,
+      shadowOpacity: 0.6,
+      shadowRadius: 10,
+    },
 
-  coinEmoji: {
-    fontSize: 24,
-    marginBottom: 4,
-  },
+    pastCard: {
+      opacity: 0.6,
+    },
 
-  amount: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: theme.text,
-  },
+    topIcon: {
+      position: 'absolute',
+      top: 6,
+      right: 6,
+    },
 
-  label: {
-    fontSize: 10,
-    color: theme.muted,
-  },
+    coinEmoji: {
+      fontSize: 24,
+      marginBottom: 4,
+    },
 
-  dayText: {
-    fontSize: 10,
-    color: theme.muted,
-    marginBottom: 2,
-    // marginTop: 4,
-  },
+    amount: {
+      fontSize: 16,
+      fontWeight: '800',
+      color: theme.text,
+    },
 
-  collectBtn: {
-    backgroundColor: theme.primary,
-    paddingVertical: 5,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
+    label: {
+      fontSize: 10,
+      color: theme.muted,
+    },
 
-  collectText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#fff',
-  },
+    dayText: {
+      fontSize: 10,
+      color: theme.muted,
+      marginBottom: 2,
+      // marginTop: 4,
+    },
 
-  disabledBtn: {
-    backgroundColor: '#3A3F47',
-  },
+    collectBtn: {
+      backgroundColor: theme.primary,
+      paddingVertical: 5,
+      paddingHorizontal: 14,
+      borderRadius: 8,
+    },
 
-  disabledText: {
-    color: '#9AA0A6',
-  },
+    collectText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: '#fff',
+    },
 
-  collectedBtn: {
-    backgroundColor: '#4A4F57',
-    paddingVertical: 5,
-    paddingHorizontal: 14,
-    borderRadius: 8,
-  },
+    disabledBtn: {
+      backgroundColor: '#3A3F47',
+    },
 
-  collectedText: {
-    color: '#C7CCD1',
-    fontSize: 10,
-    fontWeight: '600',
-  },
+    disabledText: {
+      color: '#9AA0A6',
+    },
 
-  countdownWrap: {
-    alignItems: 'center',
-    marginTop: 10,
-  },
+    collectedBtn: {
+      backgroundColor: '#4A4F57',
+      paddingVertical: 5,
+      paddingHorizontal: 14,
+      borderRadius: 8,
+    },
 
-  countdownLabel: {
-    color: theme.muted,
-    fontSize: 12,
-  },
+    collectedText: {
+      color: '#C7CCD1',
+      fontSize: 10,
+      fontWeight: '600',
+    },
 
-  countdown: {
-    color: warn,
-    fontSize: 26,
-    fontWeight: '800',
-    marginTop: 6,
-  },
+    countdownWrap: {
+      alignItems: 'center',
+      marginTop: 10,
+    },
 
-  closeBtn: {
-    marginTop: 18,
-    alignItems: 'center',
-  },
+    countdownLabel: {
+      color: theme.muted,
+      fontSize: 12,
+    },
 
-  closeBtnText: {
-    color: theme.muted,
-    fontSize: 14,
-  },
+    countdown: {
+      color: warn,
+      fontSize: 26,
+      fontWeight: '800',
+      marginTop: 6,
+    },
 
-  claimedView: {
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
+    closeBtn: {
+      marginTop: 18,
+      alignItems: 'center',
+    },
 
-  claimedEmoji: {
-    fontSize: 54,
-    marginBottom: 10,
-  },
+    closeBtnText: {
+      color: theme.muted,
+      fontSize: 14,
+    },
 
-  claimedTitle: {
-    color: theme.text,
-    fontSize: 24,
-    fontWeight: '800',
-    marginBottom: 10,
-  },
+    claimedView: {
+      alignItems: 'center',
+      paddingVertical: 20,
+    },
 
-  claimedLine: {
-    color: good,
-    fontSize: 20,
-    marginTop: 6,
-    fontWeight: '700',
-  },
+    claimedEmoji: {
+      fontSize: 54,
+      marginBottom: 10,
+    },
+
+    claimedTitle: {
+      color: theme.text,
+      fontSize: 24,
+      fontWeight: '800',
+      marginBottom: 10,
+    },
+
+    claimedLine: {
+      color: good,
+      fontSize: 20,
+      marginTop: 6,
+      fontWeight: '700',
+    },
   });
 };

@@ -61,19 +61,19 @@ export default function CoinShopModal({ visible, onClose, onUpdate }) {
   };
 
   const handleWatchForHint = async () => {
-     setHintLoading(true);
+    setHintLoading(true);
     const ok = await AdManager.showAd('rewarded', async () => {
       await addHints(1);
       await refresh();
       onUpdate && onUpdate();
       showToast('💡 +1 Hint earned!');
     });
-     setHintLoading(false);
+    setHintLoading(false);
     if (!ok) showToast('Ad not available — try again later.');
   };
 
   const handleWatchForCoins = async () => {
-     setCoinLoading(true);
+    setCoinLoading(true);
     const ok = await AdManager.showAd('rewarded', async () => {
       await addCoins(99);
       await refresh();
@@ -169,7 +169,7 @@ export default function CoinShopModal({ visible, onClose, onUpdate }) {
                   <Text style={s.planBtnText}>Buy</Text>
                 </View>
               </TouchableOpacity>
-            ))}            
+            ))}
           </ScrollView>
 
           {/* Toast */}
@@ -189,68 +189,68 @@ const getStyles = (theme) => {
   const warn = theme.warn || '#fbbf24';
   const bad = theme.bad || '#f87171';
   return StyleSheet.create({
-  overlay: {
-    flex: 1, backgroundColor: 'rgba(10,18,26,0.88)',
-    justifyContent: 'flex-end',
-  },
-  card: {
-    backgroundColor: theme.surface, borderTopLeftRadius: 28,
-    borderTopRightRadius: 28, borderWidth: 1.5, borderColor: theme.border,
-    padding: 24, maxHeight: '85%',
-  },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  title: { fontSize: 20, fontWeight: '800', color: theme.text },
-  closeX: {
-    width: 32, height: 32, borderRadius: 16, backgroundColor: theme.surfaceRaised,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: theme.border,
-  },
-  closeXText: { color: theme.muted, fontSize: 13, fontWeight: '700' },
-  balanceRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  balancePill: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: theme.surfaceRaised, borderRadius: 14,
-    borderWidth: 1.5, borderColor: theme.border, padding: 12,
-  },
-  balanceIcon: { fontSize: 20 },
-  balanceVal: { fontSize: 20, fontWeight: '800', color: theme.text },
-  sectionTitle: {
-    fontSize: 12, fontWeight: '700', color: theme.muted,
-    letterSpacing: 1.5, marginBottom: 10, marginTop: 4, textTransform: 'uppercase',
-  },
-  planRow: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: theme.surfaceRaised, borderRadius: 14,
-    borderWidth: 1.5, borderColor: theme.border,
-    padding: 14, marginBottom: 8,
-  },
-  planRowDisabled: { opacity: 0.45 },
-  planLeft: {},
-  planHints: { fontSize: 16, fontWeight: '700', color: theme.text },
-  planCost: { fontSize: 12, color: theme.muted, marginTop: 2 },
-  planBtn: {
-    backgroundColor: theme.primary, borderRadius: 20,
-    paddingHorizontal: 20, paddingVertical: 8,
-  },
-  planBtnDisabled: { backgroundColor: theme.border },
-  planBtnText: { color: '#000', fontWeight: '800', fontSize: 13 },
-  adRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: 'rgba(77,169,255,0.08)', borderRadius: 14,
-    borderWidth: 1.5, borderColor: 'rgba(77,169,255,0.3)',
-    padding: 14, marginBottom: 8, minHeight: 64,
-    justifyContent: 'center',
-  },
-  adRowIcon: { fontSize: 22 },
-  adRowMiddle: { flex: 1 },
-  adRowTitle: { fontSize: 14, fontWeight: '700', color: theme.text },
-  adRowSub: { fontSize: 11, color: theme.muted, marginTop: 2 },
-  adRowReward: { fontSize: 16, fontWeight: '800', color: warn },
-  toast: {
-    position: 'absolute', bottom: 24, left: 24, right: 24,
-    backgroundColor: theme.surfaceRaised, borderRadius: 14,
-    borderWidth: 1, borderColor: theme.border,
-    padding: 14, alignItems: 'center',
-  },
-  toastText: { color: theme.text, fontWeight: '600', fontSize: 14 },
+    overlay: {
+      flex: 1, backgroundColor: 'rgba(10,18,26,0.88)',
+      justifyContent: 'flex-end',
+    },
+    card: {
+      backgroundColor: theme.surface, borderTopLeftRadius: 28,
+      borderTopRightRadius: 28, borderWidth: 1.5, borderColor: theme.border,
+      padding: 24, maxHeight: '85%',
+    },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+    title: { fontSize: 20, fontWeight: '800', color: theme.text },
+    closeX: {
+      width: 32, height: 32, borderRadius: 16, backgroundColor: theme.surfaceRaised,
+      alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: theme.border,
+    },
+    closeXText: { color: theme.muted, fontSize: 13, fontWeight: '700' },
+    balanceRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
+    balancePill: {
+      flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8,
+      backgroundColor: theme.surfaceRaised, borderRadius: 14,
+      borderWidth: 1.5, borderColor: theme.border, padding: 12,
+    },
+    balanceIcon: { fontSize: 20 },
+    balanceVal: { fontSize: 20, fontWeight: '800', color: theme.text },
+    sectionTitle: {
+      fontSize: 12, fontWeight: '700', color: theme.muted,
+      letterSpacing: 1.5, marginBottom: 10, marginTop: 4, textTransform: 'uppercase',
+    },
+    planRow: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: theme.surfaceRaised, borderRadius: 14,
+      borderWidth: 1.5, borderColor: theme.border,
+      padding: 14, marginBottom: 8,
+    },
+    planRowDisabled: { opacity: 0.45 },
+    planLeft: {},
+    planHints: { fontSize: 16, fontWeight: '700', color: theme.text },
+    planCost: { fontSize: 12, color: theme.muted, marginTop: 2 },
+    planBtn: {
+      backgroundColor: theme.primary, borderRadius: 20,
+      paddingHorizontal: 20, paddingVertical: 8,
+    },
+    planBtnDisabled: { backgroundColor: theme.border },
+    planBtnText: { color: '#000', fontWeight: '800', fontSize: 13 },
+    adRow: {
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      backgroundColor: 'rgba(77,169,255,0.08)', borderRadius: 14,
+      borderWidth: 1.5, borderColor: 'rgba(77,169,255,0.3)',
+      padding: 14, marginBottom: 8, minHeight: 64,
+      justifyContent: 'center',
+    },
+    adRowIcon: { fontSize: 22 },
+    adRowMiddle: { flex: 1 },
+    adRowTitle: { fontSize: 14, fontWeight: '700', color: theme.text },
+    adRowSub: { fontSize: 11, color: theme.muted, marginTop: 2 },
+    adRowReward: { fontSize: 16, fontWeight: '800', color: warn },
+    toast: {
+      position: 'absolute', bottom: 24, left: 24, right: 24,
+      backgroundColor: theme.surfaceRaised, borderRadius: 14,
+      borderWidth: 1, borderColor: theme.border,
+      padding: 14, alignItems: 'center',
+    },
+    toastText: { color: theme.text, fontWeight: '600', fontSize: 14 },
   });
 };

@@ -50,7 +50,7 @@ async function getSavedLevel() {
   catch { return 1; }
 }
 async function saveCurrentLevel(n) {
-  try { await AsyncStorage.setItem(LS.LEVEL, String(n)); } catch {}
+  try { await AsyncStorage.setItem(LS.LEVEL, String(n)); } catch { }
 }
 
 // ─────────────────────────────────────────────
@@ -285,7 +285,7 @@ export default function ZipGameScreen() {
         loadLevel(await getSavedLevel());
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Hint pulse animation
@@ -307,7 +307,7 @@ export default function ZipGameScreen() {
         setShowModal(true);
         await AsyncStorage.setItem('HOW_TO_PLAY_SHOWN', 'true');
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   // ─────────────────────────────────────────────
@@ -549,7 +549,7 @@ export default function ZipGameScreen() {
     const ok = await spendHint();
     if (ok) {
       usedHintThisLevel.current = true;
-      try { await incrementMissionProgress('hints', 1); } catch (e) {}
+      try { await incrementMissionProgress('hints', 1); } catch (e) { }
       await refreshBalance();
       setHintCell({ r, c });
       setStatus(`Hint used · row ${r + 1}, col ${c + 1}`);
@@ -714,9 +714,9 @@ export default function ZipGameScreen() {
 
       {/* ── Top bar ── */}
       <View style={s.topbar}>
-        <TouchableOpacity style={s.navBtn} onPress={() => 
+        <TouchableOpacity style={s.navBtn} onPress={() =>
           navigation.goBack()
-          }>
+        }>
           <Text style={s.navBtnText}>‹</Text>
         </TouchableOpacity>
         <Text style={s.timer}>⏱ {fmtTime(timerSecs)}</Text>
@@ -828,7 +828,7 @@ export default function ZipGameScreen() {
           onPress={handleRetry}>
           <Text style={s.navBtnText}>↺</Text>
         </TouchableOpacity>
-         {/* <TouchableOpacity style={s.navBtn} onPress={handleRetry}>
+        {/* <TouchableOpacity style={s.navBtn} onPress={handleRetry}>
           <Text style={s.navBtnText}>↺</Text>
         </TouchableOpacity> */}
         {/* <TouchableOpacity
@@ -894,7 +894,7 @@ export default function ZipGameScreen() {
 
             {/* 2x Coins rewarded ad */}
             <TouchableOpacity
-              style={[s.mbtn, s.mbtn2x, { marginTop: 8, marginBottom:25 }]}
+              style={[s.mbtn, s.mbtn2x, { marginTop: 8, marginBottom: 25 }]}
               onPress={handle2xCoins}
               disabled={adLoading}
               activeOpacity={0.85}
@@ -985,166 +985,166 @@ const getStyles = (theme) => {
   const warn = theme.warn || '#fbbf24';
   const bad = theme.bad || '#f87171';
   return StyleSheet.create({
-  root: { flex: 1, backgroundColor: theme.background },
-  adOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(10,18,26,0.75)',
-    alignItems: 'center', justifyContent: 'center', zIndex: 999,
-  },
-  adOverlayText: { color: theme.muted, marginTop: 12, fontSize: 14 },
-  topbar: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 12, paddingVertical: 10,
-    gap: 8, justifyContent: 'space-between',
-    borderBottomWidth: 1, borderBottomColor: theme.border,
-  },
-  timer: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 13, color: theme.muted,
-  },
-  levelBadge: {
-    borderWidth: 1.5, borderColor: theme.border, borderRadius: 20,
-    paddingHorizontal: 10, paddingVertical: 4, backgroundColor: theme.surfaceRaised,
-  },
-  levelBadgeText: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 11, color: theme.text, fontWeight: '600',
-  },
-  balChip: {
-    backgroundColor: theme.surfaceRaised, borderWidth: 1, borderColor: theme.border,
-    borderRadius: 14, paddingHorizontal: 8, paddingVertical: 4,
-  },
-  balChipText: { fontSize: 11, fontWeight: '700', color: theme.text },
-  navBtn: {
-    width: 32, height: 32, borderRadius: 16, borderWidth: 1.5,
-    borderColor: theme.border, backgroundColor: theme.surfaceRaised,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  navBtnText: { fontSize: 16, color: theme.text, lineHeight: 20 },
-  boardArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
-  boardOuter: {
-    backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border,
-    borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 16, elevation: 8,
-  },
-  status: {
-    marginTop: 12, fontSize: 12, color: theme.muted,
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    textAlign: 'center', paddingHorizontal: 16,
-  },
-  statusBad: { color: bad },
-  statusGood: { color: good },
-  bottomBar: {
-    flexDirection: 'row', gap: 10, paddingVertical: 14, paddingHorizontal: 16,
-    borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.background,
-  },
-  actionBtn: {
-    flex: 1, paddingVertical: 10, borderRadius: 40, borderWidth: 1.5,
-    borderColor: theme.border, backgroundColor: theme.surfaceRaised,
-    alignItems: 'center', justifyContent: 'center', flexDirection: 'row',
-  },
-  actionBtnDisabled: { opacity: 0.35 },
-  actionBtnPrimary: { backgroundColor: theme.primary, borderColor: theme.primary },
-  skipBtn: { flex: 0.7 },
-  actionBtnText: { fontSize: 14, fontWeight: '500', color: theme.text },
-  actionBtnTextPrimary: { fontSize: 14, fontWeight: '500', color: theme.background },
-  hintBadge: {
-    backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 10,
-    paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center',
-  },
-  hintBadgeEmpty: { opacity: 0.6 },
-  hintBadgeText: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 12, color: theme.background, fontWeight: '600',
-  },
-  overlay: {
-    flex: 1, backgroundColor: theme.overlay || 'rgba(10,18,26,0.88)',
-    alignItems: 'center', justifyContent: 'center', padding: 16,
-  },
-  modalCard: {
-    backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border,
-    borderRadius: 24, padding: 24, width: '100%', maxWidth: 380,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4, shadowRadius: 24, elevation: 12,
-  },
-  modalEmoji: { fontSize: 36, textAlign: 'center', marginBottom: 8 },
-  modalTitle: { fontWeight: '700', fontSize: 20, color: theme.text, textAlign: 'center', marginBottom: 4 },
-  modalSub: { color: theme.muted, fontSize: 13, textAlign: 'center' },
-  winTime: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 16, color: theme.primary, textAlign: 'center', marginVertical: 6,
-  },
-  coinRewardBadge: {
-    alignSelf: 'center', backgroundColor: 'rgba(251,191,36,0.15)',
-    borderWidth: 1.5, borderColor: warn, borderRadius: 20,
-    paddingHorizontal: 16, paddingVertical: 6, marginTop: 6, marginBottom: 4,
-  },
-  coinRewardText: { color: warn, fontWeight: '800', fontSize: 15 },
-  hintRewardTag: {
-    alignSelf: 'center', backgroundColor: 'rgba(52,211,153,0.12)',
-    borderWidth: 1.5, borderColor: good, borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 4, marginTop: 6, marginBottom: 14,
-  },
-  hintRewardText: { color: good, fontWeight: '700', fontSize: 12 },
-  modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
-  mbtn: {
-    flex: 1, paddingVertical: 13, borderRadius: 40,
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: theme.border,
-  },
-  mbtnGhost: { backgroundColor: theme.surfaceRaised },
-  mbtnAccent: { backgroundColor: theme.primary, borderColor: theme.primary },
-  mbtn2x: {
-    backgroundColor: 'rgba(251,191,36,0.15)',
-    borderColor: warn,
-    borderWidth: 1.5,
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 56,
-  },
+    root: { flex: 1, backgroundColor: theme.background },
+    adOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(10,18,26,0.75)',
+      alignItems: 'center', justifyContent: 'center', zIndex: 999,
+    },
+    adOverlayText: { color: theme.muted, marginTop: 12, fontSize: 14 },
+    topbar: {
+      flexDirection: 'row', alignItems: 'center',
+      paddingHorizontal: 12, paddingVertical: 10,
+      gap: 8, justifyContent: 'space-between',
+      borderBottomWidth: 1, borderBottomColor: theme.border,
+    },
+    timer: {
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      fontSize: 13, color: theme.muted,
+    },
+    levelBadge: {
+      borderWidth: 1.5, borderColor: theme.border, borderRadius: 20,
+      paddingHorizontal: 10, paddingVertical: 4, backgroundColor: theme.surfaceRaised,
+    },
+    levelBadgeText: {
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      fontSize: 11, color: theme.text, fontWeight: '600',
+    },
+    balChip: {
+      backgroundColor: theme.surfaceRaised, borderWidth: 1, borderColor: theme.border,
+      borderRadius: 14, paddingHorizontal: 8, paddingVertical: 4,
+    },
+    balChipText: { fontSize: 11, fontWeight: '700', color: theme.text },
+    navBtn: {
+      width: 32, height: 32, borderRadius: 16, borderWidth: 1.5,
+      borderColor: theme.border, backgroundColor: theme.surfaceRaised,
+      alignItems: 'center', justifyContent: 'center',
+    },
+    navBtnText: { fontSize: 16, color: theme.text, lineHeight: 20 },
+    boardArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 8 },
+    boardOuter: {
+      backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border,
+      borderRadius: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3, shadowRadius: 16, elevation: 8,
+    },
+    status: {
+      marginTop: 12, fontSize: 12, color: theme.muted,
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      textAlign: 'center', paddingHorizontal: 16,
+    },
+    statusBad: { color: bad },
+    statusGood: { color: good },
+    bottomBar: {
+      flexDirection: 'row', gap: 10, paddingVertical: 14, paddingHorizontal: 16,
+      borderTopWidth: 1, borderTopColor: theme.border, backgroundColor: theme.background,
+    },
+    actionBtn: {
+      flex: 1, paddingVertical: 10, borderRadius: 40, borderWidth: 1.5,
+      borderColor: theme.border, backgroundColor: theme.surfaceRaised,
+      alignItems: 'center', justifyContent: 'center', flexDirection: 'row',
+    },
+    actionBtnDisabled: { opacity: 0.35 },
+    actionBtnPrimary: { backgroundColor: theme.primary, borderColor: theme.primary },
+    skipBtn: { flex: 0.7 },
+    actionBtnText: { fontSize: 14, fontWeight: '500', color: theme.text },
+    actionBtnTextPrimary: { fontSize: 14, fontWeight: '500', color: theme.background },
+    hintBadge: {
+      backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 10,
+      paddingHorizontal: 5, paddingVertical: 1, minWidth: 22, alignItems: 'center',
+    },
+    hintBadgeEmpty: { opacity: 0.6 },
+    hintBadgeText: {
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      fontSize: 12, color: theme.background, fontWeight: '600',
+    },
+    overlay: {
+      flex: 1, backgroundColor: theme.overlay || 'rgba(10,18,26,0.88)',
+      alignItems: 'center', justifyContent: 'center', padding: 16,
+    },
+    modalCard: {
+      backgroundColor: theme.surface, borderWidth: 1.5, borderColor: theme.border,
+      borderRadius: 24, padding: 24, width: '100%', maxWidth: 380,
+      shadowColor: '#000', shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.4, shadowRadius: 24, elevation: 12,
+    },
+    modalEmoji: { fontSize: 36, textAlign: 'center', marginBottom: 8 },
+    modalTitle: { fontWeight: '700', fontSize: 20, color: theme.text, textAlign: 'center', marginBottom: 4 },
+    modalSub: { color: theme.muted, fontSize: 13, textAlign: 'center' },
+    winTime: {
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      fontSize: 16, color: theme.primary, textAlign: 'center', marginVertical: 6,
+    },
+    coinRewardBadge: {
+      alignSelf: 'center', backgroundColor: 'rgba(251,191,36,0.15)',
+      borderWidth: 1.5, borderColor: warn, borderRadius: 20,
+      paddingHorizontal: 16, paddingVertical: 6, marginTop: 6, marginBottom: 4,
+    },
+    coinRewardText: { color: warn, fontWeight: '800', fontSize: 15 },
+    hintRewardTag: {
+      alignSelf: 'center', backgroundColor: 'rgba(52,211,153,0.12)',
+      borderWidth: 1.5, borderColor: good, borderRadius: 20,
+      paddingHorizontal: 14, paddingVertical: 4, marginTop: 6, marginBottom: 14,
+    },
+    hintRewardText: { color: good, fontWeight: '700', fontSize: 12 },
+    modalActions: { flexDirection: 'row', gap: 10, marginTop: 4 },
+    mbtn: {
+      flex: 1, paddingVertical: 13, borderRadius: 40,
+      alignItems: 'center', justifyContent: 'center',
+      borderWidth: 1.5, borderColor: theme.border,
+    },
+    mbtnGhost: { backgroundColor: theme.surfaceRaised },
+    mbtnAccent: { backgroundColor: theme.primary, borderColor: theme.primary },
+    mbtn2x: {
+      backgroundColor: 'rgba(251,191,36,0.15)',
+      borderColor: warn,
+      borderWidth: 1.5,
+      paddingVertical: 13,
+      paddingHorizontal: 16,
+      borderRadius: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 56,
+    },
 
-  mbtn2xText: {
-    color: warn,
-    fontWeight: '800',
-    fontSize: 14,
-    textAlign: 'center',
-    flexShrink: 1,
-  },
-  mbtnTextLight: { fontSize: 14, fontWeight: '600', color: theme.text },
-  skipCountWrap: {
-    width: 72, height: 72, borderRadius: 36,
-    borderWidth: 3.5, borderColor: '#f97316',
-    backgroundColor: 'rgba(249,115,22,0.1)',
-    alignItems: 'center', justifyContent: 'center',
-    alignSelf: 'center', marginVertical: 16,
-  },
-  skipNum: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: 28, fontWeight: '500', color: '#fb923c',
-  },
-  htpOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center', alignItems: 'center',
-  },
-  htpBox: {
-    width: '90%', backgroundColor: theme.surface,
-    borderRadius: 10, padding: 10,
-  },
-  video: { width: '100%', height: 200, borderRadius: 15, overflow: 'hidden' },
-  closeBtn: {
-    marginTop: 10, backgroundColor: theme.primary,
-    padding: 10, alignItems: 'center', borderRadius: 5,
-  },
-  toast: {
-    position: 'absolute', bottom: 80, alignSelf: 'center',
-    backgroundColor: theme.surfaceRaised, borderWidth: 1, borderColor: theme.border,
-    borderRadius: 40, paddingHorizontal: 22, paddingVertical: 10,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3, shadowRadius: 10, elevation: 8,
-  },
-  toastText: { color: theme.text, fontSize: 13, fontWeight: '500' },
+    mbtn2xText: {
+      color: warn,
+      fontWeight: '800',
+      fontSize: 14,
+      textAlign: 'center',
+      flexShrink: 1,
+    },
+    mbtnTextLight: { fontSize: 14, fontWeight: '600', color: theme.text },
+    skipCountWrap: {
+      width: 72, height: 72, borderRadius: 36,
+      borderWidth: 3.5, borderColor: '#f97316',
+      backgroundColor: 'rgba(249,115,22,0.1)',
+      alignItems: 'center', justifyContent: 'center',
+      alignSelf: 'center', marginVertical: 16,
+    },
+    skipNum: {
+      fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+      fontSize: 28, fontWeight: '500', color: '#fb923c',
+    },
+    htpOverlay: {
+      flex: 1, backgroundColor: 'rgba(0,0,0,0.7)',
+      justifyContent: 'center', alignItems: 'center',
+    },
+    htpBox: {
+      width: '90%', backgroundColor: theme.surface,
+      borderRadius: 10, padding: 10,
+    },
+    video: { width: '100%', height: 200, borderRadius: 15, overflow: 'hidden' },
+    closeBtn: {
+      marginTop: 10, backgroundColor: theme.primary,
+      padding: 10, alignItems: 'center', borderRadius: 5,
+    },
+    toast: {
+      position: 'absolute', bottom: 80, alignSelf: 'center',
+      backgroundColor: theme.surfaceRaised, borderWidth: 1, borderColor: theme.border,
+      borderRadius: 40, paddingHorizontal: 22, paddingVertical: 10,
+      shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3, shadowRadius: 10, elevation: 8,
+    },
+    toastText: { color: theme.text, fontSize: 13, fontWeight: '500' },
   });
 };
