@@ -12,31 +12,39 @@ export const DEFAULT_ADS_CONFIG = {
     BannerAds: true,        // controls banner ads specifically
 
     // ── Per-type strategy ─────────────────────────────────────────────────────
-    // Values: "" | "G" | "F" | "GF" | "FG"
+    // Values: e.g. "GFL" | "GLF" | "FLG" | "FGL" | "LFG" | "LGF" | "G" | "F" | "L"
     default: {
-      inter:        'G',   // Interstitial       → Google first, Facebook fallback
-      interReward:  'G',   // Rewarded Interstitial
-      rewarded:     'G',   // Rewarded
-      open:         'G',    // App Open           → Google only (Facebook unsupported)
-      BannerBottom: 'G',   // Bottom Banner
+      inter: 'FGL',   // Interstitial
+      interReward: 'FGL',   // Rewarded Interstitial
+      rewarded: 'FGL',   // Rewarded
+      open: 'FGL',   // App Open
+      BannerBottom: 'FGL',   // Bottom Banner
 
-      // ── Google (AdMob) test IDs ─────────────────────────────────────────────
+      // ── Google (AdMob) IDs ──────────────────────────────────────────────────
       G: {
-        I:  'ca-app-pub-6026271145988676/9504686665',  // Interstitial
-        O:  'ca-app-pub-6026271145988676/2208650573',  // App Open
-        R:  'ca-app-pub-6026271145988676/3186893589',  // Rewarded
+        I: 'ca-app-pub-6026271145988676/9504686665',  // Interstitial
+        O: 'ca-app-pub-6026271145988676/2208650573',  // App Open
+        R: 'ca-app-pub-6026271145988676/3186893589',  // Rewarded
         IR: 'ca-app-pub-6026271145988676/4392164049',  // Rewarded Interstitial
         BB: 'ca-app-pub-6026271145988676/5318029645',  // Banner
       },
 
-      // ── Facebook (Meta Audience Network) test placement IDs ────────────────
-      // Replace with your real Placement IDs from the Meta dashboard.
+      // ── Facebook (Meta Audience Network) IDs ───────────────────────────────
       F: {
-        I:  'IMG_16_9_LINK#YOUR_PLACEMENT_ID',
-        O:  'IMG_16_9_LINK#YOUR_PLACEMENT_ID',         // not used (unsupported)
-        R:  'VID_HD_9_16_39S_APP_INSTALL#YOUR_PLACEMENT_ID',
-        IR: 'VID_HD_9_16_39S_APP_INSTALL#YOUR_PLACEMENT_ID',
-        BB: 'VID_HD_9_16_39S_APP_INSTALL#YOUR_PLACEMENT_ID',
+        I: '1758887168477062_1758888465143599',  // Interstitial
+        O: '1758887168477062_1758888465143599',  // Open Ad uses Interstitial Placement
+        R: '1758887168477062_1758888458476933',  // Rewarded
+        IR: '1758887168477062_1758888455143600',  // Rewarded Interstitial
+        BB: '1758887168477062_1758888461810266',  // Banner
+      },
+
+      // ── AppLovin MAX Test IDs ───────────────────────────────────────────────
+      L: {
+        I: 'YOUR_APPLOVIN_INTERSTITIAL_AD_UNIT_ID',
+        O: 'YOUR_APPLOVIN_APP_OPEN_AD_UNIT_ID',
+        R: 'YOUR_APPLOVIN_REWARDED_AD_UNIT_ID',
+        IR: 'YOUR_APPLOVIN_REWARDED_INTERSTITIAL_AD_UNIT_ID',
+        BB: 'YOUR_APPLOVIN_BANNER_AD_UNIT_ID',
       },
     },
   },

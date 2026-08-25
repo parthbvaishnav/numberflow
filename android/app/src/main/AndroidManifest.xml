@@ -20,6 +20,10 @@
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-6026271145988676~9059429142"/>
 
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="fb1758887168477062"/>
+
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"

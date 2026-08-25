@@ -52,20 +52,21 @@ export function getAdList(type, config) {
     id: defaultCfg[provider]?.[adKey] ?? null,
   });
 
-  // Single-provider strategies
-  if (strategy === 'G') return [makeEntry('G')].filter((e) => e.id);
-  if (strategy === 'F') return [makeEntry('F')].filter((e) => e.id);
+  // Dynamic multi-provider strategy parsing (e.g. "GFL", "FLG", "LGF", "G", "F", "L")
+  const providers = strategy.split('');
+  const list = providers
+    .map((provider) => ({
+      provider,
+      id: defaultCfg[provider]?.[adKey] ?? null,
+    }))
+    .filter((e) => e.id);
 
-  // Dual-provider strategies — order matters for fallback
-  if (strategy === 'GF') {
-    return [makeEntry('G'), makeEntry('F')].filter((e) => e.id);
-  }
-  if (strategy === 'FG') {
-    return [makeEntry('F'), makeEntry('G')].filter((e) => e.id);
+  if (list.length === 0) {
+    console.warn(`[AdSelector] No valid ad IDs found for strategy "${strategy}" (${type})`);
+    return null;
   }
 
-  console.warn(`[AdSelector] Unknown strategy "${strategy}" for type "${type}"`);
-  return null;
+  return list;
 }
 
 /**

@@ -21,8 +21,10 @@
 
 import { getAdList } from './AdSelector';
 import GoogleAds from './googleAds';
-// import FacebookAds from './facebookAds';
+import FacebookAds from './facebookAds';
+import AppLovinAds from './appLovinAds';
 import RemoteConfigService from '../services/RemoteConfigService';
+import ConsentManager from '../services/ConsentManager';
 import NetInfo from '@react-native-community/netinfo';
 
 // Prevent overlapping ad requests
@@ -40,6 +42,11 @@ class AdManager {
     if (_isShowing) {
       console.log('[AdManager] Ad already showing — skipping request.');
       return false;
+    }
+
+    // Safety & COPPA Check
+    if (ConsentManager.isChild()) {
+      console.log('[AdManager] Child user detected (COPPA) — enforcing non-personalized ad mode.');
     }
 
     const netState = await NetInfo.fetch();
@@ -94,6 +101,7 @@ class AdManager {
   _dispatch(provider, type, id, onReward) {
     if (provider === 'G') return this._google(type, id, onReward);
     if (provider === 'F') return this._facebook(type, id, onReward);
+    if (provider === 'L') return this._applovin(type, id, onReward);
     console.warn(`[AdManager] Unknown provider "${provider}"`);
     return Promise.resolve(false);
   }
@@ -114,21 +122,37 @@ class AdManager {
     }
   }
 
-  // _facebook(type, id, onReward) {
-  //   switch (type) {
-  //     case 'inter':
-  //       return FacebookAds.showInterstitial(id);
-  //     case 'interReward':
-  //       return FacebookAds.showRewardedInterstitial(id, onReward);
-  //     case 'rewarded':
-  //       return FacebookAds.showRewarded(id, onReward);
-  //     case 'open':
-  //       return FacebookAds.showAppOpen(id); // returns false — auto-fallback
-  //     default:
-  //       console.warn(`[AdManager] Facebook has no handler for type "${type}"`);
-  //       return Promise.resolve(false);
-  //   }
-  // }
+  _facebook(type, id, onReward) {
+    switch (type) {
+      case 'inter':
+        return FacebookAds.showInterstitial(id);
+      case 'interReward':
+        return FacebookAds.showRewardedInterstitial(id, onReward);
+      case 'rewarded':
+        return FacebookAds.showRewarded(id, onReward);
+      case 'open':
+        return FacebookAds.showAppOpen(id);
+      default:
+        console.warn(`[AdManager] Facebook has no handler for type "${type}"`);
+        return Promise.resolve(false);
+    }
+  }
+
+  _applovin(type, id, onReward) {
+    switch (type) {
+      case 'inter':
+        return AppLovinAds.showInterstitial(id);
+      case 'interReward':
+        return AppLovinAds.showRewardedInterstitial(id, onReward);
+      case 'rewarded':
+        return AppLovinAds.showRewarded(id, onReward);
+      case 'open':
+        return AppLovinAds.showAppOpen(id);
+      default:
+        console.warn(`[AdManager] AppLovin has no handler for type "${type}"`);
+        return Promise.resolve(false);
+    }
+  }
 }
 
 export default new AdManager();

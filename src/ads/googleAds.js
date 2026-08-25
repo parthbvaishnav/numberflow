@@ -8,12 +8,10 @@ import {
   AdEventType,
   RewardedAdEventType,
 } from 'react-native-google-mobile-ads';
+import ConsentManager from '../services/ConsentManager';
 
-// Common request config for all ads
-const requestOptions = {
-  requestNonPersonalizedAdsOnly: true,
-  keywords: ['puzzle', 'brain', 'logic', 'numbers'],
-};
+// Dynamic request config for all ads based on COPPA & User Consent choices
+const getRequestOptions = () => ConsentManager.getAdRequestOptions();
 
 class GoogleAds {
   _interstitial = null;
@@ -24,7 +22,7 @@ class GoogleAds {
   // ───────────────── INTERSTITIAL ─────────────────
 
   loadInterstitial(id) {
-    this._interstitial = InterstitialAd.createForAdRequest(id,requestOptions,);
+    this._interstitial = InterstitialAd.createForAdRequest(id,getRequestOptions(),);
 
     this._interstitial.load();
 
@@ -37,7 +35,7 @@ class GoogleAds {
       const ad =
         InterstitialAd.createForAdRequest(
           id,
-          requestOptions,
+          getRequestOptions(),
         );
 
       const unsubLoaded =
@@ -89,7 +87,7 @@ class GoogleAds {
       const ad =
         RewardedAd.createForAdRequest(
           id,
-          requestOptions,
+          getRequestOptions(),
         );
 
       let rewarded = false;
@@ -157,7 +155,7 @@ class GoogleAds {
       const ad =
         RewardedInterstitialAd.createForAdRequest(
           id,
-          requestOptions,
+          getRequestOptions(),
         );
 
       let rewarded = false;
@@ -225,7 +223,7 @@ class GoogleAds {
       const ad =
         AppOpenAd.createForAdRequest(
           id,
-          requestOptions,
+          getRequestOptions(),
         );
 
       const unsubLoaded =

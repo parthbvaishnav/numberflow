@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Primary Meta Tags -->
+  <title>NP Game Studio — NP AI Video & Number Flow</title>
+  <meta name="title" content="NP Game Studio — NP AI Video & Number Flow">
+  <meta name="description" content="Discover NP AI Video and Number Flow, two modern Android apps from NP Game Studio designed for creativity, simplicity and engaging experiences.">
+  <meta name="theme-color" content="#080312">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://play.google.com/store/apps/developer?id=NP+Game+Studio">
+  <meta property="og:title" content="NP Game Studio — NP AI Video & Number Flow">
+  <meta property="og:description" content="Discover NP AI Video and Number Flow, two modern Android apps from NP Game Studio designed for creativity, simplicity and engaging experiences.">
+  <meta property="og:image" content="https://play.google.com/store/apps/developer?id=NP+Game+Studio">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="NP Game Studio — NP AI Video & Number Flow">
+  <meta property="twitter:description" content="Discover NP AI Video and Number Flow, two modern Android apps from NP Game Studio designed for creativity, simplicity and engaging experiences.">
+
+  <!-- Google Fonts: Manrope & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: {
+              950: '#080312',
+              900: '#0D061B',
+              850: '#120820',
+              800: '#160A2B',
+              750: '#1E0E38',
+              700: '#271447',
+            },
+            neon: {
+              pink: '#FF2B91',
+              purple: '#8B5CF6',
+              cyan: '#22D3EE',
+              blue: '#3B82F6',
+            }
+          },
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace'],
+          },
+          animation: {
+            'float-slow': 'float 6s ease-in-out infinite',
+            'float-reverse': 'floatReverse 7s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+            'blob-spin': 'blobSpin 20s linear infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-14px) rotate(1.5deg)' },
+            },
+            floatReverse: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(12px) rotate(-1.5deg)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.4', filter: 'blur(40px)' },
+              '50%': { opacity: '0.8', filter: 'blur(60px)' },
+            },
+            blobSpin: {
+              '0%': { transform: 'rotate(0deg) scale(1)' },
+              '50%': { transform: 'rotate(180deg) scale(1.1)' },
+              '100%': { transform: 'rotate(360deg) scale(1)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS for Glows, Glassmorphism, and Animations -->
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080312;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1E0E38;
+      border-radius: 5px;
+      border: 2px solid #080312;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8B5CF6;
+    }
+
+    /* Glassmorphism utilities */
+    .glass-card {
+      background: rgba(18, 8, 32, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .glass-card-hover {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .glass-card-hover:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 43, 145, 0.3);
+      box-shadow: 0 12px 30px -10px rgba(139, 92, 246, 0.25);
+    }
+
+    .glass-card-cyan:hover {
+      border-color: rgba(34, 211, 238, 0.4);
+      box-shadow: 0 12px 30px -10px rgba(34, 211, 238, 0.25);
+    }
+
+    .glass-nav {
+      background: rgba(8, 3, 18, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Radial Glow backgrounds */
+    .bg-radial-hero {
+      background: radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.18) 0%, rgba(255, 43, 145, 0.12) 35%, rgba(8, 3, 18, 0) 70%);
+    }
+
+    .bg-radial-pink {
+      background: radial-gradient(circle at 30% 50%, rgba(255, 43, 145, 0.15) 0%, rgba(8, 3, 18, 0) 65%);
+    }
+
+    .bg-radial-cyan {
+      background: radial-gradient(circle at 70% 50%, rgba(34, 211, 238, 0.15) 0%, rgba(8, 3, 18, 0) 65%);
+    }
+
+    /* Scroll Reveal Animations */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal-on-scroll.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .delay-100 { transition-delay: 100ms; }
+    .delay-200 { transition-delay: 200ms; }
+    .delay-300 { transition-delay: 300ms; }
+    .delay-400 { transition-delay: 400ms; }
+
+    /* Phone Mockup Shadow Glows */
+    .phone-glow-pink {
+      box-shadow: 0 0 50px -10px rgba(255, 43, 145, 0.35), 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+
+    .phone-glow-cyan {
+      box-shadow: 0 0 50px -10px rgba(34, 211, 238, 0.35), 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+
+    /* Floating particles */
+    .floating-num {
+      position: absolute;
+      font-family: 'Space Grotesk', monospace;
+      font-weight: 700;
+      color: rgba(34, 211, 238, 0.15);
+      user-select: none;
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite;
+    }
+
+    /* FAQ accordion transition */
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+      opacity: 0;
+    }
+
+    .faq-answer.is-open {
+      opacity: 1;
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      .animate-float-slow, .animate-float-reverse, .animate-pulse-glow, .animate-blob-spin, .floating-num {
+        animation: none !important;
+      }
+      .reveal-on-scroll {
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-dark-950 text-slate-100 font-sans antialiased selection:bg-neon-pink selection:text-white overflow-x-hidden min-h-screen">
+
+  <!-- BACKGROUND AMBIENT GLOW BLOBS -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+    <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-neon-pink/10 blur-[130px] animate-pulse-glow"></div>
+    <div class="absolute top-[30%] right-[-10%] w-[600px] h-[600px] rounded-full bg-neon-purple/10 blur-[150px] animate-blob-spin"></div>
+    <div class="absolute bottom-[10%] left-[20%] w-[550px] h-[550px] rounded-full bg-neon-cyan/10 blur-[140px] animate-pulse-glow"></div>
+  </div>
+
+  <!-- FLOATING NAVBAR -->
+  <header class="fixed top-0 left-0 right-0 z-50 px-4 pt-3 transition-all duration-300" id="main-header">
+    <nav class="max-w-7xl mx-auto glass-nav rounded-full px-5 py-3 flex items-center justify-between shadow-2xl transition-all duration-300" id="nav-container">
+      
+      <!-- Brand Logo -->
+      <a href="#hero" class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-neon-purple rounded-full px-2 py-1">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-neon-pink via-neon-purple to-neon-cyan p-[2px] shadow-lg shadow-neon-pink/20 group-hover:scale-105 transition-transform">
+          <div class="w-full h-full bg-dark-950 rounded-full flex items-center justify-center">
+            <span class="font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-pink to-neon-cyan text-sm">NP</span>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-bold text-base tracking-tight text-white group-hover:text-neon-cyan transition-colors">NP Game Studio</span>
+          <span class="text-[10px] text-slate-400 font-mono tracking-wider uppercase -mt-1">Android Apps</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="hidden md:flex items-center space-x-1 lg:space-x-2 text-sm font-medium text-slate-300">
+        <a href="#hero" class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Home</a>
+        <a href="#np-ai-video" class="px-3 py-1.5 rounded-full hover:text-neon-pink hover:bg-white/5 transition-all">NP AI Video</a>
+        <a href="#number-flow" class="px-3 py-1.5 rounded-full hover:text-neon-cyan hover:bg-white/5 transition-all">Number Flow</a>
+        <a href="#features" class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Features</a>
+        <a href="#how-it-works" class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">How It Works</a>
+        <a href="#faq" class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">FAQ</a>
+      </div>
+
+      <!-- Desktop Header CTA -->
+      <div class="hidden md:flex items-center">
+        <a href="#download" class="relative group inline-flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-xs uppercase tracking-wider text-white overflow-hidden shadow-lg shadow-neon-purple/25 focus:outline-none focus:ring-2 focus:ring-neon-purple">
+          <span class="absolute inset-0 bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan transition-all duration-300 group-hover:opacity-90"></span>
+          <span class="relative flex items-center gap-2">
+            <!-- Google Play Mini Icon -->
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path d="M3.609 1.814L13.792 12 3.61 22.186a2.371 2.371 0 0 1-.61-1.614V3.428c0-.629.224-1.21.609-1.614zM15.206 13.414l2.766 2.766-12.72 7.34 9.954-10.106zm0-2.828L5.252.48l12.72 7.34-2.766 2.766zm1.414 1.414l3.52-2.032a1.76 1.76 0 0 1 0 3.056l-3.52-2.024z"/>
+            </svg>
+            Download Apps
+          </span>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button id="mobile-menu-btn" aria-label="Toggle Navigation Menu" aria-expanded="false" class="md:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-neon-purple">
+        <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Mobile Drawer Panel -->
+    <div id="mobile-menu" class="hidden md:hidden max-w-7xl mx-auto mt-2 glass-nav rounded-2xl p-6 shadow-2xl transition-all duration-300">
+      <div class="flex flex-col space-y-4 text-base font-medium">
+        <a href="#hero" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-slate-200">Home</a>
+        <a href="#np-ai-video" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-neon-pink">NP AI Video</a>
+        <a href="#number-flow" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-neon-cyan">Number Flow</a>
+        <a href="#features" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-slate-200">Features</a>
+        <a href="#how-it-works" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-slate-200">How It Works</a>
+        <a href="#faq" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-slate-200">FAQ</a>
+        <div class="pt-3 border-t border-white/10 flex flex-col gap-2">
+          <a href="#" data-play-target="developer" class="w-full text-center py-3 rounded-xl bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan text-white font-bold shadow-lg shadow-neon-pink/20">
+            Download on Google Play
+          </a>
+          <span class="text-center text-xs text-slate-400 font-mono">Available Exclusively for Android</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative z-10">
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="relative pt-32 pb-20 md:pt-44 md:pb-32 px-4 max-w-7xl mx-auto bg-radial-hero overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        
+        <!-- Left Hero Content -->
+        <div class="lg:col-span-7 flex flex-col items-start text-left reveal-on-scroll">
+          
+          <!-- Badge -->
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-neon-purple/30 text-neon-cyan text-xs font-mono tracking-wider uppercase mb-6 shadow-inner">
+            <span class="w-2 h-2 rounded-full bg-neon-cyan animate-ping"></span>
+            ANDROID APPS • SIMPLE • POWERFUL
+          </div>
+
+          <!-- Main Headline -->
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] mb-6 text-white">
+            Powerful apps.<br>
+            <span class="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">Simple experiences.</span>
+          </h1>
+
+          <!-- Supporting Text -->
+          <p class="text-slate-300 text-lg sm:text-xl font-normal leading-relaxed max-w-2xl mb-8">
+            Meet <strong class="text-white font-semibold">NP AI Video</strong> and <strong class="text-white font-semibold">Number Flow</strong> — two Android apps from NP Game Studio designed to bring simple, engaging and modern experiences to your phone.
+          </p>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto mb-6">
+            <a href="#np-ai-video" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan text-white font-bold text-center shadow-xl shadow-neon-pink/25 hover:shadow-neon-pink/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              Explore Our Apps
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </a>
+            
+            <a href="#" data-play-target="developer" class="px-8 py-4 rounded-2xl glass-card text-white font-bold text-center border border-white/15 hover:bg-white/10 hover:border-neon-cyan/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+              <svg class="w-5 h-5 text-neon-cyan fill-current" viewBox="0 0 24 24">
+                <path d="M3.609 1.814L13.792 12 3.61 22.186a2.371 2.371 0 0 1-.61-1.614V3.428c0-.629.224-1.21.609-1.614zM15.206 13.414l2.766 2.766-12.72 7.34 9.954-10.106zm0-2.828L5.252.48l12.72 7.34-2.766 2.766zm1.414 1.414l3.52-2.032a1.76 1.76 0 0 1 0 3.056l-3.52-2.024z"/>
+              </svg>
+              Download on Google Play
+            </a>
+          </div>
+
+          <!-- Android Exclusivity Notice -->
+          <div class="flex items-center gap-2 text-xs font-mono text-slate-400">
+            <svg class="w-4 h-4 text-emerald-400 fill-current" viewBox="0 0 24 24">
+              <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5516 0 .9997.4482.9997.9993.0001.5511-.4481.9997-.9997.9997zm-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5516 0 .9997.4482.9997.9993 0 .5511-.4481.9997-.9997.9997zm11.4045-6.02l1.9973-3.4592c.1504-.2606.061-.5931-.1996-.7436-.2606-.1504-.5931-.061-.7436.1996l-2.0243 3.5058c-1.4883-.679-3.1492-[1.0664]-4.9113-[1.0664]-1.7621 0-3.423.3874-4.9113 1.0664l-2.0243-3.5058c-.1504-.2606-.483-.35-.7436-.1996-.2606.1505-.35.483-.1996.7436l1.9973 3.4592c-3.1895 1.7483-5.352 5.0343-5.6318 8.8787h22.926c-.2798-3.8444-2.4423-7.1304-5.6318-8.8787z"/>
+            </svg>
+            <span>Available Exclusively on Android</span>
+          </div>
+
+        </div>
+
+        <!-- Right Hero Mockups Composition -->
+        <div class="lg:col-span-5 relative flex justify-center items-center">
+          
+          <!-- Decorative Background Neon Ring -->
+          <div class="absolute w-[320px] h-[320px] sm:w-[420px] sm:h-[420px] rounded-full border border-neon-purple/20 animate-pulse-glow pointer-events-none"></div>
+
+          <!-- Dual Phone Composition -->
+          <div class="relative w-full max-w-[340px] sm:max-w-[420px] h-[480px] sm:h-[560px]">
+            
+            <!-- Phone 1 (NP AI Video - Slightly Rotated Left) -->
+            <div class="absolute top-0 left-0 w-[210px] sm:w-[250px] animate-float-slow z-20">
+              <div class="relative rounded-[40px] p-3 bg-dark-900 border-2 border-neon-pink/40 phone-glow-pink shadow-2xl overflow-hidden">
+                <!-- Camera Notch -->
+                <div class="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-3 bg-dark-950 rounded-full flex items-center justify-center gap-2 z-30">
+                  <div class="w-2 h-2 rounded-full bg-slate-800"></div>
+                  <div class="w-1.5 h-1.5 rounded-full bg-slate-900"></div>
+                </div>
+                <!-- Screen Content -->
+                <div class="w-full h-[390px] sm:h-[470px] bg-dark-950 rounded-[30px] pt-8 px-3 pb-4 flex flex-col justify-between overflow-hidden border border-white/5">
+                  <div class="flex items-center justify-between text-[10px] font-mono text-neon-pink pb-2 border-b border-white/10">
+                    <span>NP AI Video</span>
+                    <span class="px-1.5 py-0.5 rounded bg-neon-pink/20 text-neon-pink">HD Studio</span>
+                  </div>
+                  <!-- Simulated AI Video Screen -->
+                  <div class="relative flex-1 my-2 rounded-2xl bg-gradient-to-br from-dark-850 via-dark-800 to-neon-purple/30 p-3 flex flex-col justify-end overflow-hidden border border-neon-pink/30">
+                    <div class="absolute inset-0 bg-radial-pink opacity-60"></div>
+                    <div class="absolute top-3 left-3 px-2 py-1 rounded bg-black/60 backdrop-blur text-[9px] font-mono text-neon-cyan flex items-center gap-1">
+                      <span class="w-1.5 h-1.5 rounded-full bg-neon-pink animate-ping"></span> AI Generating...
+                    </div>
+                    <div class="relative z-10 space-y-1.5">
+                      <div class="h-1.5 w-3/4 rounded-full bg-gradient-to-r from-neon-pink to-neon-cyan"></div>
+                      <div class="h-1 w-1/2 rounded-full bg-white/30"></div>
+                      <div class="pt-2 flex justify-between items-center text-[10px] text-slate-300 font-mono">
+                        <span>4K Ultra</span>
+                        <span>00:15 / 00:30</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Phone Controls -->
+                  <div class="space-y-2">
+                    <div class="w-full py-2 rounded-xl bg-gradient-to-r from-neon-pink to-neon-purple text-[11px] font-bold text-center text-white shadow-md">
+                      + Create AI Video
+                    </div>
+                    <div class="flex justify-around text-[9px] font-mono text-slate-400 pt-1">
+                      <span class="text-neon-pink">● Create</span>
+                      <span>● Gallery</span>
+                      <span>● Render</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Phone 2 (Number Flow - Offset Right) -->
+            <div class="absolute bottom-2 right-0 w-[210px] sm:w-[250px] animate-float-reverse z-10">
+              <div class="relative rounded-[40px] p-3 bg-dark-900 border-2 border-neon-cyan/40 phone-glow-cyan shadow-2xl overflow-hidden">
+                <!-- Camera Notch -->
+                <div class="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-3 bg-dark-950 rounded-full flex items-center justify-center gap-2 z-30">
+                  <div class="w-2 h-2 rounded-full bg-slate-800"></div>
+                </div>
+                <!-- Screen Content -->
+                <div class="w-full h-[390px] sm:h-[470px] bg-dark-950 rounded-[30px] pt-8 px-3 pb-4 flex flex-col justify-between overflow-hidden border border-white/5">
+                  <div class="flex items-center justify-between text-[10px] font-mono text-neon-cyan pb-2 border-b border-white/10">
+                    <span>Number Flow</span>
+                    <span class="text-slate-400">Score: 4,820</span>
+                  </div>
+                  <!-- Simulated Number Flow Gameplay Grid -->
+                  <div class="relative flex-1 my-2 rounded-2xl bg-gradient-to-br from-dark-850 via-dark-800 to-neon-cyan/20 p-3 flex flex-col justify-center items-center gap-3 border border-neon-cyan/30">
+                    <div class="text-center">
+                      <span class="text-[10px] font-mono text-neon-cyan">LEVEL 14</span>
+                      <div class="text-xs font-bold text-white tracking-widest">CONNECT THE FLOW</div>
+                    </div>
+                    <!-- Grid Nodes -->
+                    <div class="grid grid-cols-3 gap-2.5">
+                      <div class="w-9 h-9 rounded-xl bg-neon-cyan/20 border border-neon-cyan flex items-center justify-center font-mono font-bold text-neon-cyan text-xs shadow-sm">01</div>
+                      <div class="w-9 h-9 rounded-xl bg-neon-purple/20 border border-neon-purple flex items-center justify-center font-mono font-bold text-neon-purple text-xs">02</div>
+                      <div class="w-9 h-9 rounded-xl bg-neon-pink/20 border border-neon-pink flex items-center justify-center font-mono font-bold text-neon-pink text-xs">03</div>
+                      <div class="w-9 h-9 rounded-xl bg-neon-blue/20 border border-neon-blue flex items-center justify-center font-mono font-bold text-neon-blue text-xs">08</div>
+                      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-neon-cyan to-neon-blue text-dark-950 font-mono font-extrabold text-sm shadow-md flex items-center justify-center">13</div>
+                      <div class="w-9 h-9 rounded-xl bg-neon-cyan/20 border border-neon-cyan flex items-center justify-center font-mono font-bold text-neon-cyan text-xs">21</div>
+                    </div>
+                    <div class="w-full bg-white/5 rounded-full h-1.5 overflow-hidden">
+                      <div class="bg-gradient-to-r from-neon-cyan to-neon-blue h-full w-3/4"></div>
+                    </div>
+                  </div>
+                  <!-- Phone Controls -->
+                  <div class="space-y-2">
+                    <div class="w-full py-2 rounded-xl bg-gradient-to-r from-neon-cyan to-neon-blue text-[11px] font-bold text-center text-dark-950 shadow-md">
+                      Flow Mode Active
+                    </div>
+                    <div class="flex justify-around text-[9px] font-mono text-slate-400 pt-1">
+                      <span class="text-neon-cyan">● Focus</span>
+                      <span>● Daily</span>
+                      <span>● Stats</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- APP 1: NP AI VIDEO SECTION -->
+    <section id="np-ai-video" class="py-24 px-4 max-w-7xl mx-auto relative bg-radial-pink">
+      
+      <!-- Section Header -->
+      <div class="flex flex-col items-start mb-16 reveal-on-scroll">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neon-pink/10 border border-neon-pink/30 text-neon-pink text-xs font-mono tracking-wider uppercase mb-4">
+          01 • NP AI VIDEO
+        </div>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
+          Turn your ideas into <span class="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">engaging videos.</span>
+        </h2>
+        <p class="text-slate-300 text-lg max-w-2xl">
+          NP AI Video is built for creators who want a simpler way to explore AI-powered video experiences on Android.
+        </p>
+      </div>
+
+      <!-- Content Split Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left: Phone Display -->
+        <div class="lg:col-span-5 flex justify-center reveal-on-scroll">
+          <div class="relative w-full max-w-[280px] sm:max-w-[320px]">
+            <!-- Blob Glow behind -->
+            <div class="absolute inset-0 bg-neon-pink/20 blur-[80px] rounded-full animate-pulse-glow"></div>
+            
+            <!-- Phone Frame -->
+            <div class="relative rounded-[44px] p-3.5 bg-dark-900 border-2 border-neon-pink/50 phone-glow-pink shadow-2xl">
+              <!-- Notch -->
+              <div class="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-dark-950 rounded-full z-20"></div>
+              
+              <!-- Screen UI -->
+              <div class="w-full h-[480px] sm:h-[520px] bg-dark-950 rounded-[32px] pt-9 p-4 flex flex-col justify-between border border-white/10">
+                
+                <div class="flex items-center justify-between text-xs font-mono text-neon-pink pb-3 border-b border-white/10">
+                  <span class="font-bold">NP AI VIDEO</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-neon-pink/20 text-neon-pink">V2.4</span>
+                </div>
+
+                <!-- Video Viewport Simulator -->
+                <div class="my-4 flex-1 rounded-2xl bg-gradient-to-b from-dark-800 via-dark-850 to-neon-purple/20 border border-neon-pink/30 p-4 flex flex-col justify-between relative overflow-hidden">
+                  <div class="absolute top-3 left-3 right-3 flex justify-between items-center">
+                    <span class="text-[10px] font-mono text-white/80 bg-black/40 px-2 py-1 rounded backdrop-blur">Preview Mode</span>
+                    <span class="text-[10px] font-mono text-neon-pink bg-black/40 px-2 py-1 rounded backdrop-blur">AI Engine</span>
+                  </div>
+
+                  <!-- Center Graphic Visual -->
+                  <div class="my-auto text-center space-y-2">
+                    <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-tr from-neon-pink to-neon-purple p-[2px] shadow-lg shadow-neon-pink/30">
+                      <div class="w-full h-full bg-dark-950 rounded-full flex items-center justify-center">
+                        <svg class="w-7 h-7 text-neon-pink ml-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div class="text-xs font-mono font-bold text-white tracking-wider">CREATE. ENHANCE. IMAGINE.</div>
+                    <p class="text-[10px] text-slate-400">Streamlined AI creation canvas</p>
+                  </div>
+
+                  <!-- Timeline -->
+                  <div class="space-y-1.5">
+                    <div class="flex justify-between text-[9px] font-mono text-slate-400">
+                      <span>Timeline</span>
+                      <span>1080p • 60 FPS</span>
+                    </div>
+                    <div class="h-2 rounded-full bg-white/10 overflow-hidden">
+                      <div class="h-full bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan w-2/3"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Button -->
+                <a href="#" data-play-target="np-ai-video" class="w-full py-3 rounded-xl bg-gradient-to-r from-neon-pink to-neon-purple text-white text-xs font-bold text-center shadow-lg shadow-neon-pink/25 block">
+                  Get NP AI Video on Google Play
+                </a>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Information & Feature Cards -->
+        <div class="lg:col-span-7 space-y-8">
+          
+          <div class="reveal-on-scroll">
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">
+              Create. Enhance. Imagine.
+            </h3>
+            <p class="text-slate-300 leading-relaxed">
+              Designed around clarity and speed, NP AI Video empowers Android users to experience effortless video creation workflows right from their mobile device.
+            </p>
+          </div>
+
+          <!-- High-Level Floating Tags -->
+          <div class="flex flex-wrap gap-3 reveal-on-scroll delay-100">
+            <span class="px-4 py-2 rounded-xl glass-card text-xs font-mono text-neon-pink border-neon-pink/30 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-pink"></span> AI-Powered
+            </span>
+            <span class="px-4 py-2 rounded-xl glass-card text-xs font-mono text-neon-purple border-neon-purple/30 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-purple"></span> Create Faster
+            </span>
+            <span class="px-4 py-2 rounded-xl glass-card text-xs font-mono text-neon-cyan border-neon-cyan/30 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-neon-cyan"></span> Easy to Use
+            </span>
+            <span class="px-4 py-2 rounded-xl glass-card text-xs font-mono text-slate-200 border-white/20 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-300"></span> Made for Android
+            </span>
+          </div>
+
+          <!-- Feature Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 reveal-on-scroll delay-200">
+            
+            <div class="glass-card p-5 rounded-2xl glass-card-hover border-neon-pink/20">
+              <div class="w-10 h-10 rounded-xl bg-neon-pink/10 border border-neon-pink/30 flex items-center justify-center text-neon-pink mb-3 font-mono font-bold">
+                01
+              </div>
+              <h4 class="font-bold text-white text-lg mb-1">AI-Powered Experience</h4>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                A streamlined experience designed around modern AI-powered video creation.
+              </p>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl glass-card-hover border-neon-purple/20">
+              <div class="w-10 h-10 rounded-xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center text-neon-purple mb-3 font-mono font-bold">
+                02
+              </div>
+              <h4 class="font-bold text-white text-lg mb-1">Simple Workflow</h4>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                Keep the experience easy to understand without unnecessary complexity.
+              </p>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl glass-card-hover border-neon-cyan/20">
+              <div class="w-10 h-10 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan mb-3 font-mono font-bold">
+                03
+              </div>
+              <h4 class="font-bold text-white text-lg mb-1">Creator Friendly</h4>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                Designed for users who want to explore, create and experiment.
+              </p>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl glass-card-hover border-white/20">
+              <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-slate-200 mb-3 font-mono font-bold">
+                04
+              </div>
+              <h4 class="font-bold text-white text-lg mb-1">Mobile First</h4>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                Optimized specifically for Android smartphones.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Section CTA -->
+          <div class="pt-4 reveal-on-scroll delay-300 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <a href="#" data-play-target="np-ai-video" class="px-7 py-3.5 rounded-xl bg-gradient-to-r from-neon-pink to-neon-purple text-white font-bold text-sm shadow-lg shadow-neon-pink/20 hover:scale-[1.02] transition-all flex items-center gap-2">
+              Get NP AI Video
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </a>
+            <span class="text-xs font-mono text-slate-400">Available Exclusively on Android</span>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- APP 2: NUMBER FLOW SECTION -->
+    <section id="number-flow" class="py-24 px-4 max-w-7xl mx-auto relative bg-radial-cyan overflow-hidden">
+      
+      <!-- Decorative Floating Number Particles -->
+      <span class="floating-num top-12 left-8 text-3xl sm:text-5xl" style="animation-delay: 0s;">01</span>
+      <span class="floating-num top-32 right-16 text-4xl sm:text-6xl" style="animation-delay: 2s;">02</span>
+      <span class="floating-num bottom-24 left-1/4 text-5xl sm:text-7xl" style="animation-delay: 4s;">08</span>
+      <span class="floating-num top-1/2 right-10 text-3xl sm:text-5xl" style="animation-delay: 1s;">13</span>
+      <span class="floating-num bottom-10 right-1/3 text-4xl sm:text-6xl" style="animation-delay: 3s;">21</span>
+      <span class="floating-num top-20 left-1/3 text-3xl sm:text-5xl" style="animation-delay: 5s;">42</span>
+
+      <!-- Section Header -->
+      <div class="flex flex-col items-start mb-16 reveal-on-scroll">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-xs font-mono tracking-wider uppercase mb-4">
+          02 • NUMBER FLOW
+        </div>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4">
+          Make numbers <span class="bg-gradient-to-r from-neon-cyan via-neon-blue to-neon-purple bg-clip-text text-transparent">flow.</span>
+        </h2>
+        <p class="text-slate-300 text-lg max-w-2xl">
+          Number Flow is a clean and engaging Android experience built around numbers, focus and satisfying interactions.
+        </p>
+      </div>
+
+      <!-- Content Split Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        
+        <!-- Left: Information & Feature Cards -->
+        <div class="lg:col-span-7 space-y-8 order-2 lg:order-1">
+          
+          <div class="reveal-on-scroll">
+            <h3 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">
+              Focus. Connect. Satisfy.
+            </h3>
+            <p class="text-slate-300 leading-relaxed">
+              Step into a minimal, distraction-free environment crafted to combine clear mathematical aesthetic with fluid touch interactions.
+            </p>
+          </div>
+
+          <!-- Feature Cards Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 reveal-on-scroll delay-100">
+            
+            <div class="glass-card p-5 rounded-2xl glass-card-hover glass-card-cyan">
+              <div class="w-10 h-10 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan mb-3 font-mono font-bold">
+                01
+              </div>
+              <h4 class="font-bold text-white text-lg mb-1">Simple Interface</h4>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                Clean visuals with an intuitive experience.
+              </p>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl glass-card-hover glass-card-cyan">
+              <div class="w-10 h-10 rounded-xl bg-neon-blue/10 border border-neon-blue/30 flex items-center justify-center text-neon-blue mb-3 font-mono font-bold">
+                02
+              </div>
+              <h4 class="font-bold text-white text-lg mb-1">Focused Experience</h4>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                Designed to keep interactions clear and distraction-free.
+              </p>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl glass-card-hover glass-card-cyan">
+              <div class="w-10 h-10 rounded-xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center text-neon-purple mb-3 font-mono font-bold">
+                03
+              </div>
+              <h4 class="font-bold text-white text-lg mb-1">Satisfying Interactions</h4>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                Smooth animations and responsive visual feedback.
+              </p>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl glass-card-hover glass-card-cyan">
+              <div class="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-slate-200 mb-3 font-mono font-bold">
+                04
+              </div>
+              <h4 class="font-bold text-white text-lg mb-1">Android Optimized</h4>
+              <p class="text-slate-400 text-sm leading-relaxed">
+                Built specifically for Android smartphones.
+              </p>
+            </div>
+
+          </div>
+
+          <!-- Section CTA -->
+          <div class="pt-4 reveal-on-scroll delay-200 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <a href="#" data-play-target="number-flow" class="px-7 py-3.5 rounded-xl bg-gradient-to-r from-neon-cyan via-neon-blue to-neon-purple text-dark-950 font-bold text-sm shadow-lg shadow-neon-cyan/20 hover:scale-[1.02] transition-all flex items-center gap-2">
+              Get Number Flow
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+              </svg>
+            </a>
+            <span class="text-xs font-mono text-slate-400">Available Exclusively on Android</span>
+          </div>
+
+        </div>
+
+        <!-- Right: Phone Display -->
+        <div class="lg:col-span-5 flex justify-center reveal-on-scroll order-1 lg:order-2">
+          <div class="relative w-full max-w-[280px] sm:max-w-[320px]">
+            <!-- Blob Glow behind -->
+            <div class="absolute inset-0 bg-neon-cyan/20 blur-[80px] rounded-full animate-pulse-glow"></div>
+            
+            <!-- Phone Frame -->
+            <div class="relative rounded-[44px] p-3.5 bg-dark-900 border-2 border-neon-cyan/50 phone-glow-cyan shadow-2xl">
+              <!-- Notch -->
+              <div class="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-dark-950 rounded-full z-20"></div>
+              
+              <!-- Screen UI -->
+              <div class="w-full h-[480px] sm:h-[520px] bg-dark-950 rounded-[32px] pt-9 p-4 flex flex-col justify-between border border-white/10">
+                
+                <div class="flex items-center justify-between text-xs font-mono text-neon-cyan pb-3 border-b border-white/10">
+                  <span class="font-bold">NUMBER FLOW</span>
+                  <span class="text-slate-400">Streak: 12 🔥</span>
+                </div>
+
+                <!-- Number Puzzle Viewport Simulator -->
+                <div class="my-4 flex-1 rounded-2xl bg-gradient-to-b from-dark-800 via-dark-850 to-neon-cyan/20 border border-neon-cyan/30 p-4 flex flex-col justify-between relative overflow-hidden">
+                  
+                  <div class="text-center space-y-1">
+                    <span class="text-[10px] font-mono text-neon-cyan uppercase tracking-widest">Focus Mode Active</span>
+                    <div class="text-lg font-mono font-extrabold text-white">Target: 42</div>
+                  </div>
+
+                  <!-- Number Node Grid -->
+                  <div class="grid grid-cols-3 gap-3 my-auto">
+                    <div class="h-12 rounded-xl bg-neon-cyan/20 border border-neon-cyan flex items-center justify-center font-mono font-bold text-neon-cyan text-sm shadow-md">01</div>
+                    <div class="h-12 rounded-xl bg-neon-purple/20 border border-neon-purple flex items-center justify-center font-mono font-bold text-neon-purple text-sm">02</div>
+                    <div class="h-12 rounded-xl bg-neon-pink/20 border border-neon-pink flex items-center justify-center font-mono font-bold text-neon-pink text-sm">03</div>
+                    <div class="h-12 rounded-xl bg-neon-blue/20 border border-neon-blue flex items-center justify-center font-mono font-bold text-neon-blue text-sm">08</div>
+                    <div class="h-12 rounded-xl bg-gradient-to-r from-neon-cyan to-neon-blue text-dark-950 font-mono font-extrabold text-base flex items-center justify-center shadow-lg">13</div>
+                    <div class="h-12 rounded-xl bg-neon-cyan/20 border border-neon-cyan flex items-center justify-center font-mono font-bold text-neon-cyan text-sm">21</div>
+                  </div>
+
+                  <div class="space-y-1">
+                    <div class="flex justify-between text-[9px] font-mono text-slate-400">
+                      <span>Flow Progress</span>
+                      <span>85%</span>
+                    </div>
+                    <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                      <div class="h-full bg-gradient-to-r from-neon-cyan to-neon-blue w-[85%]"></div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Action Button -->
+                <a href="#" data-play-target="number-flow" class="w-full py-3 rounded-xl bg-gradient-to-r from-neon-cyan via-neon-blue to-neon-purple text-dark-950 text-xs font-bold text-center shadow-lg shadow-neon-cyan/25 block">
+                  Get Number Flow on Google Play
+                </a>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- WHY CHOOSE OUR APPS -->
+    <section id="features" class="py-24 px-4 max-w-7xl mx-auto">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Two apps. One simple philosophy.
+        </h2>
+        <p class="text-slate-300 text-lg">
+          Useful, enjoyable and designed with simplicity in mind.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Card 1 -->
+        <div class="glass-card p-7 rounded-3xl glass-card-hover border-neon-pink/20 flex flex-col justify-between reveal-on-scroll">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-neon-pink/10 border border-neon-pink/30 flex items-center justify-center text-neon-pink mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Simple by Design</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              No unnecessary complexity. Every screen and feature is streamlined to eliminate confusion and maximize clarity.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5 text-xs font-mono text-neon-pink">
+            Focused UI • Minimal
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="glass-card p-7 rounded-3xl glass-card-hover border-neon-purple/20 flex flex-col justify-between reveal-on-scroll delay-100">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center text-neon-purple mb-6">
+              <svg class="w-6 h-6 text-neon-purple fill-current" viewBox="0 0 24 24">
+                <path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5516 0 .9997.4482.9997.9993.0001.5511-.4481.9997-.9997.9997zm-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5516 0 .9997.4482.9997.9993 0 .5511-.4481.9997-.9997.9997zm11.4045-6.02l1.9973-3.4592c.1504-.2606.061-.5931-.1996-.7436-.2606-.1504-.5931-.061-.7436.1996l-2.0243 3.5058c-1.4883-.679-3.1492-[1.0664]-4.9113-[1.0664]-1.7621 0-3.423.3874-4.9113 1.0664l-2.0243-3.5058c-.1504-.2606-.483-.35-.7436-.1996-.2606.1505-.35.483-.1996.7436l1.9973 3.4592c-3.1895 1.7483-5.352 5.0343-5.6318 8.8787h22.926c-.2798-3.8444-2.4423-7.1304-5.6318-8.8787z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Built for Android</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              Designed specifically for Android users. Leverages native system capabilities for fast load times and responsive feedback.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5 text-xs font-mono text-neon-purple">
+            Native Feel • Smooth
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="glass-card p-7 rounded-3xl glass-card-hover glass-card-cyan flex flex-col justify-between reveal-on-scroll delay-200">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Fast & Responsive</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              Smooth interactions and lightweight visual experiences engineered to run seamlessly across all smartphones.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5 text-xs font-mono text-neon-cyan">
+            Lightweight • Instant
+          </div>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="glass-card p-7 rounded-3xl glass-card-hover border-neon-blue/20 flex flex-col justify-between reveal-on-scroll delay-300">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-neon-blue/10 border border-neon-blue/30 flex items-center justify-center text-neon-blue mb-6">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Constantly Improving</h3>
+            <p class="text-slate-400 text-sm leading-relaxed">
+              Built with room for future improvements and regular feature enhancements based on real creator and player input.
+            </p>
+          </div>
+          <div class="mt-6 pt-4 border-t border-white/5 text-xs font-mono text-neon-blue">
+            Regular Updates • Active
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- APP COMPARISON -->
+    <section id="comparison" class="py-24 px-4 max-w-7xl mx-auto">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Which app is for you?
+        </h2>
+        <p class="text-slate-300 text-lg">
+          Choose the experience that best fits your goals today.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Card 1: NP AI Video -->
+        <div class="glass-card p-8 sm:p-10 rounded-3xl border-2 border-neon-pink/40 hover:border-neon-pink transition-all shadow-2xl relative overflow-hidden flex flex-col justify-between reveal-on-scroll">
+          <div class="absolute -top-20 -right-20 w-48 h-48 bg-neon-pink/20 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-pink/10 border border-neon-pink/30 text-neon-pink text-xs font-mono mb-6">
+              AI CREATIVITY
+            </div>
+            <h3 class="text-3xl font-extrabold text-white mb-3">NP AI Video</h3>
+            <p class="text-slate-300 text-base leading-relaxed mb-8">
+              For creative minds exploring AI-powered video experiences on Android. Simple interface designed for visual experimentation.
+            </p>
+
+            <ul class="space-y-3 text-sm text-slate-300 mb-8 font-medium">
+              <li class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-neon-pink flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                AI-Powered Video Canvas
+              </li>
+              <li class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-neon-pink flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Simple & Intuitive Workflow
+              </li>
+              <li class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-neon-pink flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Built Specifically for Creators
+              </li>
+            </ul>
+          </div>
+
+          <a href="#np-ai-video" class="w-full py-4 rounded-2xl bg-gradient-to-r from-neon-pink to-neon-purple text-white font-bold text-center shadow-lg shadow-neon-pink/25 hover:opacity-95 transition-all flex items-center justify-center gap-2">
+            Explore NP AI Video →
+          </a>
+        </div>
+
+        <!-- Card 2: Number Flow -->
+        <div class="glass-card p-8 sm:p-10 rounded-3xl border-2 border-neon-cyan/40 hover:border-neon-cyan transition-all shadow-2xl relative overflow-hidden flex flex-col justify-between reveal-on-scroll delay-100">
+          <div class="absolute -top-20 -right-20 w-48 h-48 bg-neon-cyan/20 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan text-xs font-mono mb-6">
+              FOCUS & PUZZLE
+            </div>
+            <h3 class="text-3xl font-extrabold text-white mb-3">Number Flow</h3>
+            <p class="text-slate-300 text-base leading-relaxed mb-8">
+              For people who enjoy focused, number-based experiences. Clean visuals with smooth touch feedback and satisfying progression.
+            </p>
+
+            <ul class="space-y-3 text-slate-300 text-sm mb-8 font-medium">
+              <li class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-neon-cyan flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Minimal & Distraction-Free
+              </li>
+              <li class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-neon-cyan flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Satisfying Number Interactions
+              </li>
+              <li class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-neon-cyan flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                Fluid Animation Performance
+              </li>
+            </ul>
+          </div>
+
+          <a href="#number-flow" class="w-full py-4 rounded-2xl bg-gradient-to-r from-neon-cyan via-neon-blue to-neon-purple text-dark-950 font-bold text-center shadow-lg shadow-neon-cyan/25 hover:opacity-95 transition-all flex items-center justify-center gap-2">
+            Explore Number Flow →
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works" class="py-24 px-4 max-w-7xl mx-auto">
+      
+      <div class="text-center max-w-3xl mx-auto mb-20 reveal-on-scroll">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Get started in seconds.
+        </h2>
+        <p class="text-slate-300 text-lg">
+          Three simple steps to experience our Android apps.
+        </p>
+      </div>
+
+      <!-- 3 Steps Grid with Connecting Lines -->
+      <div class="relative grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <!-- Connecting Line for Desktop -->
+        <div class="hidden md:block absolute top-12 left-1/6 right-1/6 h-[2px] bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan z-0" aria-hidden="true"></div>
+
+        <!-- Step 1 -->
+        <div class="relative z-10 glass-card p-8 rounded-3xl text-center glass-card-hover border-neon-pink/30 reveal-on-scroll">
+          <div class="w-20 h-20 mx-auto rounded-full bg-dark-950 border-2 border-neon-pink text-neon-pink font-mono font-extrabold text-2xl flex items-center justify-center shadow-xl shadow-neon-pink/20 mb-6">
+            01
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Choose an app</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Pick NP AI Video for AI content creation or Number Flow for a focused number experience.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="relative z-10 glass-card p-8 rounded-3xl text-center glass-card-hover border-neon-purple/30 reveal-on-scroll delay-100">
+          <div class="w-20 h-20 mx-auto rounded-full bg-dark-950 border-2 border-neon-purple text-neon-purple font-mono font-extrabold text-2xl flex items-center justify-center shadow-xl shadow-neon-purple/20 mb-6">
+            02
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Download on Android</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Install your selected app safely from Google Play onto your Android device.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="relative z-10 glass-card p-8 rounded-3xl text-center glass-card-hover glass-card-cyan reveal-on-scroll delay-200">
+          <div class="w-20 h-20 mx-auto rounded-full bg-dark-950 border-2 border-neon-cyan text-neon-cyan font-mono font-extrabold text-2xl flex items-center justify-center shadow-xl shadow-neon-cyan/20 mb-6">
+            03
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Start exploring</h3>
+          <p class="text-slate-400 text-sm leading-relaxed">
+            Open the app and enjoy a simple, modern and engaging mobile experience.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- APP SHOWCASE / SCREENSHOT GALLERY -->
+    <section id="showcase" class="py-24 px-4 max-w-7xl mx-auto">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Designed for your phone.
+        </h2>
+        <p class="text-slate-300 text-lg">
+          Sleek dark-mode interfaces built explicitly for Android devices.
+        </p>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Showcase Phone 1 (NP AI Video Studio) -->
+        <div class="glass-card p-4 rounded-3xl border-neon-pink/20 glass-card-hover reveal-on-scroll">
+          <div class="rounded-[28px] p-2.5 bg-dark-900 border border-white/10 phone-glow-pink">
+            <div class="w-full h-[360px] bg-dark-950 rounded-[20px] p-3 flex flex-col justify-between border border-white/5">
+              <div class="flex items-center justify-between text-[10px] font-mono text-neon-pink">
+                <span>NP AI Video</span>
+                <span>Creation Studio</span>
+              </div>
+              <div class="my-auto text-center space-y-3">
+                <div class="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-neon-pink to-neon-purple p-[2px]">
+                  <div class="w-full h-full bg-dark-950 rounded-2xl flex items-center justify-center font-mono font-bold text-neon-pink">AI</div>
+                </div>
+                <div class="text-xs font-bold text-white">Video Generation Canvas</div>
+                <div class="text-[9px] text-slate-400">Cinematic presets & AI filters</div>
+              </div>
+              <div class="w-full py-2 bg-neon-pink/20 text-neon-pink rounded-xl text-[10px] font-bold text-center">
+                Render Screen
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Showcase Phone 2 (Number Flow Board) -->
+        <div class="glass-card p-4 rounded-3xl border-neon-cyan/20 glass-card-hover glass-card-cyan reveal-on-scroll delay-100">
+          <div class="rounded-[28px] p-2.5 bg-dark-900 border border-white/10 phone-glow-cyan">
+            <div class="w-full h-[360px] bg-dark-950 rounded-[20px] p-3 flex flex-col justify-between border border-white/5">
+              <div class="flex items-center justify-between text-[10px] font-mono text-neon-cyan">
+                <span>Number Flow</span>
+                <span>Level 24</span>
+              </div>
+              <div class="my-auto space-y-2">
+                <div class="grid grid-cols-3 gap-1.5 text-[10px] font-mono text-center">
+                  <div class="p-2 rounded bg-neon-cyan/20 border border-neon-cyan text-neon-cyan">01</div>
+                  <div class="p-2 rounded bg-neon-purple/20 border border-neon-purple text-neon-purple">02</div>
+                  <div class="p-2 rounded bg-neon-blue/20 border border-neon-blue text-neon-blue">08</div>
+                  <div class="p-2 rounded bg-neon-pink/20 border border-neon-pink text-neon-pink">13</div>
+                  <div class="p-2 rounded bg-gradient-to-r from-neon-cyan to-neon-blue text-dark-950 font-bold">21</div>
+                  <div class="p-2 rounded bg-neon-cyan/20 border border-neon-cyan text-neon-cyan">42</div>
+                </div>
+              </div>
+              <div class="w-full py-2 bg-neon-cyan/20 text-neon-cyan rounded-xl text-[10px] font-bold text-center">
+                Gameplay View
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Showcase Phone 3 (NP AI Video Export) -->
+        <div class="glass-card p-4 rounded-3xl border-neon-purple/20 glass-card-hover reveal-on-scroll delay-200">
+          <div class="rounded-[28px] p-2.5 bg-dark-900 border border-white/10 phone-glow-pink">
+            <div class="w-full h-[360px] bg-dark-950 rounded-[20px] p-3 flex flex-col justify-between border border-white/5">
+              <div class="flex items-center justify-between text-[10px] font-mono text-neon-purple">
+                <span>NP AI Video</span>
+                <span>Export HD</span>
+              </div>
+              <div class="my-auto text-center space-y-3">
+                <div class="w-12 h-12 mx-auto rounded-full bg-neon-purple/20 flex items-center justify-center text-neon-purple">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                </div>
+                <div class="text-xs font-bold text-white">Save & Share</div>
+                <div class="text-[9px] text-slate-400">Fast local video export</div>
+              </div>
+              <div class="w-full py-2 bg-neon-purple/20 text-neon-purple rounded-xl text-[10px] font-bold text-center">
+                Export Manager
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Showcase Phone 4 (Number Flow Stats) -->
+        <div class="glass-card p-4 rounded-3xl border-neon-blue/20 glass-card-hover glass-card-cyan reveal-on-scroll delay-300">
+          <div class="rounded-[28px] p-2.5 bg-dark-900 border border-white/10 phone-glow-cyan">
+            <div class="w-full h-[360px] bg-dark-950 rounded-[20px] p-3 flex flex-col justify-between border border-white/5">
+              <div class="flex items-center justify-between text-[10px] font-mono text-neon-blue">
+                <span>Number Flow</span>
+                <span>Focus Stats</span>
+              </div>
+              <div class="my-auto space-y-3">
+                <div class="text-center">
+                  <div class="text-xl font-bold font-mono text-white">100%</div>
+                  <div class="text-[9px] text-slate-400">Flow Accuracy</div>
+                </div>
+                <div class="w-full bg-white/5 rounded-full h-2 overflow-hidden">
+                  <div class="bg-gradient-to-r from-neon-cyan to-neon-purple h-full w-full"></div>
+                </div>
+              </div>
+              <div class="w-full py-2 bg-neon-blue/20 text-neon-blue rounded-xl text-[10px] font-bold text-center">
+                Achievements
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- DOWNLOAD CTA CARD -->
+    <section id="download" class="py-20 px-4 max-w-7xl mx-auto">
+      <div class="glass-card p-8 sm:p-14 lg:p-16 rounded-[40px] border-2 border-white/15 relative overflow-hidden text-center shadow-2xl reveal-on-scroll">
+        <!-- Glowing Orbs inside CTA -->
+        <div class="absolute -top-32 -left-32 w-80 h-80 bg-neon-pink/25 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute -bottom-32 -right-32 w-80 h-80 bg-neon-cyan/25 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-3xl mx-auto space-y-6">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-mono text-neon-cyan uppercase">
+            GET STARTED TODAY
+          </div>
+
+          <h2 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+            Ready to try them?
+          </h2>
+
+          <p class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl mx-auto">
+            Choose your app, download it on Android, and start exploring modern mobile experiences.
+          </p>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <a href="#" data-play-target="np-ai-video" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan text-white font-bold text-center shadow-xl shadow-neon-pink/25 hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M3.609 1.814L13.792 12 3.61 22.186a2.371 2.371 0 0 1-.61-1.614V3.428c0-.629.224-1.21.609-1.614zM15.206 13.414l2.766 2.766-12.72 7.34 9.954-10.106zm0-2.828L5.252.48l12.72 7.34-2.766 2.766zm1.414 1.414l3.52-2.032a1.76 1.76 0 0 1 0 3.056l-3.52-2.024z"/>
+              </svg>
+              Get NP AI Video on Google Play
+            </a>
+
+            <a href="#" data-play-target="number-flow" class="w-full sm:w-auto px-8 py-4 rounded-2xl glass-card text-white font-bold text-center border border-neon-cyan/40 hover:bg-neon-cyan/10 hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
+              <svg class="w-5 h-5 text-neon-cyan fill-current" viewBox="0 0 24 24">
+                <path d="M3.609 1.814L13.792 12 3.61 22.186a2.371 2.371 0 0 1-.61-1.614V3.428c0-.629.224-1.21.609-1.614zM15.206 13.414l2.766 2.766-12.72 7.34 9.954-10.106zm0-2.828L5.252.48l12.72 7.34-2.766 2.766zm1.414 1.414l3.52-2.032a1.76 1.76 0 0 1 0 3.056l-3.52-2.024z"/>
+              </svg>
+              Get Number Flow on Google Play
+            </a>
+          </div>
+
+          <div class="pt-2 text-xs font-mono text-slate-400">
+            Available Exclusively on Android
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section id="faq" class="py-24 px-4 max-w-4xl mx-auto">
+      
+      <div class="text-center mb-16 reveal-on-scroll">
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
+          Frequently Asked Questions
+        </h2>
+        <p class="text-slate-300 text-lg">
+          Everything you need to know about NP AI Video and Number Flow.
+        </p>
+      </div>
+
+      <!-- FAQ Accordion -->
+      <div class="space-y-4 reveal-on-scroll">
+        
+        <!-- Q1 -->
+        <div class="glass-card rounded-2xl border-white/10 overflow-hidden">
+          <button class="faq-btn w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-lg text-white hover:text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-purple transition-colors" aria-expanded="false">
+            <span>Are these apps available on iPhone?</span>
+            <svg class="faq-icon w-5 h-5 text-neon-cyan flex-shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-answer px-6 pb-6 text-slate-300 text-base leading-relaxed">
+            <p>No. Both apps are currently available exclusively for Android.</p>
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="glass-card rounded-2xl border-white/10 overflow-hidden">
+          <button class="faq-btn w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-lg text-white hover:text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-purple transition-colors" aria-expanded="false">
+            <span>Where can I download the apps?</span>
+            <svg class="faq-icon w-5 h-5 text-neon-cyan flex-shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-answer px-6 pb-6 text-slate-300 text-base leading-relaxed">
+            <p>Use the Google Play buttons on this website to download the apps directly from the official store.</p>
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="glass-card rounded-2xl border-white/10 overflow-hidden">
+          <button class="faq-btn w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-lg text-white hover:text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-purple transition-colors" aria-expanded="false">
+            <span>Are both apps free?</span>
+            <svg class="faq-icon w-5 h-5 text-neon-cyan flex-shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-answer px-6 pb-6 text-slate-300 text-base leading-relaxed">
+            <p>Pricing and availability may vary. Check the Google Play listing for the latest information.</p>
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="glass-card rounded-2xl border-white/10 overflow-hidden">
+          <button class="faq-btn w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-lg text-white hover:text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-purple transition-colors" aria-expanded="false">
+            <span>Will the apps receive updates?</span>
+            <svg class="faq-icon w-5 h-5 text-neon-cyan flex-shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-answer px-6 pb-6 text-slate-300 text-base leading-relaxed">
+            <p>We plan to continue improving the apps and adding enhancements over time.</p>
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="glass-card rounded-2xl border-white/10 overflow-hidden">
+          <button class="faq-btn w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-lg text-white hover:text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-purple transition-colors" aria-expanded="false">
+            <span>Which app should I try first?</span>
+            <svg class="faq-icon w-5 h-5 text-neon-cyan flex-shrink-0 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="faq-answer px-6 pb-6 text-slate-300 text-base leading-relaxed">
+            <p>Choose NP AI Video if you're interested in AI-powered video experiences. Choose Number Flow if you prefer a focused number-based experience.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FINAL COMPACT CTA -->
+    <section class="py-16 px-4 max-w-7xl mx-auto text-center border-t border-white/10 reveal-on-scroll">
+      <h3 class="text-2xl sm:text-3xl font-extrabold text-white mb-2">Discover something new.</h3>
+      <p class="text-xs font-mono text-neon-cyan mb-6">NP AI Video • Number Flow</p>
+      <div class="flex flex-wrap items-center justify-center gap-4">
+        <a href="#" data-play-target="np-ai-video" class="px-6 py-3 rounded-xl bg-gradient-to-r from-neon-pink to-neon-purple text-white text-xs font-bold shadow-md hover:scale-105 transition-transform">
+          Download NP AI Video
+        </a>
+        <a href="#" data-play-target="number-flow" class="px-6 py-3 rounded-xl bg-gradient-to-r from-neon-cyan via-neon-blue to-neon-purple text-dark-950 text-xs font-bold shadow-md hover:scale-105 transition-transform">
+          Download Number Flow
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/10 bg-dark-950 py-16 px-4 relative z-10">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
+      
+      <!-- Brand column -->
+      <div class="md:col-span-5 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-neon-pink via-neon-purple to-neon-cyan p-[2px]">
+            <div class="w-full h-full bg-dark-950 rounded-full flex items-center justify-center">
+              <span class="font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-pink to-neon-cyan text-sm">NP</span>
+            </div>
+          </div>
+          <span class="font-bold text-xl text-white">NP Game Studio</span>
+        </div>
+        <p class="text-slate-400 text-sm leading-relaxed max-w-sm">
+          Creating simple and engaging Android experiences.
+        </p>
+        <div class="inline-flex items-center gap-2 text-xs font-mono text-slate-500">
+          <span>Android Exclusive Developer</span>
+        </div>
+      </div>
+
+      <!-- Quick Navigation -->
+      <div class="md:col-span-3 space-y-3">
+        <h4 class="font-bold text-white text-sm uppercase tracking-wider font-mono">Navigation</h4>
+        <ul class="space-y-2 text-sm text-slate-400">
+          <li><a href="#hero" class="hover:text-white transition-colors">Home</a></li>
+          <li><a href="#np-ai-video" class="hover:text-neon-pink transition-colors">NP AI Video</a></li>
+          <li><a href="#number-flow" class="hover:text-neon-cyan transition-colors">Number Flow</a></li>
+          <li><a href="#features" class="hover:text-white transition-colors">Features</a></li>
+          <li><a href="#how-it-works" class="hover:text-white transition-colors">How It Works</a></li>
+          <li><a href="#faq" class="hover:text-white transition-colors">FAQ</a></li>
+        </ul>
+      </div>
+
+      <!-- Store & Legal Links -->
+      <div class="md:col-span-4 space-y-3">
+        <h4 class="font-bold text-white text-sm uppercase tracking-wider font-mono">Google Play</h4>
+        <ul class="space-y-2 text-sm text-slate-400">
+          <li><a href="#" data-play-target="np-ai-video" class="hover:text-neon-pink transition-colors">Google Play — NP AI Video</a></li>
+          <li><a href="#" data-play-target="number-flow" class="hover:text-neon-cyan transition-colors">Google Play — Number Flow</a></li>
+          <li><a href="#" data-play-target="developer" class="hover:text-neon-purple transition-colors">NP Game Studio Developer Page</a></li>
+        </ul>
+        <div class="pt-4 flex gap-4 text-xs text-slate-500">
+          <a href="privacy-policy.html" class="hover:text-slate-300 underline">Privacy Policy</a>
+          <a href="mailto:uzibaainfotech@gmail.com" class="hover:text-slate-300 underline">Contact Support</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Copyright -->
+    <div class="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 font-mono gap-4">
+      <div>© 2026 NP Game Studio. All rights reserved.</div>
+      <div>Designed for Android</div>
+    </div>
+  </footer>
+
+  <!-- VANILLA JAVASCRIPT LOGIC -->
+  <script>
+    // CENTRALIZED GOOGLE PLAY STORE URL CONSTANTS
+    const GOOGLE_PLAY_DEVELOPER_URL = "https://play.google.com/store/apps/developer?id=NP+Game+Studio";
+    const NP_AI_VIDEO_PLAY_URL = "https://play.google.com/store/apps/developer?id=NP+Game+Studio";
+    const NUMBER_FLOW_PLAY_URL = "https://play.google.com/store/apps/developer?id=NP+Game+Studio";
+
+    document.addEventListener('DOMContentLoaded', function () {
+      
+      // 1. DYNAMICALLY BIND STORE LINKS
+      const storeLinks = document.querySelectorAll('[data-play-target]');
+      storeLinks.forEach(link => {
+        const target = link.getAttribute('data-play-target');
+        let destination = GOOGLE_PLAY_DEVELOPER_URL;
+        if (target === 'np-ai-video') destination = NP_AI_VIDEO_PLAY_URL;
+        if (target === 'number-flow') destination = NUMBER_FLOW_PLAY_URL;
+
+        link.setAttribute('href', destination);
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+
+      // 2. STICKY NAVBAR SCROLL BEHAVIOR
+      const header = document.getElementById('main-header');
+      const navContainer = document.getElementById('nav-container');
+
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > 40) {
+          navContainer.classList.add('shadow-neon-purple/20', 'bg-dark-950/90');
+          navContainer.classList.remove('bg-dark-950/75');
+        } else {
+          navContainer.classList.remove('shadow-neon-purple/20', 'bg-dark-950/90');
+          navContainer.classList.add('bg-dark-950/75');
+        }
+      });
+
+      // 3. MOBILE MENU HAMBURGER DRAWER
+      const menuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIconOpen = document.getElementById('menu-icon-open');
+      const menuIconClose = document.getElementById('menu-icon-close');
+      const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+      function toggleMenu() {
+        const isOpen = mobileMenu.classList.contains('hidden');
+        if (isOpen) {
+          mobileMenu.classList.remove('hidden');
+          menuIconOpen.classList.add('hidden');
+          menuIconClose.classList.remove('hidden');
+          menuBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          mobileMenu.classList.add('hidden');
+          menuIconOpen.classList.remove('hidden');
+          menuIconClose.classList.add('hidden');
+          menuBtn.setAttribute('aria-expanded', 'false');
+        }
+      }
+
+      menuBtn.addEventListener('click', toggleMenu);
+
+      mobileNavLinks.forEach(link => {
+        link.addEventListener('click', function () {
+          if (!mobileMenu.classList.contains('hidden')) {
+            toggleMenu();
+          }
+        });
+      });
+
+      // 4. ACCESSIBLE FAQ ACCORDION
+      const faqBtns = document.querySelectorAll('.faq-btn');
+
+      faqBtns.forEach(btn => {
+        btn.addEventListener('click', function () {
+          const answer = this.nextElementSibling;
+          const icon = this.querySelector('.faq-icon');
+          const isExpanded = this.getAttribute('aria-expanded') === 'true';
+
+          // Close all other open accordions
+          faqBtns.forEach(otherBtn => {
+            if (otherBtn !== btn) {
+              otherBtn.setAttribute('aria-expanded', 'false');
+              const otherAnswer = otherBtn.nextElementSibling;
+              const otherIcon = otherBtn.querySelector('.faq-icon');
+              otherAnswer.style.maxHeight = null;
+              otherAnswer.classList.remove('is-open');
+              if (otherIcon) otherIcon.style.transform = 'rotate(0deg)';
+            }
+          });
+
+          // Toggle current
+          if (isExpanded) {
+            this.setAttribute('aria-expanded', 'false');
+            answer.style.maxHeight = null;
+            answer.classList.remove('is-open');
+            if (icon) icon.style.transform = 'rotate(0deg)';
+          } else {
+            this.setAttribute('aria-expanded', 'true');
+            answer.classList.add('is-open');
+            answer.style.maxHeight = answer.scrollHeight + "px";
+            if (icon) icon.style.transform = 'rotate(180deg)';
+          }
+        });
+      });
+
+      // 5. INTERSECTION OBSERVER FOR SCROLL REVEAL ANIMATIONS
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.12
+      };
+
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      const revealElements = document.querySelectorAll('.reveal-on-scroll');
+      revealElements.forEach(el => revealObserver.observe(el));
+
+    });
+  </script>
+</body>
+</html>

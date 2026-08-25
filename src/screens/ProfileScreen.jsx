@@ -14,6 +14,7 @@ import {
   Share,
   FlatList,
   Platform,
+  Linking,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTheme, themes } from '../constants/theme';
@@ -655,6 +656,23 @@ export default function ProfileScreen() {
             <Text style={styles.shareSub}>Invite friends to test their logic limits!</Text>
             <TouchableOpacity style={styles.shareButton} onPress={handleShareApp}>
               <Text style={styles.shareButtonText}>Share Invite Link</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Privacy & AppLovin Compliance Card */}
+        <View style={[styles.shareCard, { borderColor: 'rgba(34, 211, 238, 0.3)', marginTop: 12 }]}>
+          <Text style={styles.shareIcon}>🛡️</Text>
+          <View style={styles.shareRight}>
+            <Text style={styles.shareTitle}>Privacy & Data Choices</Text>
+            <Text style={styles.shareSub}>
+              We work with AppLovin & AdMob. View our Privacy Policy & COPPA compliance terms.
+            </Text>
+            <TouchableOpacity
+              style={[styles.shareButton, { backgroundColor: '#22D3EE' }]}
+              onPress={() => Linking.openURL('https://legal.applovin.com/privacy/')}
+            >
+              <Text style={[styles.shareButtonText, { color: '#000' }]}>View Privacy Policy</Text>
             </TouchableOpacity>
           </View>
         </View>

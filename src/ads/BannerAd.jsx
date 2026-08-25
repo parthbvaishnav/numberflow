@@ -13,7 +13,30 @@ import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 import { getAdList } from './AdSelector';
 import RemoteConfigService from '../services/RemoteConfigService';
 
+import { NativeModules, TurboModuleRegistry } from 'react-native';
+
+let FBBannerView = null;
+try {
+  const isFB =
+    (typeof TurboModuleRegistry !== 'undefined' && TurboModuleRegistry.get && TurboModuleRegistry.get('CTKAdSettings')) ||
+    (NativeModules && (NativeModules.CTKAdSettings || NativeModules.CTKInterstitialAdManager));
+  if (isFB) {
+    FBBannerView = require('react-native-fbads').BannerView;
+  }
+} catch (e) {}
+
+let AppLovinAdView = null;
+try {
+  const isAL =
+    (typeof TurboModuleRegistry !== 'undefined' && TurboModuleRegistry.get && TurboModuleRegistry.get('AppLovinMAX')) ||
+    (NativeModules && NativeModules.AppLovinMAX);
+  if (isAL) {
+    AppLovinAdView = require('react-native-applovin-max').AdView;
+  }
+} catch (e) {}
+
 export default function BannerAdComponent() {
+  const [providerIndex, setProviderIndex] = React.useState(0);
   const config = RemoteConfigService.getAdsConfig();
 
   // ── Global kill-switches ─────────────────────────────────────────────────
@@ -22,35 +45,52 @@ export default function BannerAdComponent() {
 
   // ── Resolve provider list ─────────────────────────────────────────────────
   const adList = getAdList('BannerBottom', config);
-  if (!adList || adList.length === 0) return null;
+  if (!adList || adList.length === 0 || providerIndex >= adList.length) return null;
 
-  // ── Render first available provider ───────────────────────────────────────
-  for (const ad of adList) {
-    if (!ad.id) continue;
+  const currentAd = adList[providerIndex];
+  if (!currentAd || !currentAd.id) return null;
 
-    if (ad.provider === 'G') {
-      return (
-        <BannerAd
-          unitId={ad.id}
-          size={BannerAdSize.FULL_BANNER}
-          requestOptions={{ requestNonPersonalizedAdsOnly: true }}
-          onAdFailedToLoad={(err) => {
-            console.warn('[BannerAd] Google banner failed:', err);
-          }}
-        />
-      );
-    }
+  const handleNextFallback = (providerName, err) => {
+    console.warn(`[BannerAd] ${providerName} banner failed (trying fallback):`, err);
+    setProviderIndex((prev) => prev + 1);
+  };
 
-    // if (ad.provider === 'F') {
-    //   return (
-    //     <BannerView
-    //       placementId={ad.id}
-    //       type="standard"
-    //       onLoad={() => console.log('[BannerAd] Facebook banner loaded.')}
-    //       onError={(err) => console.warn('[BannerAd] Facebook banner failed:', err)}
-    //     />
-    //   );
-    // }
+  if (currentAd.provider === 'G') {
+    return (
+      <BannerAd
+        unitId={currentAd.id}
+        size={BannerAdSize.FULL_BANNER}
+        requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+        onAdFailedToLoad={(err) => handleNextFallback('Google', err)}
+      />
+    );
+  }
+
+  if (currentAd.provider === 'F' && FBBannerView) {
+    return (
+      <FBBannerView
+        placementId={currentAd.id}
+        type="standard"
+        onLoad={() => console.log('[BannerAd] Facebook banner loaded.')}
+        onError={(err) =>
+          handleNextFallback(
+            'Facebook',
+            err?.nativeEvent?.errorMessage || err?.nativeEvent || err
+          )
+        }
+      />
+    );
+  }
+
+  if (currentAd.provider === 'L' && AppLovinAdView && !currentAd.id.includes('YOUR_APPLOVIN')) {
+    return (
+      <AppLovinAdView
+        adUnitId={currentAd.id}
+        adFormat={require('react-native-applovin-max').AdFormat.BANNER}
+        onAdLoaded={() => console.log('[BannerAd] AppLovin banner loaded.')}
+        onAdLoadFailed={(err) => handleNextFallback('AppLovin', err)}
+      />
+    );
   }
 
   return null;

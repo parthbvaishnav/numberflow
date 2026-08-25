@@ -61,9 +61,11 @@ export default function SpinWheel({ onResult, disabled, }) {
         }
       );
 
-      // Agar ad fail ho gaya to bhi spin allow karenge
-      // Agar tum force karna chaho ki ad mandatory ho
-      // to yaha return false use kar sakte ho
+      // Meta Rewarded Policy: Do not grant rewards if ad skipped or failed
+      if (!adShown) {
+        setSpinning(false);
+        return;
+      }
 
       console.log('Ad result:', adShown);
 
@@ -174,6 +176,11 @@ export default function SpinWheel({ onResult, disabled, }) {
         </Svg>
       </Animated.View>
 
+      {/* Probability Disclosure (Meta Policy Requirement) */}
+      <Text style={{ fontSize: 10, color: '#9AA0A6', marginTop: 8, textAlign: 'center' }}>
+        Watch Video Ad to Spin (Equal Odds: 1/{SPIN_SEGMENTS.length} per reward)
+      </Text>
+
       {/* Spin button */}
       <TouchableOpacity
         style={[styles.spinBtn, (spinning || disabled) && styles.spinBtnDisabled]}
@@ -182,7 +189,7 @@ export default function SpinWheel({ onResult, disabled, }) {
         activeOpacity={0.8}
       >
         <Text style={styles.spinBtnText}>
-          {spinning ? 'Spinning…' : disabled ? 'Come Back Soon' : '🎯 SPIN!'}
+          {spinning ? 'Spinning…' : disabled ? 'Come Back Soon' : '📺 WATCH AD & SPIN!'}
         </Text>
       </TouchableOpacity>
     </View>

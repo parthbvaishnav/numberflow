@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Primary Meta Tags -->
+  <title>Privacy Policy — NP Game Studio (NP AI Video & Number Flow)</title>
+  <meta name="title" content="Privacy Policy — NP Game Studio">
+  <meta name="description"
+    content="Privacy Policy for NP AI Video and Number Flow, Android applications developed by NP Game Studio. Learn how we handle information, analytics, and data protection.">
+  <meta name="theme-color" content="#080312">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://play.google.com/store/apps/developer?id=NP+Game+Studio">
+  <meta property="og:title" content="Privacy Policy — NP Game Studio">
+  <meta property="og:description"
+    content="Privacy Policy for NP AI Video and Number Flow, Android applications developed by NP Game Studio.">
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Privacy Policy — NP Game Studio">
+  <meta property="twitter:description"
+    content="Privacy Policy for NP AI Video and Number Flow, Android applications developed by NP Game Studio.">
+
+  <!-- Google Fonts: Manrope & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            dark: {
+              950: '#080312',
+              900: '#0D061B',
+              850: '#120820',
+              800: '#160A2B',
+              750: '#1E0E38',
+              700: '#271447',
+            },
+            neon: {
+              pink: '#FF2B91',
+              purple: '#8B5CF6',
+              cyan: '#22D3EE',
+              blue: '#3B82F6',
+            }
+          },
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+            mono: ['Space Grotesk', 'monospace'],
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
+            'blob-spin': 'blobSpin 20s linear infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.4', filter: 'blur(40px)' },
+              '50%': { opacity: '0.8', filter: 'blur(60px)' },
+            },
+            blobSpin: {
+              '0%': { transform: 'rotate(0deg) scale(1)' },
+              '50%': { transform: 'rotate(180deg) scale(1.1)' },
+              '100%': { transform: 'rotate(360deg) scale(1)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS for Glows, Glassmorphism, and Animations -->
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #080312;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1E0E38;
+      border-radius: 5px;
+      border: 2px solid #080312;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8B5CF6;
+    }
+
+    /* Glassmorphism utilities */
+    .glass-card {
+      background: rgba(18, 8, 32, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card-hover {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-card-hover:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 43, 145, 0.3);
+      box-shadow: 0 12px 30px -10px rgba(139, 92, 246, 0.25);
+    }
+
+    .glass-nav {
+      background: rgba(8, 3, 18, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Radial Glow backgrounds */
+    .bg-radial-hero {
+      background: radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.18) 0%, rgba(255, 43, 145, 0.12) 35%, rgba(8, 3, 18, 0) 70%);
+    }
+
+    /* Scroll Reveal Animations */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal-on-scroll.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .delay-100 {
+      transition-delay: 100ms;
+    }
+
+    .delay-200 {
+      transition-delay: 200ms;
+    }
+
+    .delay-300 {
+      transition-delay: 300ms;
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+
+      .animate-pulse-glow,
+      .animate-blob-spin {
+        animation: none !important;
+      }
+
+      .reveal-on-scroll {
+        transition: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body
+  class="bg-dark-950 text-slate-100 font-sans antialiased selection:bg-neon-pink selection:text-white overflow-x-hidden min-h-screen">
+
+  <!-- BACKGROUND AMBIENT GLOW BLOBS -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+    <div
+      class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-neon-pink/10 blur-[130px] animate-pulse-glow">
+    </div>
+    <div
+      class="absolute top-[30%] right-[-10%] w-[600px] h-[600px] rounded-full bg-neon-purple/10 blur-[150px] animate-blob-spin">
+    </div>
+    <div
+      class="absolute bottom-[10%] left-[20%] w-[550px] h-[550px] rounded-full bg-neon-cyan/10 blur-[140px] animate-pulse-glow">
+    </div>
+  </div>
+
+  <!-- FLOATING NAVBAR -->
+  <header class="fixed top-0 left-0 right-0 z-50 px-4 pt-3 transition-all duration-300" id="main-header">
+    <nav
+      class="max-w-7xl mx-auto glass-nav rounded-full px-5 py-3 flex items-center justify-between shadow-2xl transition-all duration-300"
+      id="nav-container">
+
+      <!-- Brand Logo -->
+      <a href="index.html#hero"
+        class="flex items-center gap-3 group focus:outline-none focus:ring-2 focus:ring-neon-purple rounded-full px-2 py-1">
+        <div
+          class="w-9 h-9 rounded-full bg-gradient-to-tr from-neon-pink via-neon-purple to-neon-cyan p-[2px] shadow-lg shadow-neon-pink/20 group-hover:scale-105 transition-transform">
+          <div class="w-full h-full bg-dark-950 rounded-full flex items-center justify-center">
+            <span
+              class="font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-pink to-neon-cyan text-sm">NP</span>
+          </div>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-bold text-base tracking-tight text-white group-hover:text-neon-cyan transition-colors">NP
+            Game Studio</span>
+          <span class="text-[10px] text-slate-400 font-mono tracking-wider uppercase -mt-1">Android Apps</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="hidden md:flex items-center space-x-1 lg:space-x-2 text-sm font-medium text-slate-300">
+        <a href="index.html#hero"
+          class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Home</a>
+        <a href="index.html#np-ai-video"
+          class="px-3 py-1.5 rounded-full hover:text-neon-pink hover:bg-white/5 transition-all">NP AI Video</a>
+        <a href="index.html#number-flow"
+          class="px-3 py-1.5 rounded-full hover:text-neon-cyan hover:bg-white/5 transition-all">Number Flow</a>
+        <a href="index.html#features"
+          class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">Features</a>
+        <a href="index.html#faq"
+          class="px-3 py-1.5 rounded-full hover:text-white hover:bg-white/5 transition-all">FAQ</a>
+        <a href="privacy-policy.html"
+          class="px-3 py-1.5 rounded-full text-neon-cyan bg-white/10 font-semibold border border-neon-cyan/30 transition-all">Privacy
+          Policy</a>
+      </div>
+
+      <!-- Desktop Header CTA -->
+      <div class="hidden md:flex items-center">
+        <a href="#" data-play-target="developer"
+          class="relative group inline-flex items-center gap-2 px-5 py-2 rounded-full font-semibold text-xs uppercase tracking-wider text-white overflow-hidden shadow-lg shadow-neon-purple/25 focus:outline-none focus:ring-2 focus:ring-neon-purple">
+          <span
+            class="absolute inset-0 bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan transition-all duration-300 group-hover:opacity-90"></span>
+          <span class="relative flex items-center gap-2">
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <path
+                d="M3.609 1.814L13.792 12 3.61 22.186a2.371 2.371 0 0 1-.61-1.614V3.428c0-.629.224-1.21.609-1.614zM15.206 13.414l2.766 2.766-12.72 7.34 9.954-10.106zm0-2.828L5.252.48l12.72 7.34-2.766 2.766zm1.414 1.414l3.52-2.032a1.76 1.76 0 0 1 0 3.056l-3.52-2.024z" />
+            </svg>
+            Download Apps
+          </span>
+        </a>
+      </div>
+
+      <!-- Mobile Hamburger Button -->
+      <button id="mobile-menu-btn" aria-label="Toggle Navigation Menu" aria-expanded="false"
+        class="md:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-neon-purple">
+        <svg id="menu-icon-open" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+        <svg id="menu-icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Mobile Drawer Panel -->
+    <div id="mobile-menu"
+      class="hidden md:hidden max-w-7xl mx-auto mt-2 glass-nav rounded-2xl p-6 shadow-2xl transition-all duration-300">
+      <div class="flex flex-col space-y-4 text-base font-medium">
+        <a href="index.html#hero" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-slate-200">Home</a>
+        <a href="index.html#np-ai-video" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-neon-pink">NP
+          AI Video</a>
+        <a href="index.html#number-flow"
+          class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-neon-cyan">Number Flow</a>
+        <a href="index.html#features"
+          class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-slate-200">Features</a>
+        <a href="index.html#faq" class="mobile-nav-link py-2 px-3 rounded-lg hover:bg-white/5 text-slate-200">FAQ</a>
+        <a href="privacy-policy.html"
+          class="mobile-nav-link py-2 px-3 rounded-lg bg-white/10 text-neon-cyan font-bold">Privacy Policy</a>
+        <div class="pt-3 border-t border-white/10 flex flex-col gap-2">
+          <a href="#" data-play-target="developer"
+            class="w-full text-center py-3 rounded-xl bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan text-white font-bold shadow-lg shadow-neon-pink/20">
+            Download on Google Play
+          </a>
+          <span class="text-center text-xs text-slate-400 font-mono">Available Exclusively for Android</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="relative z-10 pt-32 pb-24 px-4 max-w-5xl mx-auto">
+
+    <!-- PAGE HERO HEADER -->
+    <div class="text-center max-w-3xl mx-auto mb-16 reveal-on-scroll">
+      <div
+        class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-neon-purple/30 text-neon-cyan text-xs font-mono tracking-wider uppercase mb-6 shadow-inner">
+        <span class="w-2 h-2 rounded-full bg-neon-cyan animate-ping"></span>
+        LEGAL & PRIVACY • NP GAME STUDIO
+      </div>
+
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6">
+        Privacy <span
+          class="bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan bg-clip-text text-transparent">Policy</span>
+      </h1>
+
+      <p class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto mb-6">
+        This Privacy Policy describes how <strong class="text-white">NP Game Studio</strong> handles information,
+        analytics, and data security across our Android applications, including <strong class="text-neon-pink">NP AI
+          Video</strong> and <strong class="text-neon-cyan">Number Flow</strong>.
+      </p>
+
+      <div class="flex flex-wrap items-center justify-center gap-3 text-xs font-mono text-slate-400">
+        <span class="px-3 py-1 rounded-full bg-white/5 border border-white/10">Last Updated: April 2026</span>
+        <span class="px-3 py-1 rounded-full bg-neon-pink/10 border border-neon-pink/30 text-neon-pink">NP AI
+          Video</span>
+        <span class="px-3 py-1 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan">Number
+          Flow</span>
+      </div>
+    </div>
+
+    <!-- PRIVACY CONTENT CONTAINER -->
+    <div class="space-y-8">
+
+      <!-- Section 1 -->
+      <div class="glass-card p-8 sm:p-10 rounded-3xl border border-neon-pink/20 glass-card-hover reveal-on-scroll">
+        <div class="flex items-center gap-3 mb-4">
+          <div
+            class="w-10 h-10 rounded-xl bg-neon-pink/10 border border-neon-pink/30 flex items-center justify-center text-neon-pink font-bold font-mono text-lg">
+            1
+          </div>
+          <h2 class="text-2xl font-bold text-white">Information We Collect</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed mb-4">
+          We do not collect any personally identifiable information (such as your name, email address, physical address,
+          or phone number) directly from users within <strong class="text-white">NP AI Video</strong> or <strong
+            class="text-white">Number Flow</strong>.
+        </p>
+        <p class="text-slate-300 leading-relaxed mb-3">
+          However, our applications may utilize trusted third-party services that automatically collect technical
+          non-personal information to ensure stable app performance, show relevant ads, and improve gameplay experience,
+          including:
+        </p>
+        <ul class="space-y-2 text-slate-300 text-sm pl-4 list-disc marker:text-neon-pink">
+          <li>Device hardware information (device model, operating system version, screen resolution)</li>
+          <li>App usage data (game progress, focus metrics, feature usage frequency, and session duration)</li>
+          <li>Advertising ID (used for serving customized and non-intrusive advertisements)</li>
+          <li>System performance data (crash logs, error diagnostics, and network latency)</li>
+        </ul>
+      </div>
+
+      <!-- Section 2 -->
+      <div
+        class="glass-card p-8 sm:p-10 rounded-3xl border border-neon-purple/20 glass-card-hover reveal-on-scroll delay-100">
+        <div class="flex items-center gap-3 mb-4">
+          <div
+            class="w-10 h-10 rounded-xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center text-neon-purple font-bold font-mono text-lg">
+            2
+          </div>
+          <h2 class="text-2xl font-bold text-white">Third-Party Services</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed mb-4">
+          To provide high-quality mobile experiences on Android, NP Game Studio integrates reliable third-party SDKs:
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="p-5 rounded-2xl bg-dark-900/80 border border-white/10">
+            <h3 class="font-bold text-neon-purple text-base mb-1">Google AdMob</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Used for displaying advertisements within our apps. Google AdMob may use device advertising identifiers to
+              serve relevant ads.
+            </p>
+          </div>
+          <div class="p-5 rounded-2xl bg-dark-900/80 border border-white/10">
+            <h3 class="font-bold text-neon-pink text-base mb-1">AppLovin</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              We work with AppLovin to deliver ads in our mobile application and other devices and/or platforms. For more information about AppLovin’s collection and use of your information visit: <a href="https://legal.applovin.com/privacy/" target="_blank" rel="noopener noreferrer" class="text-neon-cyan underline">https://legal.applovin.com/privacy/</a>.
+            </p>
+          </div>
+          <div class="p-5 rounded-2xl bg-dark-900/80 border border-white/10">
+            <h3 class="font-bold text-neon-cyan text-base mb-1">Firebase Analytics</h3>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              Used for analyzing app performance, user interactions, feature usage, and diagnosing crash reports to
+              improve application stability.
+            </p>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 mt-4">
+          These third-party service providers collect and process data in accordance with their respective privacy
+          policies and our in-app Consent Management & Age Gating choices.
+        </p>
+      </div>
+
+      <!-- Section 3 -->
+      <div
+        class="glass-card p-8 sm:p-10 rounded-3xl border border-neon-cyan/20 glass-card-hover reveal-on-scroll delay-200">
+        <div class="flex items-center gap-3 mb-4">
+          <div
+            class="w-10 h-10 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan font-bold font-mono text-lg">
+            3
+          </div>
+          <h2 class="text-2xl font-bold text-white">How We Use Information</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed mb-3">
+          The technical information collected is used exclusively for legitimate operational purposes:
+        </p>
+        <ul class="space-y-2 text-slate-300 text-sm pl-4 list-disc marker:text-neon-cyan">
+          <li>To enhance and personalize video creation workflows and number puzzle gameplay</li>
+          <li>To diagnose technical errors, fix bugs, and optimize app loading speed on Android</li>
+          <li>To display non-intrusive and appropriate advertisements</li>
+          <li>To evaluate overall app usage trends and plan future feature updates</li>
+        </ul>
+      </div>
+
+      <!-- Section 4 -->
+      <div class="glass-card p-8 sm:p-10 rounded-3xl border border-neon-blue/20 glass-card-hover reveal-on-scroll">
+        <div class="flex items-center gap-3 mb-4">
+          <div
+            class="w-10 h-10 rounded-xl bg-neon-blue/10 border border-neon-blue/30 flex items-center justify-center text-neon-blue font-bold font-mono text-lg">
+            4
+          </div>
+          <h2 class="text-2xl font-bold text-white">Data Security</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed">
+          NP Game Studio values your trust. We implement standard industry security practices to safeguard data
+          processed by our apps. However, please note that no method of electronic storage or transmission over the
+          internet is 100% secure, and absolute security cannot be guaranteed.
+        </p>
+      </div>
+
+      <!-- Section 5 -->
+      <div
+        class="glass-card p-8 sm:p-10 rounded-3xl border border-neon-pink/20 glass-card-hover reveal-on-scroll delay-100">
+        <div class="flex items-center gap-3 mb-4">
+          <div
+            class="w-10 h-10 rounded-xl bg-neon-pink/10 border border-neon-pink/30 flex items-center justify-center text-neon-pink font-bold font-mono text-lg">
+            5
+          </div>
+          <h2 class="text-2xl font-bold text-white">Children’s Privacy</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed mb-3">
+          Our applications feature an in-app <strong>Age Gate & Consent Management system</strong>. We strictly comply with COPPA (Children’s Online Privacy Protection Act) and AppLovin / Google AdMob policies:
+        </p>
+        <ul class="space-y-2 text-slate-300 text-sm pl-4 list-disc marker:text-neon-pink mb-4">
+          <li>Users under the age of 13 (or under 16 in applicable European jurisdictions) are automatically classified as age-restricted users.</li>
+          <li>We do NOT initialize or serve personalized advertising or track identifiers for users identified as children.</li>
+          <li>No personal information is collected from or requested from child users.</li>
+        </ul>
+        <p class="text-slate-300 leading-relaxed">
+          If you are a parent or guardian and believe that your child has inadvertently provided personal information,
+          please contact us immediately at <a href="mailto:npgamestudio1@gmail.com" class="text-neon-pink underline">npgamestudio1@gmail.com</a> so we can take immediate corrective measures.
+        </p>
+      </div>
+
+      <!-- Section 6 -->
+      <div
+        class="glass-card p-8 sm:p-10 rounded-3xl border border-neon-purple/20 glass-card-hover reveal-on-scroll delay-200">
+        <div class="flex items-center gap-3 mb-4">
+          <div
+            class="w-10 h-10 rounded-xl bg-neon-purple/10 border border-neon-purple/30 flex items-center justify-center text-neon-purple font-bold font-mono text-lg">
+            6
+          </div>
+          <h2 class="text-2xl font-bold text-white">External Links & Google Play</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed">
+          Our website and apps may contain links to external web pages (such as Google Play Store listings or
+          third-party ad links). NP Game Studio is not responsible for the privacy practices, content, or data
+          collection policies of external third-party websites.
+        </p>
+      </div>
+
+      <!-- Section 7 -->
+      <div class="glass-card p-8 sm:p-10 rounded-3xl border border-neon-cyan/20 glass-card-hover reveal-on-scroll">
+        <div class="flex items-center gap-3 mb-4">
+          <div
+            class="w-10 h-10 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center text-neon-cyan font-bold font-mono text-lg">
+            7
+          </div>
+          <h2 class="text-2xl font-bold text-white">Changes to This Policy</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed">
+          We may update our Privacy Policy periodically to reflect app updates, legal requirements, or service
+          improvements. Any changes will be published on this page with an updated revision date.
+        </p>
+      </div>
+
+      <!-- Section 8: Contact Card -->
+      <div
+        class="glass-card p-8 sm:p-10 rounded-3xl border-2 border-neon-purple/40 bg-gradient-to-br from-dark-850 via-dark-900 to-neon-purple/20 relative overflow-hidden reveal-on-scroll delay-100 shadow-2xl">
+        <div class="flex items-center gap-3 mb-4">
+      <!-- SECTION 8: META AUDIENCE NETWORK & THIRD-PARTY ADVERTISING -->
+      <div id="meta-policy" class="glass-card rounded-3xl p-8 border border-white/10 mb-8 reveal-on-scroll">
+        <div class="flex items-center gap-4 mb-6">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-tr from-neon-pink to-neon-purple flex items-center justify-center text-white font-bold font-mono text-lg">
+            8
+          </div>
+          <h2 class="text-2xl font-bold text-white">Meta Audience Network & Third-Party Ad Services</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed mb-4">
+          Our applications integrate third-party advertising services including <strong>Google AdMob</strong>, <strong>Meta Audience Network</strong>, and <strong>AppLovin MAX</strong> to serve personalized or non-personalized advertisements. These advertising networks may collect anonymous device identifiers, IP addresses, and app interaction data to optimize ad delivery, prevent fraud, and measure ad performance in compliance with applicable privacy laws.
+        </p>
+        <p class="text-slate-300 leading-relaxed mb-4">
+          For more information on how Meta processes your data, please review the <a href="https://www.facebook.com/about/privacy" target="_blank" rel="noopener noreferrer" class="text-neon-cyan underline">Meta Privacy Policy</a> and <a href="https://developers.facebook.com/terms/dfc_platform_terms/" target="_blank" rel="noopener noreferrer" class="text-neon-cyan underline">Meta Platform Terms</a>.
+        </p>
+      </div>
+
+      <!-- SECTION 9: USER DATA DELETION REQUEST -->
+      <div id="data-deletion" class="glass-card rounded-3xl p-8 border border-white/10 mb-8 reveal-on-scroll">
+        <div class="flex items-center gap-4 mb-6">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-tr from-neon-cyan to-neon-purple flex items-center justify-center text-white font-bold font-mono text-lg">
+            9
+          </div>
+          <h2 class="text-2xl font-bold text-white">User Data Deletion Instructions</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed mb-4">
+          Under Meta Platform Terms and global privacy regulations, users have the right to request deletion of any personal data or advertising identifiers associated with their use of our applications.
+        </p>
+        <p class="text-slate-300 leading-relaxed mb-4 font-mono text-sm bg-dark-950/80 p-4 rounded-xl border border-white/10">
+          To request complete data deletion, please email <strong>npgamestudio1@gmail.com</strong> with the subject line <span class="text-neon-pink">"Data Deletion Request - Number Flow"</span> along with your Device Advertising ID or User ID. All associated data will be deleted within 30 days.
+        </p>
+      </div>
+
+      <!-- SECTION 10: CONTACT US -->
+      <div id="contact" class="glass-card rounded-3xl p-8 border border-white/10 mb-8 reveal-on-scroll">
+        <div class="flex items-center gap-4 mb-6">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-tr from-neon-pink to-neon-purple flex items-center justify-center text-white font-bold font-mono text-lg">
+            10
+          </div>
+          <h2 class="text-2xl font-bold text-white">Contact Us</h2>
+        </div>
+        <p class="text-slate-300 leading-relaxed mb-6">
+          If you have any questions, feedback, or suggestions regarding this Privacy Policy or our Android applications,
+          please feel free to reach out:
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-4 rounded-2xl bg-dark-950/80 border border-white/10 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-neon-pink/20 text-neon-pink flex items-center justify-center">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs text-slate-400 block font-mono">Official Email</span>
+              <a href="mailto:npgamestudio1@gmail.com"
+                class="text-sm font-bold text-white hover:text-neon-pink transition-colors">npgamestudio1@gmail.com</a>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-dark-950/80 border border-white/10 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-neon-cyan/20 text-neon-cyan flex items-center justify-center">
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path
+                  d="M3.609 1.814L13.792 12 3.61 22.186a2.371 2.371 0 0 1-.61-1.614V3.428c0-.629.224-1.21.609-1.614zM15.206 13.414l2.766 2.766-12.72 7.34 9.954-10.106zm0-2.828L5.252.48l12.72 7.34-2.766 2.766zm1.414 1.414l3.52-2.032a1.76 1.76 0 0 1 0 3.056l-3.52-2.024z" />
+              </svg>
+            </div>
+            <div>
+              <span class="text-xs text-slate-400 block font-mono">Developer Studio</span>
+              <span class="text-sm font-bold text-white">NP Game Studio</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-white/10 bg-dark-950 py-16 px-4 relative z-10">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 mb-12">
+
+      <!-- Brand column -->
+      <div class="md:col-span-5 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-neon-pink via-neon-purple to-neon-cyan p-[2px]">
+            <div class="w-full h-full bg-dark-950 rounded-full flex items-center justify-center">
+              <span
+                class="font-mono font-bold text-transparent bg-clip-text bg-gradient-to-r from-neon-pink to-neon-cyan text-sm">NP</span>
+            </div>
+          </div>
+          <span class="font-bold text-xl text-white">NP Game Studio</span>
+        </div>
+        <p class="text-slate-400 text-sm leading-relaxed max-w-sm">
+          Creating simple and engaging Android experiences.
+        </p>
+        <div class="inline-flex items-center gap-2 text-xs font-mono text-slate-500">
+          <span>Android Exclusive Developer</span>
+        </div>
+      </div>
+
+      <!-- Quick Navigation -->
+      <div class="md:col-span-3 space-y-3">
+        <h4 class="font-bold text-white text-sm uppercase tracking-wider font-mono">Navigation</h4>
+        <ul class="space-y-2 text-sm text-slate-400">
+          <li><a href="index.html#hero" class="hover:text-white transition-colors">Home</a></li>
+          <li><a href="index.html#np-ai-video" class="hover:text-neon-pink transition-colors">NP AI Video</a></li>
+          <li><a href="index.html#number-flow" class="hover:text-neon-cyan transition-colors">Number Flow</a></li>
+          <li><a href="index.html#features" class="hover:text-white transition-colors">Features</a></li>
+          <li><a href="index.html#faq" class="hover:text-white transition-colors">FAQ</a></li>
+          <li><a href="privacy-policy.html" class="text-neon-cyan font-bold">Privacy Policy</a></li>
+        </ul>
+      </div>
+
+      <!-- Store & Legal Links -->
+      <div class="md:col-span-4 space-y-3">
+        <h4 class="font-bold text-white text-sm uppercase tracking-wider font-mono">Google Play</h4>
+        <ul class="space-y-2 text-sm text-slate-400">
+          <li><a href="#" data-play-target="np-ai-video" class="hover:text-neon-pink transition-colors">Google Play — NP
+              AI Video</a></li>
+          <li><a href="#" data-play-target="number-flow" class="hover:text-neon-cyan transition-colors">Google Play —
+              Number Flow</a></li>
+          <li><a href="#" data-play-target="developer" class="hover:text-neon-purple transition-colors">NP Game Studio
+              Developer Page</a></li>
+        </ul>
+        <div class="pt-4 flex gap-4 text-xs text-slate-500">
+          <a href="privacy-policy.html" class="hover:text-slate-300 underline">Privacy Policy</a>
+          <a href="mailto:npgamestudio1@gmail.com" class="hover:text-slate-300 underline">Contact Support</a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Copyright -->
+    <div
+      class="max-w-7xl mx-auto pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 font-mono gap-4">
+      <div>© 2026 NP Game Studio. All rights reserved.</div>
+      <div>Designed for Android</div>
+    </div>
+  </footer>
+
+  <!-- VANILLA JAVASCRIPT LOGIC -->
+  <script>
+    // CENTRALIZED GOOGLE PLAY STORE URL CONSTANTS
+    const GOOGLE_PLAY_DEVELOPER_URL = "https://play.google.com/store/apps/developer?id=NP+Game+Studio";
+    const NP_AI_VIDEO_PLAY_URL = "https://play.google.com/store/apps/developer?id=NP+Game+Studio";
+    const NUMBER_FLOW_PLAY_URL = "https://play.google.com/store/apps/developer?id=NP+Game+Studio";
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // 1. DYNAMICALLY BIND STORE LINKS
+      const storeLinks = document.querySelectorAll('[data-play-target]');
+      storeLinks.forEach(link => {
+        const target = link.getAttribute('data-play-target');
+        let destination = GOOGLE_PLAY_DEVELOPER_URL;
+        if (target === 'np-ai-video') destination = NP_AI_VIDEO_PLAY_URL;
+        if (target === 'number-flow') destination = NUMBER_FLOW_PLAY_URL;
+
+        link.setAttribute('href', destination);
+        link.setAttribute('target', '_blank');
+        link.setAttribute('rel', 'noopener noreferrer');
+      });
+
+      // 2. STICKY NAVBAR SCROLL BEHAVIOR
+      const navContainer = document.getElementById('nav-container');
+
+      window.addEventListener('scroll', function () {
+        if (window.scrollY > 40) {
+          navContainer.classList.add('shadow-neon-purple/20', 'bg-dark-950/90');
+          navContainer.classList.remove('bg-dark-950/75');
+        } else {
+          navContainer.classList.remove('shadow-neon-purple/20', 'bg-dark-950/90');
+          navContainer.classList.add('bg-dark-950/75');
+        }
+      });
+
+      // 3. MOBILE MENU HAMBURGER DRAWER
+      const menuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIconOpen = document.getElementById('menu-icon-open');
+      const menuIconClose = document.getElementById('menu-icon-close');
+      const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+      function toggleMenu() {
+        const isOpen = mobileMenu.classList.contains('hidden');
+        if (isOpen) {
+          mobileMenu.classList.remove('hidden');
+          menuIconOpen.classList.add('hidden');
+          menuIconClose.classList.remove('hidden');
+          menuBtn.setAttribute('aria-expanded', 'true');
+        } else {
+          mobileMenu.classList.add('hidden');
+          menuIconOpen.classList.remove('hidden');
+          menuIconClose.classList.add('hidden');
+          menuBtn.setAttribute('aria-expanded', 'false');
+        }
+      }
+
+      menuBtn.addEventListener('click', toggleMenu);
+
+      mobileNavLinks.forEach(link => {
+        link.addEventListener('click', function () {
+          if (!mobileMenu.classList.contains('hidden')) {
+            toggleMenu();
+          }
+        });
+      });
+
+      // 4. INTERSECTION OBSERVER FOR SCROLL REVEAL ANIMATIONS
+      const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -50px 0px',
+        threshold: 0.12
+      };
+
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      const revealElements = document.querySelectorAll('.reveal-on-scroll');
+      revealElements.forEach(el => revealObserver.observe(el));
+
+    });
+  </script>
+</body>
+
+</html>
