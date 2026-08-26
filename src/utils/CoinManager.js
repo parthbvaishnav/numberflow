@@ -13,34 +13,34 @@ const KEYS = {
 
 // ── Daily reward schedule ──────────────────────────────────────────────────
 export const DAILY_REWARDS = [
-  { day: 1, coins: 30, hints: 0 },
+  { day: 1, coins: 15, hints: 0 },
   { day: 2, coins: 0, hints: 1 },
-  { day: 3, coins: 40, hints: 0 },
+  { day: 3, coins: 20, hints: 0 },
   { day: 4, coins: 0, hints: 2 },
-  { day: 5, coins: 50, hints: 0 },
+  { day: 5, coins: 25, hints: 0 },
   { day: 6, coins: 0, hints: 3 },
-  { day: 7, coins: 30, hints: 4 },
+  { day: 7, coins: 15, hints: 4 },
 ];
 
 // ── Hint purchase plans ────────────────────────────────────────────────────
 export const HINT_PLANS = [
-  { id: 'h1', coins: 169, hints: 2 },
-  { id: 'h2', coins: 219, hints: 3 },
-  { id: 'h3', coins: 429, hints: 4 },
-  { id: 'h4', coins: 649, hints: 6 },
-  { id: 'h5', coins: 949, hints: 8 },
+  { id: 'h1', coins: 676, hints: 2 },
+  { id: 'h2', coins: 876, hints: 3 },
+  { id: 'h3', coins: 1716, hints: 4 },
+  { id: 'h4', coins: 2596, hints: 6 },
+  { id: 'h5', coins: 3796, hints: 8 },
 ];
 
 // ── Spin wheel segments ────────────────────────────────────────────────────
 export const SPIN_SEGMENTS = [
-  { label: '50 Coins', type: 'coins', value: 50, color: '#f59e0b' },
-  { label: '1 Hint', type: 'hints', value: 1, color: '#34d399' },
-  { label: '25 Coins', type: 'coins', value: 25, color: '#60a5fa' },
-  { label: '2 Hints', type: 'hints', value: 2, color: '#a78bfa' },
-  { label: '100 Coins', type: 'coins', value: 100, color: '#fb923c' },
-  { label: '75 Coins', type: 'coins', value: 75, color: '#f472b6' },
-  { label: '3 Hints', type: 'hints', value: 3, color: '#4ade80' },
-  { label: '150 Coins', type: 'coins', value: 150, color: '#fbbf24' },
+  { id: 0, label: '25 Coins', short: '25', type: 'coins', value: 25, icon: '🪙', color: '#7c3aed' },
+  { id: 1, label: '1 Hint', short: '1💡', type: 'hints', value: 1, icon: '💡', color: '#0891b2' },
+  { id: 2, label: '12 Coins', short: '12', type: 'coins', value: 12, icon: '🪙', color: '#60a5fa' },
+  { id: 3, label: '2 Hints', short: '2💡', type: 'hints', value: 2, icon: '💡', color: '#9333ea' },
+  { id: 4, label: '50 Coins', short: '50', type: 'coins', value: 50, icon: '💰', color: '#db2777' },
+  { id: 5, label: '35 Coins', short: '35', type: 'coins', value: 35, icon: '🪙', color: '#0e7490' },
+  { id: 6, label: '3 Hints', short: '3💡', type: 'hints', value: 3, icon: '💡', color: '#c026d3' },
+  { id: 7, label: '75 Coins', short: '75', type: 'coins', value: 75, icon: '🎰', color: '#f59e0b' },
 ];
 
 // ── Coin helpers ───────────────────────────────────────────────────────────
@@ -176,7 +176,7 @@ export async function getSpinTimeRemaining() {
 
 // ── Level coin reward ──────────────────────────────────────────────────────
 export function getLevelCoinReward() {
-  return Math.floor(Math.random() * 40) + 50; // 50–89
+  return Math.floor(Math.random() * 20) + 25; // 25–44
 }
 
 export function formatCountdown(ms) {

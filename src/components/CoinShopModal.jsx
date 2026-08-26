@@ -75,10 +75,10 @@ export default function CoinShopModal({ visible, onClose, onUpdate }) {
   const handleWatchForCoins = async () => {
     setCoinLoading(true);
     const ok = await AdManager.showAd('rewarded', async () => {
-      await addCoins(99);
+      await addCoins(50);
       await refresh();
       onUpdate && onUpdate();
-      showToast('🪙 +99 Coins earned!');
+      showToast('🪙 +50 Coins earned!');
     });
     setCoinLoading(false);
     if (!ok) showToast('Ad not available — try again later.');
@@ -144,10 +144,10 @@ export default function CoinShopModal({ visible, onClose, onUpdate }) {
                 <>
                   <Text style={s.adRowIcon}>📺</Text>
                   <View style={s.adRowMiddle}>
-                    <Text style={s.adRowTitle}>Watch Ad → 99 Coins</Text>
+                    <Text style={s.adRowTitle}>Watch Ad → 50 Coins</Text>
                     <Text style={s.adRowSub}>Watch a short video to earn coins</Text>
                   </View>
-                  <Text style={s.adRowReward}>🪙99</Text>
+                  <Text style={s.adRowReward}>🪙50</Text>
                 </>
               )}
             </TouchableOpacity>

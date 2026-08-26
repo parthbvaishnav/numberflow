@@ -73,22 +73,27 @@ Is CN=NP Game, OU=NP Game Studio, O=NP Game Studio, L=Surat, ST=Gujarat, C=IN co
   }
 
 
-  # Generate Release APK
+  # Generate Release APK (Standard Build)
   cd android
   ./gradlew assembleRelease
 
-  android/app/build/outputs/apk/release/app-release.apk
-
-  # Generate Release AAB
-
+  # Fast Single-Architecture Release APK (Local Device Testing - 70% Faster)
   cd android
-  gradlew clean
+  ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
+
+  APK Output Path: android/app/build/outputs/apk/release/app-release.apk
+
+  # Generate Release AAB (For Google Play Store Upload)
+  cd android
   ./gradlew bundleRelease
 
-  android/app/build/outputs/bundle/release/app-release.aab
+  AAB Output Path: android/app/build/outputs/bundle/release/app-release.aab
+
+  # Note: Do NOT run 'gradlew clean' before every build!
+  # Run 'gradlew clean' ONLY when adding new native dependencies or editing build configs.
 
 
-  # check Keystore status
+  # Check Keystore status
   keytool -list -v -keystore numberflow.keystore
 
 
@@ -122,3 +127,7 @@ Is CN=NP Game, OU=NP Game Studio, O=NP Game Studio, L=Surat, ST=Gujarat, C=IN co
     }
   }
 }
+
+
+
+npm start -- --reset-cache

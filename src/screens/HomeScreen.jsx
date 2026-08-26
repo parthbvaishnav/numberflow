@@ -1,19 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Animated,
+  Easing,
   InteractionManager,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
   ActivityIndicator,
-  StatusBar,
-  Linking,
-  Alert,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 
 import {
   generateLevel,
@@ -26,17 +27,72 @@ import DailyRewardModal from '../components/DailyRewardModal';
 import CoinShopModal from '../components/CoinShopModal';
 import SettingsModal from '../components/SettingsModal';
 
-import {
-  getCoins,
-  getHints,
-} from '../utils/CoinManager';
-import {
-  getDailyMissions,
-  getAchievements,
-} from '../utils/ProfileManager';
-import Svg, { Path } from 'react-native-svg';
+import { getCoins, getHints, getDailyRewardStatus } from '../utils/CoinManager';
+import { getDailyMissions, getAchievements } from '../utils/ProfileManager';
 import { useTheme } from '../constants/theme';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Icons
+// ─────────────────────────────────────────────────────────────────────────────
+const PlayIcon = ({ color = '#000' }) => (
+  <Svg width={26} height={26} viewBox="0 0 24 24">
+    <Path d="M8 5v14l11-7z" fill={color} />
+  </Svg>
+);
+
+const SettingsIcon = ({ size = 20, color }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Path
+      d="M12 15a3 3 0 100-6 3 3 0 000 6z"
+      stroke={color} strokeWidth={1.8} strokeLinecap="round"
+    />
+    <Path
+      d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+      stroke={color} strokeWidth={1.8} strokeLinecap="round"
+    />
+  </Svg>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reusable sub-components
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Round action orb flanking the title. */
+const TitleAction = ({ icon, label, tint, badge, onPress, theme }) => {
+  const styles = getStyles(theme);
+  return (
+    <TouchableOpacity style={styles.titleAction} onPress={onPress} activeOpacity={0.8}>
+      <View style={[styles.titleActionOrb, { borderColor: tint, backgroundColor: `${tint}1a` }]}>
+        <Text style={styles.titleActionIcon}>{icon}</Text>
+        {badge != null && badge > 0 && (
+          <View style={styles.titleActionBadge}>
+            <Text style={styles.titleActionBadgeText}>{badge > 9 ? '9+' : badge}</Text>
+          </View>
+        )}
+      </View>
+      <Text style={[styles.titleActionLabel, { color: tint }]} numberOfLines={1}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
+
+/** Wide action tile in the bottom row. */
+const ActionTile = ({ icon, label, sub, tint, dot, onPress, theme }) => {
+  const styles = getStyles(theme);
+  return (
+    <TouchableOpacity style={styles.tile} onPress={onPress} activeOpacity={0.85}>
+      <View style={[styles.tileGlyph, { backgroundColor: `${tint}1f`, borderColor: `${tint}59` }]}>
+        <Text style={styles.tileIcon}>{icon}</Text>
+      </View>
+      <Text style={styles.tileLabel} numberOfLines={1}>{label}</Text>
+      <Text style={[styles.tileSub, { color: tint }]} numberOfLines={1}>{sub}</Text>
+      {dot && <View style={[styles.tileDot, { backgroundColor: tint }]} />}
+    </TouchableOpacity>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HomeScreen
+// ─────────────────────────────────────────────────────────────────────────────
 export default function HomeScreen() {
   const navigation = useNavigation();
   const { theme } = useTheme();
@@ -47,26 +103,51 @@ export default function HomeScreen() {
 
   const [coins, setCoins] = useState(0);
   const [hints, setHints] = useState(0);
-  const [hasClaimableMissions, setHasClaimableMissions] = useState(false);
-  const [hasClaimableAchievements, setHasClaimableAchievements] = useState(false);
+  const [claimableQuestsCount, setClaimableQuestsCount] = useState(0);
+  const [canClaimDaily, setCanClaimDaily] = useState(false);
 
   const [showShop, setShowShop] = useState(false);
   const [showDailyReward, setShowDailyReward] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
+  const heroPulse = useRef(new Animated.Value(0)).current;
+  const coinScale = useRef(new Animated.Value(1)).current;
   const pregen = useRef(null);
 
+  const LS_LEVEL = 'zipCurrentLevel';
+
+  // ── Hero breathing animation ─────────────────────────────────────────────
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(heroPulse, {
+          toValue: 1, duration: 2200, easing: Easing.inOut(Easing.quad), useNativeDriver: true,
+        }),
+        Animated.timing(heroPulse, {
+          toValue: 0, duration: 2200, easing: Easing.inOut(Easing.quad), useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [heroPulse]);
+
+  // ── Balance & Quest Status Refresh ───────────────────────────────────────
   const refreshBalance = useCallback(async () => {
     setCoins(await getCoins());
     setHints(await getHints());
+
     try {
+      const dailyStatus = await getDailyRewardStatus();
+      setCanClaimDaily(dailyStatus?.canClaim ?? false);
+
       const m = await getDailyMissions();
-      const claimableM = m.some(x => x.progress >= x.target && !x.claimed);
-      setHasClaimableMissions(claimableM);
+      const claimableM = m.filter(x => x.progress >= x.target && !x.claimed).length;
 
       const a = await getAchievements();
-      const claimableA = a.some(x => x.completed && !x.claimed);
-      setHasClaimableAchievements(claimableA);
+      const claimableA = a.filter(x => x.completed && !x.claimed).length;
+
+      setClaimableQuestsCount(claimableM + claimableA);
     } catch (e) {
       console.error('Failed to load missions/achievements on home:', e);
     }
@@ -85,34 +166,18 @@ export default function HomeScreen() {
         .then((n) => {
           InteractionManager.runAfterInteractions(() => {
             preloadLevelBatch(n);
-
-            const data =
-              levelCache.get(n) || generateLevel(n);
-
+            const data = levelCache.get(n) || generateLevel(n);
             levelCache.set(n, data);
-
-            pregen.current = {
-              levelNum: n,
-              levelData: data,
-            };
-
+            pregen.current = { levelNum: n, levelData: data };
             setReady(true);
           });
         })
         .catch(() => {
           InteractionManager.runAfterInteractions(() => {
             preloadLevelBatch(1);
-
-            const data =
-              levelCache.get(1) || generateLevel(1);
-
+            const data = levelCache.get(1) || generateLevel(1);
             levelCache.set(1, data);
-
-            pregen.current = {
-              levelNum: 1,
-              levelData: data,
-            };
-
+            pregen.current = { levelNum: 1, levelData: data };
             setDisplayLevel(1);
             setReady(true);
           });
@@ -120,9 +185,15 @@ export default function HomeScreen() {
     }, [refreshBalance])
   );
 
+  const popCoin = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(coinScale, { toValue: 1.3, duration: 120, useNativeDriver: true }),
+      Animated.timing(coinScale, { toValue: 1, duration: 180, useNativeDriver: true }),
+    ]).start();
+  }, [coinScale]);
+
   const handlePlay = () => {
     if (!pregen.current) return;
-
     navigation.navigate('Game', {
       pregenLevelNum: pregen.current.levelNum,
       pregenLevelData: pregen.current.levelData,
@@ -133,187 +204,138 @@ export default function HomeScreen() {
     navigation.navigate('SpinWheel');
   };
 
-  const openPrivacyPolicy = () => {
-    Linking.openURL(
-      'https://friendly-cassata-b8985a.netlify.app/privacy-policy.html'
-    );
+  const handleQuests = () => {
+    navigation.navigate('Profile', { initialTab: 'missions' });
   };
 
   const handleDailyClaimed = async () => {
+    popCoin();
     await refreshBalance();
   };
 
-  const LS_LEVEL = 'zipCurrentLevel';
+  const heroScale = heroPulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.05],
+  });
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="light-content"
-        backgroundColor={theme.background}
-      />
+      <StatusBar barStyle="light-content" backgroundColor={theme.background} />
 
-      {/* Balance Bar */}
-      <View style={styles.balanceBar}>
-        {/* <TouchableOpacity
-          style={[styles.balancePill, { minWidth: 44, justifyContent: 'center' }]}
-          onPress={() => setShowSettings(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.balanceIcon}>⚙️</Text>
-        </TouchableOpacity> */}
+      {/* ── Header Bar: Level Chip · Coin Pill · Settings ────────────────── */}
+      <View style={styles.header}>
+        <View style={styles.levelChip}>
+          <Text style={styles.levelChipLabel}>LEVEL</Text>
+          <Text style={styles.levelChipValue}>{displayLevel || 1}</Text>
+        </View>
 
-        <TouchableOpacity
-          style={styles.balancePill}
-          onPress={() => setShowShop(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.balanceIcon}>🪙</Text>
-          <Text style={styles.balanceVal}>{coins}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            onPress={() => setShowShop(true)}
+            activeOpacity={0.8}
+          >
+            <Animated.View style={[styles.coinPill, { transform: [{ scale: coinScale }] }]}>
+              <Text style={styles.coinPillIcon}>🪙</Text>
+              <Text style={styles.coinPillText}>{coins}</Text>
+              <Text style={styles.coinPillDivider}>|</Text>
+              <Text style={styles.coinPillIcon}>💡</Text>
+              <Text style={styles.coinPillText}>{hints}</Text>
+            </Animated.View>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.balancePill}
-          onPress={() => setShowShop(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.balanceIcon}>💡</Text>
-          <Text style={styles.balanceVal}>{hints}</Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerIconBtn}
+            activeOpacity={0.75}
+            onPress={() => setShowSettings(true)}
+          >
+            <SettingsIcon color={theme.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Logo */}
-      <View style={styles.hero}>
-        {/* <Text style={styles.logo}>🧠</Text> */}
-        <BrainIcon />
-        <Text style={styles.subtitle}>TEST YOUR LIMITS</Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
 
-      {/* Play Button */}
-      <View style={styles.playWrapper}>
+        {/* ── Title Row: Spin — TITLE — Quests ──────────────────────────── */}
+        <View style={styles.titleRow}>
+          <TitleAction
+            icon="🎡"
+            label="Spin"
+            tint={theme.warn || '#fbbf24'}
+            onPress={handleSpin}
+            theme={theme}
+          />
+          <View style={{ alignItems: 'center' }} pointerEvents="none">
+            <BrainIcon />
+            <View style={styles.titleCenter}>
+              <Text style={styles.eyebrow}>SYSTEM ONLINE</Text>
+              <Text style={styles.title}>NUMBER FLOW</Text>
+              <Text style={styles.titleAlt}>PUZZLE</Text>
+            </View>
+          </View>
+
+          <TitleAction
+            icon="🏆"
+            label="Quests"
+            tint={theme.good || '#34d399'}
+            badge={claimableQuestsCount}
+            onPress={handleQuests}
+            theme={theme}
+          />
+        </View>
+
+        {/* ── Animated Hero ─────────────────────────────────────────────── */}
+
+
+        {/* ── Primary Play Button ───────────────────────────────────────── */}
         <TouchableOpacity
-          style={[
-            styles.playBtn,
-            !ready && styles.playBtnDisabled,
-          ]}
+          style={[styles.playBtn, !ready && styles.playBtnDisabled]}
+          activeOpacity={0.88}
           onPress={handlePlay}
           disabled={!ready}
-          activeOpacity={0.85}
         >
           {ready ? (
-            // <Text style={styles.playIcon}>▶</Text>
-            <PlayIcon />
+            <PlayIcon color={theme.background} />
           ) : (
-            <ActivityIndicator
-              color="#000"
-              size="small"
-            />
+            <ActivityIndicator color={theme.background} size="small" />
           )}
-
           <Text style={styles.playText}>PLAY</Text>
-
           {displayLevel != null && (
-            <Text style={styles.levelText}>
-              LEVEL {displayLevel}
-            </Text>
+            <Text style={styles.levelBadgeText}>LEVEL {displayLevel}</Text>
           )}
         </TouchableOpacity>
-      </View>
 
-      {/* Action Buttons Grid */}
-      <View style={styles.actionRow}>
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={handleSpin}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.actionBtnIcon}>🎡</Text>
-          <Text style={styles.actionBtnLabel}>Spin</Text>
-        </TouchableOpacity>
+        {/* ── Action Tiles Row ──────────────────────────────────────────── */}
+        <View style={styles.tileRow}>
+          <ActionTile
+            icon="🛍️"
+            label="Shop"
+            sub="Skins & boosts"
+            tint={theme.primaryLight || '#60a5fa'}
+            onPress={() => setShowShop(true)}
+            theme={theme}
+          />
+          <ActionTile
+            icon="⚡"
+            label="Game"
+            sub="Level Play"
+            tint={theme.bad || '#f87171'}
+            onPress={handlePlay}
+            theme={theme}
+          />
+          <ActionTile
+            icon="🎁"
+            label="Reward"
+            sub={canClaimDaily ? 'Ready!' : 'Claimed'}
+            tint={theme.warn || '#fbbf24'}
+            dot={canClaimDaily}
+            onPress={() => setShowDailyReward(true)}
+            theme={theme}
+          />
+        </View>
 
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => setShowShop(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.actionBtnIcon}>💰</Text>
-          <Text style={styles.actionBtnLabel}>Shop</Text>
-        </TouchableOpacity>
+      </ScrollView>
 
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => setShowDailyReward(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.actionBtnIcon}>🎁</Text>
-          <Text style={styles.actionBtnLabel}>Reward</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.actionRow}>
-        <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            hasClaimableMissions && styles.claimableActionBtn
-          ]}
-          onPress={() => navigation.navigate('Profile', { initialTab: 'missions' })}
-          activeOpacity={0.8}
-        >
-          <View style={styles.iconWrapper}>
-            <Text style={styles.actionBtnIcon}>📋</Text>
-            {hasClaimableMissions && (
-              <View style={styles.rewardBadge}>
-                <Text style={styles.rewardBadgeText}>🪙</Text>
-              </View>
-            )}
-          </View>
-          <Text style={[
-            styles.actionBtnLabel,
-            hasClaimableMissions && styles.claimableBtnLabel
-          ]}>Missions</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.actionBtn,
-            hasClaimableAchievements && styles.claimableActionBtn
-          ]}
-          onPress={() => navigation.navigate('Profile', { initialTab: 'achievements' })}
-          activeOpacity={0.8}
-        >
-          <View style={styles.iconWrapper}>
-            <Text style={styles.actionBtnIcon}>🏆</Text>
-            {hasClaimableAchievements && (
-              <View style={styles.rewardBadge}>
-                <Text style={styles.rewardBadgeText}>🪙</Text>
-              </View>
-            )}
-          </View>
-          <Text style={[
-            styles.actionBtnLabel,
-            hasClaimableAchievements && styles.claimableBtnLabel
-          ]}>Achievements</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => navigation.navigate('Profile', { initialTab: 'themes' })}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.actionBtnIcon}>🎨</Text>
-          <Text style={styles.actionBtnLabel}>Themes</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Footer */}
-      {/* <View style={styles.footer}>
-        <TouchableOpacity onPress={openPrivacyPolicy}>
-          <Text style={styles.privacyText}>
-            Privacy Policy
-          </Text>
-        </TouchableOpacity>
-      </View> */}
-
-      {/* Modals */}
+      {/* ── Modals ──────────────────────────────────────────────────────── */}
       <RatingModal />
 
       <DailyRewardModal
@@ -336,13 +358,13 @@ export default function HomeScreen() {
   );
 }
 
-// ─────────────────────────────────────────────
-// SVG ICONS (unchanged)
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Dynamic Theme Styles
+// ─────────────────────────────────────────────────────────────────────────────
 const BrainIcon = () => {
   const { theme } = useTheme();
   return (
-    <Svg width="200" height="263" viewBox="0 0 200 263" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <Svg width="140" height="110" viewBox="0 0 200 170" fill="none" xmlns="http://www.w3.org/2000/svg">
       <Path fillRule="evenodd" clipRule="evenodd" d="M45.5893 59.1865L45.6249 58.907C46.3578 59.4037 47.4702 62.2085 47.9013 63.2885C49.6467 67.6608 48.6905 68.9059 48.6393 72.1026C48.6073 74.0989 48.9677 75.9016 49.8046 77.6425C50.1986 78.4615 50.6207 78.9989 51.0117 79.6961C51.0364 79.6799 51.0772 79.6702 51.0957 79.6678C51.3889 79.632 51.2269 79.5133 51.4812 79.807C52.158 80.5886 52.9167 81.4259 53.8508 81.9557L55.2977 83.0902C56.1032 83.731 55.7156 83.3142 56.7365 84.2552C56.9459 84.4482 56.8833 84.4422 57.0783 84.6358L58.0113 85.5834C58.5405 86.0582 58.2216 85.8867 58.6056 86.3376L61.2301 89.852C61.3121 89.969 61.2265 89.8328 61.3541 90.0309L61.7482 90.7765C61.9064 91.0444 61.837 90.9555 62.0037 91.1642C62.0208 91.1857 62.1084 91.274 62.1195 91.2927C62.3612 91.6992 62.0559 90.8767 62.1666 91.4349C62.2304 91.757 62.1449 91.6372 62.2975 91.9957C62.9278 93.4764 66.2699 99.9904 66.9305 101.047C67.1225 101.355 67.21 101.428 67.3894 101.818L68.2517 103.353C68.2829 103.369 68.3184 103.391 68.3407 103.408C68.3622 103.424 68.3996 103.444 68.4246 103.464C68.8217 103.787 69.2407 105.013 69.3883 105.455C69.7332 106.486 70.0615 106.784 70.1532 107.054C70.265 107.383 70.2253 107.259 70.3761 107.561C70.494 107.797 70.7809 109.563 70.9456 110.178C72.4774 115.895 70.0833 117.155 71.44 121.976L72.1536 123.511C72.3792 123.849 72.1983 123.748 72.6328 123.832C72.6965 123.714 72.6814 123.762 72.706 123.586L72.7494 122.297C72.8926 121.017 72.4896 117.61 72.9609 117.222C73.1293 117.118 72.8937 117.146 73.1328 117.228C73.1356 117.229 73.2996 117.308 73.324 117.326C73.8807 117.74 73.5705 118.1 73.5672 118.114C73.4146 118.769 73.5286 120.464 73.509 121.095C73.4455 123.142 72.9784 127.63 75.8429 127.278C76.4049 127.209 76.4214 127.582 77.6411 127.511C77.8756 127.498 77.5869 127.495 77.7986 127.508C79.1593 127.595 79.9215 127.297 80.4453 127.815C80.546 127.616 80.4263 127.791 80.5335 127.508L82.6328 127.504C82.7929 127.252 82.5898 127.359 82.898 127.498C83.1026 127.589 83.2505 127.431 83.5546 127.624C83.5117 128.447 81.9236 128.109 80.1291 128.216C79.4258 128.258 78.9049 127.863 77.3022 128.074C76.8675 128.131 76.6593 128.217 76.235 128.218L76.2805 128.415C76.3674 129.18 79.4087 130.055 80.019 130.198C80.712 130.359 81.5642 130.426 81.7989 130.71C83.7519 130.887 85.165 131.636 86.6707 132.734C89.7069 134.948 91.2277 137.8 91.6801 141.718C92.1791 146.041 92.3723 145.948 94.1743 148.791C95.2159 150.435 96.6746 151.457 98.4016 152.365C105.822 156.264 116.148 150.396 115.281 140.493C115.092 138.335 113.666 135.168 112.077 133.492C111.562 132.949 110.898 132.418 110.286 131.837C107.469 129.166 107.69 123.989 107.678 120.54C107.67 118.315 107.547 112.234 107.823 110.231C108.057 108.53 108.356 108.411 108.511 107.554C108.414 107.963 108.602 107.612 108.232 107.76C107.475 108.062 104.832 108.868 104.359 108.531L104.353 108.623C104.42 111.433 104.319 114.468 104.315 117.311C104.311 120.154 104.306 123.01 104.334 125.853C104.361 128.7 104.294 131.545 104.344 134.394C104.392 137.197 104.457 140.068 102.412 141.041C101.231 141.603 99.8744 141.257 99.0085 140.62C97.7941 139.728 94.6053 134.485 93.7264 133.09L87.0087 122.725C85.6964 121.077 84.8306 119.226 83.7649 117.321C82.7565 115.519 81.7777 113.756 80.7431 111.809C79.8054 110.045 78.8032 108.104 77.7603 106.251C77.2485 105.341 76.8388 104.434 76.282 103.453L68.7756 89.6048C68.1976 88.5117 68.2196 88.7996 67.6611 87.4815C67.298 86.6248 67.002 86.448 66.5017 85.4254C65.8837 84.1624 65.8751 84.3743 65.3751 83.3345C65.2512 83.0769 65.1683 82.923 65.0145 82.642C64.7854 82.2233 64.5206 81.6954 64.2761 81.2986C63.9555 80.7782 63.3043 78.9356 62.8994 78.6859C62.4881 78.4925 62.9034 78.7537 62.686 78.5162C62.377 78.1785 61.3358 76.1807 61.1576 75.8467C61.0342 75.6155 60.9203 75.3462 60.7841 75.0926L58.0065 69.8365C57.9946 69.82 57.9732 69.7975 57.9609 69.781L54.8632 64.1401C54.8424 64.0984 54.7129 63.8484 54.6821 63.7929C54.4214 63.3231 54.2645 62.8527 53.9962 62.5182C53.7778 62.2459 53.6774 61.8034 53.5092 61.5093C53.3269 61.1901 53.4817 61.618 53.3137 61.188C53.2133 60.9312 53.2768 61.0114 53.2364 60.7747C53.1559 60.3033 53.342 60.8246 53.0596 60.4251C53.0514 60.4135 53.0327 60.3861 53.0247 60.3745L52.3825 59.4139C52.3808 59.4097 52.3765 59.3709 52.3434 59.2872L51.5433 57.8778C51.5322 57.857 51.517 57.83 51.5062 57.8095C51.3685 57.5491 51.42 57.4295 51.2068 57.2734C51.0097 57.1291 51.2295 57.3291 50.9985 57.2068C50.9598 56.9043 50.9643 56.6743 50.7532 56.4646L50.6411 56.3819C50.4893 56.2344 50.4332 55.8569 50.2793 55.6118C50.1465 55.4002 49.9694 54.9074 49.8459 54.7763C49.5362 54.4477 49.7359 54.9439 49.5294 54.4991C49.3628 54.1404 49.7867 54.2805 49.4006 53.8888C48.8532 53.3335 49.1189 53.2448 48.8114 52.5918C48.6077 52.1592 48.735 52.6202 48.5624 52.2144C48.3762 51.7773 48.6063 52.1369 48.4861 51.8243C48.3756 51.5369 48.1528 51.4703 48.064 51.1689C48.3386 51.2804 48.3075 51.1565 48.5187 51.224C48.7809 51.3079 48.4775 51.3697 48.7786 51.4825C49.3609 51.7008 48.9643 51.0691 49.6895 51.2936L50.1328 51.4751C50.1414 51.4596 50.1415 51.4296 50.1437 51.423C50.1458 51.4165 50.1539 51.3803 50.1568 51.373C50.2189 51.2158 50.1154 51.2117 50.2746 51.2555C50.5407 51.329 50.3569 51.1977 50.3825 51.4925C50.4009 51.705 50.5068 52.229 50.3494 52.5027C50.9709 52.7621 50.0662 52.2507 50.7066 52.5063L51.4252 53.1887C51.7078 54.3417 51.6951 53.7186 52.228 54.9017L52.3616 55.1462C52.3676 55.1571 52.3833 55.1838 52.3894 55.1951L53.0576 56.5821C53.068 56.6058 53.0806 56.6331 53.0917 56.6558C53.2386 56.9583 53.5641 57.755 53.8018 58.0151L54.225 58.523C54.2332 58.5406 54.2444 58.5709 54.2516 58.588L55.3676 60.6299C55.3732 60.6406 55.4665 60.7999 55.4668 60.8003C55.7907 61.2267 55.9197 61.6469 56.1502 62.1463L57.9013 65.33C57.9434 65.3842 57.9561 65.4065 58.0134 65.4723C58.0252 65.486 58.0463 65.5106 58.0591 65.5246C58.5979 66.1131 58.4258 66.1401 58.8029 66.8803C58.9488 67.1665 59.1435 67.3859 59.2821 67.6395L60.1191 69.3188C60.3032 69.7186 60.3493 69.8169 60.5329 70.1626L61.0425 71.2183C61.053 71.2377 61.0667 71.2653 61.0775 71.2843C61.0883 71.3032 61.1034 71.3302 61.1146 71.3485L63.9864 76.6011C63.9919 76.9512 63.9662 76.6684 64.0838 76.8916C64.1785 77.0711 64.1457 76.9792 64.28 77.2215C64.2955 77.2495 64.3376 77.3321 64.3529 77.3599C64.3641 77.3804 64.3781 77.4074 64.3893 77.4277L66.8093 81.9867C67.3265 82.8274 67.7834 83.7733 68.2696 84.7063C68.3043 84.7729 68.4155 84.9728 68.4578 85.0364L74.103 95.4273C74.5727 96.296 75.0505 97.1305 75.5215 98.0657L76.2323 99.4477C76.397 99.7609 76.7835 100.499 77.0073 100.759L81.3301 108.825C82.3626 110.6 83.2621 112.404 84.2188 114.169L87.1761 119.442C87.7275 120.371 88.2501 121.047 88.7785 122.006L91.2984 125.73C91.5685 126.104 91.7698 126.555 92.0824 127.031L95.3328 132C96.3972 133.631 99.3976 138.607 100.473 139.257C102.848 140.694 102.456 135.062 102.456 133.353L102.442 116.894C102.452 114.199 102.342 111.4 102.422 108.728L100.343 108.284C100.089 108.226 98.7493 107.906 98.6565 107.616C98.6962 107.932 98.8687 108.209 98.9734 108.628C99.0608 108.978 99.115 109.302 99.2148 109.718C99.6678 111.607 99.4487 115.27 99.4512 117.311C99.4535 119.082 99.459 120.852 99.4594 122.624C99.4597 124.389 99.5933 129.296 97.3263 126.257C97.0046 125.825 96.6189 125.5 96.3105 125.098C96.1048 124.83 94.7553 122.247 94.7131 122.025C94.4939 120.873 94.1619 116.475 93.8669 115.777C93.7816 115.576 93.8865 115.762 93.7345 115.574C93.4758 115.252 93.5602 115.614 93.514 115.208C93.4644 114.773 93.4597 114.663 93.2842 114.289C92.937 113.55 92.2192 113.064 91.5301 112.657L91.3666 112.543C91.1747 112.321 91.3351 112.43 91.2131 112.113C91.0289 111.635 89.1221 109.671 88.6672 109.296L86.1987 106.87C85.6262 106.265 84.2517 105.039 84.2495 104.35C84.6849 104.646 83.7755 104.106 84.3671 104.391L85.6406 105.657C85.6486 105.664 85.6702 105.682 85.6778 105.689C85.6858 105.697 85.7049 105.719 85.7129 105.727L87.5278 107.625C87.6494 106.955 87.5405 107.73 87.8583 107.103C87.6799 106.801 87.6216 106.87 87.4916 106.627C87.3549 106.371 87.4401 106.421 87.2543 106.126L84.8908 102.454C84.7199 102.089 84.6255 101.765 84.3647 101.444C83.7442 100.679 81.7517 96.015 80.634 94.5162C80.3064 94.077 80.3628 93.9355 80.1425 93.4576C80.0299 93.2136 79.9259 92.9126 79.6912 92.5509C78.9617 91.4268 78.537 90.155 77.8177 89.0102C77.0409 87.7736 76.479 86.3712 76.2031 85.9419L75.9775 85.6441C75.7402 85.3223 75.6239 84.8465 75.4311 84.4198C75.0254 83.5219 74.2848 82.3529 74.0051 81.478C73.1147 78.6928 72.4806 77.1168 72.4326 73.7693C72.3728 69.6006 72.1477 69.3733 70.6226 66.2661C70.269 65.5456 69.2792 64.2788 68.5417 63.7799L67.7233 63.052C66.8481 62.3809 65.69 61.8285 64.6816 61.4107C63.8791 61.0782 63.1185 60.9898 62.3545 60.5853C61.7989 60.2911 59.3419 58.8665 59.0443 58.5204C59.03 58.5039 59.0115 58.4783 58.9966 58.4616C58.9814 58.4445 58.961 58.4209 58.9451 58.404C58.9293 58.3871 58.9072 58.365 58.8906 58.3485C57.8916 57.3485 57.4945 57.2607 56.3431 55.7931L55.0388 54.0678C53.751 52.3583 51.2804 47.8391 51.1019 45.6951L50.8737 45.8417C50.8729 45.8369 50.8658 45.849 50.8614 45.8521C50.8725 45.8187 50.8792 45.7776 50.883 45.7485C50.8867 45.7203 50.8974 45.6813 50.9006 45.6469L50.893 45.2683C50.7931 44.5928 50.6449 44.414 50.6323 43.6671C50.5602 39.3959 52.1112 36.7308 50.4314 32.7563C50.226 32.2704 49.9455 31.4578 49.5735 31.0843C49.1794 30.6885 49.3803 30.8115 49.0763 30.3634L48.4836 29.7938C48.2206 29.5309 48.3399 29.3957 47.9717 29.0454L45.1652 26.866C41.3337 25.2258 38.085 25.3006 34.3542 27.2612C32.3612 28.3087 30.5676 30.5762 29.7904 32.5978C28.7585 35.2816 28.6657 37.2566 29.3964 39.9825C29.4378 40.1367 29.5089 40.368 29.5283 40.436L31.3712 43.9788C31.7965 44.5397 32.1689 44.8625 32.4561 45.3845C32.686 45.8025 32.9816 46.484 33.1635 46.8839C33.4416 47.4947 34.0027 48.8557 34.1704 49.5902C34.7691 52.2114 34.67 52.0096 34.9179 54.8937L34.8782 74.1757C34.8257 77.4307 34.8773 80.7922 34.9028 83.6663C34.9256 86.2514 34.7793 89.1914 34.9208 91.8664C34.9397 92.2245 34.8861 92.3454 34.8887 92.8297L34.9159 96.5858C34.7606 97.5707 34.7883 101.403 34.9253 102.094C35.03 102.621 34.944 103.579 34.9042 104.186C34.8585 104.88 34.8946 105.865 34.905 106.582L34.9182 124.497C34.9717 124.999 35.0935 124.833 34.9662 125.287C34.7425 126.083 34.9242 126.719 34.8198 127.264C34.7334 127.714 34.7179 126.958 34.7257 127.702C34.7313 128.244 34.8701 127.602 34.7345 128C34.5161 128.643 34.5464 127.806 34.4429 128.604C34.3972 128.3 34.3867 128.435 34.3134 128.457L34.0315 129.992C33.9396 130.464 33.2675 132.175 33.0097 132.471C32.721 132.803 32.6185 133.21 32.3706 133.618C32.1079 134.051 31.4246 135.326 31.0855 135.59C30.7435 135.856 30.5489 136.237 30.3328 136.693C29.7197 137.988 29.1032 139.269 29.0528 140.744C29.0147 141.861 29.1059 143.057 29.252 144.108C29.3649 144.921 29.6217 144.723 29.6229 145.356C29.6239 145.912 30.0551 146.777 30.3349 147.134C30.4524 147.284 30.5243 147.453 30.6237 147.645C31.0298 148.43 30.9528 148.298 31.0427 148.234C31.324 148.036 31.0379 148.166 31.0703 148.103L31.3013 148.593C31.5983 148.957 31.8508 149.415 32.2081 149.72C32.4446 149.922 32.4738 149.98 32.6762 150.183C32.9797 150.487 33.0389 150.414 33.2952 150.613C33.5854 150.839 33.3144 150.803 33.789 151.065L34.4331 151.456C34.7056 151.602 34.8654 151.583 35.0961 151.73C35.1133 151.741 35.1377 151.759 35.154 151.771L35.3697 151.965C35.5277 152.097 35.558 152.119 35.6965 152.174C37.0876 152.729 37.9942 152.846 39.5383 153.037C40.6248 153.172 41.7882 152.835 42.8514 152.666C43.2683 152.6 43.3984 152.574 43.721 152.484L46.7618 150.827C48.21 149.936 49.4619 147.574 49.8855 147.12C50.4101 146.558 50.9294 144.358 50.9889 143.566C51.1307 141.679 51.1458 139.845 50.4718 138.127L49.9513 136.919C49.7145 136.353 49.2495 135.685 48.8548 135.151L48.0119 134.126C47.9998 134.111 47.9803 134.088 47.9696 134.071C47.9098 133.979 47.8104 133.591 47.7076 133.391L46.6206 131.453C46.3424 130.99 46.3639 130.491 46.2072 130.095C46.0896 129.798 46.1004 129.692 46.0047 129.341C45.3936 127.105 45.2835 125.197 45.2842 122.311C45.287 111.755 45.3028 101.198 45.3054 90.6443C45.3066 85.3825 45.3696 80.0664 45.2958 74.811C45.2589 72.177 45.3064 69.5289 45.2825 66.8943C45.2601 64.4206 45.1866 61.5042 45.3489 59.0671C45.3507 59.0682 45.5482 59.1582 45.5893 59.1865Z" fill={theme.primary} />
       <Path fillRule="evenodd" clipRule="evenodd" d="M122.736 84.6843L122.574 84.8253C122.083 85.156 121.404 85.1364 121.027 85.436C121.144 85.8493 121.893 86.3516 122.287 86.8453C122.425 87.0187 122.326 86.908 122.414 87.0239C122.766 87.4882 124.897 89.3131 125.162 89.9654L125.305 90.4033L124.223 89.9985L121.527 87.1801C121.511 87.1666 121.488 87.1467 121.472 87.1334C119.488 85.4809 120.247 86.2928 118.934 86.3116C118.602 86.3041 118.69 86.3766 118.439 86.5437C118.308 86.6302 118.114 86.729 117.972 86.8034C117.673 86.9608 117.359 87.1736 117.019 87.3153C116.997 87.3323 116.957 87.3231 116.947 87.3579C116.902 87.5119 116.906 87.3736 116.816 87.4412C116.603 87.5999 116.743 87.3874 116.644 87.6019C116.726 87.437 116.64 87.5023 116.904 87.4518C116.924 87.4766 116.949 87.4852 116.958 87.5324L118.399 90.6176C118.546 91.0283 118.66 91.2682 119.068 91.0887C119.062 91.3545 118.903 91.5985 118.714 91.7452C119.451 92.9665 119.903 92.8623 120.711 94.1222C120.98 94.541 121.27 95.0818 121.57 95.5557L121.648 95.6864C122.238 96.6372 121.773 95.9781 122.23 97.1724C123.28 99.9141 123.009 102.935 123.118 105.436C123.167 105.977 123.215 105.165 123.211 105.752C123.21 105.91 123.068 106.611 123.081 107.936C123.091 108.979 123.078 110.018 123.082 111.061L123.091 123.561C123.092 126.461 122.633 129.073 121.57 131.542C121.243 132.302 120.838 132.945 120.489 133.592C120.093 134.327 119.719 134.848 119.259 135.504C118.977 135.906 118.855 135.92 118.637 136.438C117.956 138.05 118.317 136.969 117.742 138.794C116.954 141.299 117.233 143.075 117.908 145.569C118.196 146.636 119.058 147.819 119.576 148.695C120.107 149.592 121.135 150.4 121.95 151.016C122.248 151.242 122.559 151.418 122.903 151.631C124.046 152.338 124.251 152.604 126.07 152.94C127.714 153.243 129.987 153.325 131.658 152.687C132.35 152.422 133.201 152.063 133.758 151.664C134.752 150.951 134.112 151.585 135.632 150.312C136.549 149.543 135.918 149.928 136.447 149.465C136.636 149.299 137.442 148.408 137.783 147.774C138.024 147.326 138.105 147.108 138.281 146.693C138.63 145.873 138.767 146.191 139.156 144.471C139.604 142.493 139.249 138.574 138.204 136.604L137.458 135.383C137.121 134.873 137.214 135.104 136.895 134.834C136.557 134.546 136.797 134.806 136.573 134.39C136.392 134.055 136.407 134.157 136.261 133.879C136.05 133.476 135.814 133.027 135.829 132.564L135.719 132.106C135.554 132.33 136.077 132.356 135.397 132.26C135.252 131.782 134.963 131.277 134.765 130.788L133.783 127.665C133.298 124.218 133.513 113.294 133.516 109.082C133.521 102.678 132.913 96.8608 137.503 91.973C138.239 91.1893 138.877 90.6513 139.803 90.0068L141.157 89.2966C142.869 88.6439 144.808 88.3116 146.749 88.5942C147.811 88.7486 149.137 89.1558 149.935 89.572C153.881 91.628 153.061 92.9544 157.713 94.44C159.687 95.0704 161.104 95.0359 163.154 94.859C164.31 94.7592 165.415 94.1649 166.384 93.7844L167.789 93.0893C170.042 91.7324 172.265 88.4931 172.851 85.4835C173.599 81.6388 172.018 77.5288 169.069 74.9342C165.463 71.7608 160.734 71.3084 156.272 73.1602C155.692 73.401 155.31 73.8218 154.672 73.8067C154.27 73.8218 153.571 74.4724 153.274 74.724C152.836 75.0957 152.299 75.4262 152.071 75.8563C152.007 77.0427 148.458 78.0861 147.654 78.2932C145.559 78.8326 143.408 78.5517 141.635 77.9322C139.236 77.0939 138.99 76.5544 137.618 75.1448C137.369 74.8891 137.014 74.5887 136.774 74.3022C136.51 73.9878 136.35 73.6382 136.129 73.2923C135.281 71.9696 134.434 70.0848 134.102 68.4948C133.978 67.8985 133.936 67.7565 133.718 67.236C133.453 66.6022 133.497 60.096 133.503 59.0818C133.543 53.0641 133.164 52.6366 135.314 47.4428C134.988 47.6828 135.059 47.6176 134.922 47.9884C134.857 48.1642 134.828 48.2548 134.791 48.3752C134.781 48.4076 134.754 48.5012 134.744 48.5341C134.736 48.5608 134.73 48.5888 134.722 48.6155L134.215 49.9098C133.991 50.5161 133.801 52.2375 133.552 52.6821L133.311 52.9852C132.887 53.4253 133.299 52.7504 133.153 53.1443C133.382 53.2515 133.395 52.9611 133.355 54.1859C133.306 55.6943 133.452 56.5169 133.455 57.7279C133.456 58.1414 133.458 58.5774 133.449 58.9847L133.308 61.2666C133.314 61.5627 133.445 61.858 133.096 62.1922L133.376 62.3409C133.426 62.7047 133.423 62.581 133.39 62.9273C133.388 62.9515 133.332 63.2683 133.319 63.3666L133.202 64.2921C133.173 65.0797 133.337 65.453 133.279 66.1652L132.931 66.2537C131.828 66.4617 132.335 66.2318 131.741 66.2196C131.11 66.2066 131.039 66.3803 130.324 66.292C130.296 66.2884 130.219 66.2765 130.198 66.2729C130.188 66.271 130.155 66.2632 130.147 66.2617L130.061 66.2347C129.926 66.0076 130.054 65.9429 130.02 65.5464C129.964 64.8807 129.975 65.563 129.884 65.1235C129.882 64.0878 129.962 63.142 129.849 62.1008C129.775 61.427 129.935 62.5538 129.817 61.9079L129.774 61.7295C129.577 60.7632 129.735 56.5156 129.725 55.4503L129.708 54.2906C129.71 53.7718 129.717 53.2468 129.706 52.7277C129.684 51.6523 129.67 50.5775 129.663 49.4985L129.886 41.9966C129.927 41.797 129.909 41.8394 129.948 41.6556L130.29 40.8825C129.365 41.6385 129.629 46.4231 129.624 47.4152L129.534 67.2975C129.492 67.448 129.354 67.6458 129.274 67.8318C129.267 67.8278 129.261 67.813 129.261 67.8124L129.472 67.8318C129.5 68.6724 129.654 69.4247 129.547 70.3262C129.27 72.651 129.372 74.1154 128.103 76.5332C126.081 80.386 126.361 79.5408 124.007 82.3348L123.784 82.5966C127.171 82.6775 131.569 82.6155 134.825 82.5411C136.621 82.4999 138.384 82.5721 140.015 82.5584C140.799 82.5519 141.482 82.5733 142.148 82.5947C142.667 82.6115 142.831 82.5803 143.275 82.6287C143.649 82.6693 143.442 82.4653 143.855 82.9771L143.824 83.6056C143.717 83.8409 143.766 83.7367 143.835 83.9476L143.92 84.3155C143.337 84.3087 143.227 84.4187 142.616 84.322C142.29 84.2705 142.425 84.2809 142.163 84.2356L140.782 84.3308C140.38 84.3917 140.002 84.4026 139.508 84.4017C135.694 84.3944 125.238 84.2041 122.736 84.6843Z" fill={theme.primary} opacity={0.95} />
       <Path fillRule="evenodd" clipRule="evenodd" d="M120.191 73.1688L120.245 73.6641C119.417 74.1997 119.41 74.6549 118.905 75.35L117.867 76.7085C117.157 77.4506 117.462 77.6956 116.988 78.4174C116.153 79.6916 116.677 79.0229 116.392 80.0883C116.259 80.5855 116.107 80.519 116.27 80.8757C116.39 81.1368 117.62 82.1889 117.961 82.4947L118.813 83.3258C119.181 83.6305 119.222 83.1695 119.911 83.0407C121.229 82.4766 124.427 79.1777 125.111 78.0297C125.304 77.7068 125.515 77.3351 125.7 77.0415C128.222 73.0545 127.457 68.1325 127.618 67.2265C127.184 66.8426 126.588 67.0578 126.299 67.0652C126.248 66.7954 126.236 66.8435 126.222 66.633L127.422 66.6222C127.852 66.5699 127.666 63.7383 127.662 63.1443C127.652 61.9322 127.657 60.7114 127.658 59.4985L127.637 44.9152C127.64 42.1884 127.856 40.9828 129.121 39.1111C130.103 37.6561 131.736 36.6627 133.458 36.2877C134.925 35.9684 139.912 36.037 141.686 36.0967L147.114 36.1799C147.528 36.1763 151.113 36.126 151.562 36.5028L151.774 36.7164C152.168 37.1122 151.939 37.0545 151.802 37.5193C152.097 37.8956 151.982 37.5426 152.098 37.9199C149.691 37.8105 143.301 37.9764 140.341 38.042C136.649 38.1238 132.527 37.0717 130.29 40.8825L129.948 41.6556C129.909 41.8394 129.927 41.797 129.886 41.9966L129.663 49.4985C129.67 50.5775 129.684 51.6523 129.706 52.7277C129.717 53.2468 129.71 53.7718 129.708 54.2906L129.725 55.4503C129.735 56.5156 129.577 60.7632 129.774 61.7295L129.817 61.9079C129.935 62.5538 129.775 61.427 129.849 62.1008C129.962 63.142 129.883 64.0878 129.884 65.1235C129.975 65.563 129.964 64.8807 130.02 65.5464C130.054 65.9429 129.926 66.0076 130.061 66.2347L130.147 66.2617C130.155 66.2632 130.188 66.271 130.198 66.2729C130.219 66.2765 130.296 66.2884 130.324 66.292C131.039 66.3803 131.11 66.2066 131.741 66.2196C132.335 66.2318 131.828 66.4617 132.931 66.2537L133.279 66.1652C133.337 65.453 133.173 65.0797 133.202 64.2921L133.319 63.3666C133.332 63.2683 133.388 62.9515 133.391 62.9273C133.423 62.581 133.426 62.7047 133.376 62.3409L133.096 62.1922C133.445 61.858 133.314 61.5627 133.308 61.2666L133.449 58.9847C133.458 58.5774 133.456 58.1414 133.455 57.7279C133.452 56.5169 133.306 55.6943 133.355 54.1859C133.395 52.9611 133.382 53.2515 133.153 53.1443C133.299 52.7504 132.887 53.4253 133.312 52.9852L133.552 52.6821C133.801 52.2375 133.992 50.5161 134.215 49.9098L134.722 48.6155C134.73 48.5888 134.736 48.5608 134.744 48.5341C134.754 48.5012 134.781 48.4076 134.791 48.3752C134.828 48.2548 134.857 48.1643 134.922 47.9884C135.059 47.6176 134.988 47.6828 135.314 47.4428C135.936 46.452 136.059 45.7617 137.042 45.0476C139.199 43.4822 143.421 42.0066 146.279 42.0224C147.554 42.0295 149.075 41.947 150.171 42.2296C151.311 42.5239 152.445 42.5847 153.514 42.9788C158.925 44.9738 158.398 46.0445 161.334 47.4298C165.102 49.2076 170.378 48.9198 173.127 46.4501L173.513 46.119C173.53 46.1059 173.555 46.0878 173.573 46.0751C175.074 44.9911 174.631 45.0855 175.217 44.4781C175.42 44.2673 175.568 44.2055 175.762 43.9846C176.089 43.6136 177.012 41.9571 177.219 41.3634C177.881 39.4669 178.319 36.6779 177.799 34.6513C177.534 33.6184 177.363 33.297 176.943 32.4995L176.555 31.8312C176.086 30.5657 176.36 31.388 175.735 30.4726L175.509 30.0855C175.127 29.3606 173.501 27.947 172.927 27.5466C169.491 25.1539 163.774 25.1223 160.239 27.4288C159.049 28.2049 157.628 29.6052 156.06 30.2969C155.352 30.6093 155.63 30.3306 154.683 30.9136L153.219 31.5202C152.558 31.8259 149.666 32.0005 148.734 32.1003C145.287 32.4695 140.215 31.1464 137.252 29.3773L136.286 28.7703C136.105 28.5482 136.132 28.6844 136.126 28.3001C135.798 27.7852 133.96 26.727 133.159 26.3653C129.196 24.5754 124.647 25.2183 121.374 27.5124C116.843 30.688 115.065 36.3658 117.156 41.5389C118.847 45.7195 122.797 46.9087 122.848 55.8527C122.876 60.7741 123.355 65.4202 121.779 69.7879C121.302 71.1083 120.242 72.9556 120.191 73.1688Z" fill={theme.primaryLight} />
@@ -366,131 +388,302 @@ const BrainIcon = () => {
       <Path fillRule="evenodd" clipRule="evenodd" d="M81.7988 130.71C81.5642 130.426 80.712 130.359 80.0189 130.198C79.4087 130.055 76.3674 129.18 76.2805 128.415L76.235 128.218C76.6593 128.217 76.8675 128.131 77.3022 128.074C78.9049 127.863 79.4258 128.258 80.129 128.216C81.9236 128.109 83.5117 128.447 83.5546 127.624C83.2505 127.431 83.1026 127.589 82.898 127.498C82.5898 127.359 82.7929 127.252 82.6327 127.504L80.5334 127.508C80.4263 127.791 80.546 127.616 80.4452 127.815C79.9215 127.297 79.1593 127.595 77.7986 127.508C77.5868 127.495 77.8756 127.498 77.6411 127.511C76.4214 127.582 76.4049 127.209 75.8429 127.278C72.9783 127.63 73.4455 123.142 73.509 121.095C73.5285 120.464 73.4146 118.769 73.5672 118.114C73.5705 118.1 73.8806 117.74 73.3239 117.326C73.2996 117.308 73.1356 117.229 73.1327 117.228C72.8937 117.146 73.1293 117.118 72.9609 117.222C72.4895 117.61 72.8926 121.017 72.7494 122.297L72.7059 123.586C72.6813 123.762 72.6965 123.714 72.6327 123.832C72.1983 123.748 72.3792 123.849 72.1535 123.511L71.4399 121.976C70.0833 117.155 72.4773 115.895 70.9456 110.178C70.7809 109.563 70.494 107.797 70.3761 107.561C70.2253 107.259 70.265 107.383 70.1532 107.054C70.0615 106.784 69.7331 106.486 69.3883 105.455C69.2406 105.013 68.8217 103.787 68.4246 103.464C68.3996 103.444 68.3622 103.424 68.3407 103.408C68.3184 103.391 68.2828 103.369 68.2517 103.353C68.3767 103.922 68.8309 104.569 69.0993 105.248C73.3099 115.902 69.9497 116.164 70.969 120.798C71.0937 121.366 71.278 122.271 71.5076 122.834C71.7545 123.439 72.0852 123.969 72.4211 124.486L72.6978 124.848C73.2767 125.612 73.7638 126.896 74.4754 127.414C75.4139 128.097 75.2939 128.126 75.897 128.616C76.4607 129.074 76.876 129.279 77.5116 129.593C78.5237 130.095 80.4712 130.614 81.7988 130.71Z" fill={theme.primaryLight} opacity={0.9} />
       <Path fillRule="evenodd" clipRule="evenodd" d="M115.431 80.9059L115.566 81.4577C115.545 83.4246 115.188 81.6671 115.854 84.415C115.957 84.8376 116.129 85.2735 116.18 85.631C116.472 85.3708 116.709 85.2863 117.114 85.0212C117.865 84.53 118.452 83.9333 118.961 83.7237C119.141 83.6495 119.269 83.5928 119.435 83.485L119.911 83.0407C119.222 83.1695 119.181 83.6305 118.813 83.3258L117.961 82.4947C117.62 82.1888 116.39 81.1368 116.27 80.8757C116.107 80.5189 116.259 80.5855 116.392 80.0883C116.677 79.0229 116.153 79.6916 116.988 78.4174C117.462 77.6956 117.157 77.4505 117.867 76.7085L118.905 75.35C119.41 74.6549 119.417 74.1997 120.245 73.6641L120.191 73.1688C119.373 73.6935 118.041 75.6709 117.387 76.6476C116.95 77.2992 116.639 77.8942 116.33 78.7163C116.101 79.3263 115.737 80.4885 115.431 80.9059Z" fill={theme.primaryLight} opacity={0.9} />
       <Path fillRule="evenodd" clipRule="evenodd" d="M118.934 86.3116C120.247 86.2928 119.488 85.4809 121.472 87.1334C121.488 87.1466 121.511 87.1666 121.527 87.1801L124.223 89.9985L125.305 90.4033L125.162 89.9654C124.897 89.3131 122.766 87.4882 122.414 87.0239C122.326 86.908 122.425 87.0187 122.287 86.8453C121.893 86.3516 121.144 85.8493 121.027 85.436C121.404 85.1364 122.083 85.156 122.574 84.8253L122.736 84.6843C122.158 84.7228 121.98 84.8286 121.536 84.9734C121.02 85.1414 121.016 85.0648 120.626 85.4123C119.949 86.0155 120.539 85.4213 119.797 85.7187C119.407 85.875 119.151 85.994 118.934 86.3116Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M138.161 241.885L138.462 241.445L138.778 242.001L139.15 241.846C139.494 243.466 140.62 246.32 141.173 247.826C142.047 250.205 144.138 258.367 144.984 259.942C145.864 261.58 149.835 261.624 150.77 260.485C151.348 259.78 155.59 245.002 156.351 242.235C157.927 236.502 159.64 234.82 154.392 235.825C153.626 236.967 150.792 248.182 150.163 250.552C149.742 252.137 149.243 254.022 148.764 255.6L148.272 255.479C147.861 255.344 147.889 255.349 147.662 255.106C146.748 254.721 147.102 255.042 146.378 252.757L143.791 244.494C143.253 242.775 142.604 240.806 142.131 239.13C141.416 236.596 141.423 235.672 138.32 235.68C134.369 235.689 135.154 239.457 133.221 244.906C132.619 246.603 132.085 248.336 131.517 250.211C131.176 251.336 130.565 254.923 129.362 255.464C128.983 255.414 129.143 255.461 128.873 255.246C128.605 255.483 129.08 255.591 128.53 255.398C128.097 253.829 127.544 252.139 127.078 250.628C126.434 248.543 123.215 236.166 122.712 235.823C121.716 235.574 120.073 235.646 119.061 235.85C118.956 236.799 125.396 259.204 126.263 260.318C127.325 261.682 131.053 261.704 131.933 259.989C133.177 257.563 134.815 250.347 135.784 247.897L137.75 241.686C138.44 241.544 137.791 241.62 138.161 241.885Z" fill={theme.primary} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M99.163 239.266C101.615 238.83 105.468 238.893 107.813 239.594C113.267 241.224 112.309 250.397 111.339 253.628C109.619 259.355 98.6942 257.762 97.0263 257.126C91.1091 254.871 92.3466 242.418 95.6088 240.424C97.0811 239.525 97.4181 239.576 99.163 239.266ZM114.17 257.912L115.526 255.246C116.755 251.057 116.891 241.925 113.743 238.144C112.973 237.22 110.203 235.112 108.338 235.491C102.712 236.716 91.2002 232.124 89.6593 244.153C89.3849 246.294 89.4389 250.769 89.6486 252.738C90.2547 258.427 93.5096 260.689 99.2379 261.215C101.778 261.448 105.604 261.394 107.984 260.962C109.166 260.748 110.571 260.358 111.495 259.825C111.985 259.542 112.422 259.209 112.742 258.887C113.43 258.194 113.25 258.067 114.17 257.912Z" fill={theme.primary} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M41.0083 260.739C45.6001 261.629 44.1832 259.147 44.3353 250.669C46.488 249.578 46.9263 250.281 50.4095 250.263L58.8237 250.294C61.31 250.168 60.1073 247.655 60.0883 247.633C59.4358 246.903 53.0806 247.323 52.1768 247.327C50.7784 247.332 49.3774 247.325 47.9788 247.317C47.2164 247.312 44.6126 246.995 44.5735 247.005C43.5231 243.278 43.8704 239.753 48.2835 239.134C51.0216 238.75 58.5294 239.717 60.3497 238.769L60.6737 237.679C61.0734 234.864 58.2466 235.933 51.9558 235.811C49.8872 235.771 48.1168 235.816 46.3581 236.149C45.374 236.335 44.7749 236.533 43.9901 236.918C43.1104 237.35 42.8842 237.77 42.3491 238.405C40.724 240.336 40.7608 245.048 40.7845 248.682C40.8064 252.055 40.5163 257.633 41.0083 260.739Z" fill={theme.primary} opacity={0.8} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M66.2201 235.798C65.6965 237.781 66.1014 245.581 66.0528 248.241C65.8032 261.94 68.307 261.15 84.2131 261.065C85.402 261.059 86.1672 261.32 86.301 260.166C86.3923 259.38 86.2784 258.013 86.0686 257.42C79.5626 256.26 71.6128 259.512 70.2008 254.308C69.2269 250.719 70.6193 237.804 69.6326 235.871C68.7252 235.482 67.2368 235.597 66.2201 235.798Z" fill={theme.primary} opacity={0.8} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M158.924 235.07C158.847 236.455 151.784 260.211 151.35 260.827C150.351 262.246 145.88 262.089 144.814 260.746C144.237 260.019 138.986 243.532 138.778 242.001L138.462 241.445L138.161 241.885C137.977 243.6 132.888 259.986 132.16 260.841C130.925 262.292 126.845 262.061 125.807 260.755C124.97 259.702 122.431 250.293 121.846 248.159C121.198 245.788 118.301 236.82 118.22 235.211C125.224 234.59 122.856 234.622 126.124 245.196L128.873 255.246C129.143 255.461 128.983 255.414 129.362 255.464L134.453 238.63C135.318 236.066 135.184 235.137 138.323 235.096C141.333 235.056 141.732 235.783 142.508 238.336L147.662 255.106C147.889 255.349 147.861 255.344 148.272 255.479L149.75 250.022C149.879 248.755 149.878 249.759 149.369 249.447C148.446 251.1 149.157 251.53 147.823 251.825C146.604 251.045 146.195 246.885 145.165 244.281C144.724 243.164 145.025 243.341 144.637 242.6L144.395 242.193C144.371 242.146 144.344 242.087 144.322 242.039C144.038 241.416 143.064 235.854 141.237 234.747C140.401 234.24 136.031 234.423 135.597 234.723L132.638 241.911C132.161 243.918 131.355 245.106 131.043 247.124L129.531 252.691C128.921 252.471 129.088 252.972 128.488 250.789C128.211 249.784 128.115 249.386 127.883 248.287L126.427 243.788C125.659 241.454 124.788 235.969 123.746 234.663C121.985 234.292 119.243 234.44 117.794 234.779C117.576 237.72 118.763 240.748 119.639 243.305C119.763 243.666 119.768 243.861 119.876 244.209C120.625 246.633 120.279 244.769 121.006 248.388L122.859 254.911C123.374 256.301 123.62 258.535 124.042 259.02C124.855 259.954 124.766 260.959 125.614 261.833C125.644 261.864 125.693 261.911 125.724 261.94C126.435 262.611 125.69 262.191 127.383 262.651C128.534 262.964 129.163 262.761 130.419 262.566C131.81 262.35 132.164 262.453 132.589 261.765C132.613 261.727 132.636 261.663 132.659 261.622L132.895 261.179C133.561 260.075 133.978 259.4 134.262 257.965L136.214 251.408C137.127 248.903 137.508 245.636 138.546 245.015C139.125 245.562 138.918 245.514 139.259 246.472L141.276 252.812C143.218 257.604 143.084 261.893 146.301 262.336C147.003 262.432 149.85 262.339 150.249 262.27C152.752 261.841 152.842 258.797 153.404 257.132C153.782 256.014 154.096 255.087 154.363 253.892C155.627 248.237 157.66 244.416 158.266 240.786L159.432 236.182C159.792 235.219 159.91 235.255 158.924 235.07Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M41.0084 260.739C40.5163 257.633 40.8064 252.055 40.7845 248.682C40.7608 245.048 40.724 240.336 42.3491 238.405C42.8842 237.77 43.1104 237.35 43.9901 236.918C44.7749 236.533 45.374 236.335 46.3581 236.149C48.1168 235.815 49.8872 235.771 51.9559 235.811C58.2466 235.933 61.0734 234.864 60.6737 237.679L60.3497 238.769C58.5294 239.717 51.0216 238.75 48.2835 239.134C43.8704 239.753 43.5232 243.278 44.5735 247.005C44.6127 246.995 47.2164 247.312 47.9788 247.317C49.3774 247.325 50.7784 247.332 52.1768 247.327C53.0806 247.323 59.4358 246.903 60.0883 247.633C60.1073 247.655 61.3101 250.168 58.8237 250.294L50.4095 250.263C46.9263 250.281 46.488 249.578 44.3353 250.669C44.1832 259.147 45.6001 261.629 41.0084 260.739ZM44.9782 261.575L45.082 251.111C48.2089 250.926 59.2036 251.475 60.997 250.873C61.2733 250.075 61.3969 247.649 61.0124 246.709C59.8368 246.059 47.6944 246.582 45.1384 246.44C45.0408 241.625 44.8133 239.994 49.9671 239.951L58.5826 239.959C59.8052 239.972 60.4074 240.152 61.3393 239.722C61.9339 239.447 61.6944 237.027 61.6576 236.291C61.5777 234.692 60.8021 235.083 59.2466 235.099C56.8174 235.123 54.3856 235.088 51.9559 235.11C47.0369 235.156 42.814 234.949 40.9776 238.826C39.4662 242.018 40.0976 254.34 40.0535 259.511C40.0386 261.246 39.6413 261.667 41.3277 261.675C42.4034 261.681 43.9552 261.727 44.9782 261.575Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M114.17 257.912C112.456 262.304 102.825 262.114 98.8108 261.784C92.9625 261.303 89.58 258.188 88.999 252.681C88.3869 246.879 88.622 240.206 92.3841 237.197C95.5712 234.649 104.651 234.395 107.538 235.11C107.773 235.168 107.756 235.177 108.037 235.301C108.074 235.317 108.162 235.439 108.188 235.393C108.214 235.346 108.29 235.455 108.338 235.491C110.203 235.112 112.973 237.22 113.743 238.144C116.891 241.925 116.755 251.057 115.526 255.246L114.17 257.912ZM103.145 234.221C99.8082 234.721 94.1747 233.268 90.5915 238.11C90.5091 238.222 90.3711 238.415 90.226 238.575C89.8305 239.011 90.8923 237.869 90.0105 238.792L89.095 240.122C88.892 240.631 88.8198 241.089 88.6778 241.708C87.9129 245.038 87.7052 251.912 88.7822 255.154C89.7754 258.144 88.5341 256.203 89.8245 257.613C90.8981 258.786 90.3382 259.12 93.5824 261.212C94.4087 261.745 93.6354 261.22 94.0755 261.611C95.1713 262.582 94.7859 261.797 95.7487 261.972C96.2509 262.064 96.6704 262.257 97.0602 262.322C97.7096 262.43 98.3548 262.422 99.0052 262.429C104.047 262.483 109.097 263.547 113.829 259.761C116.841 257.35 116.841 253.029 116.922 248.241C116.963 245.816 117.023 243.673 116.596 241.686L116.542 241.406C116.361 240.507 116.727 242.009 116.5 241.142L115.631 239.579C114.211 237.029 114.341 237.727 113.092 236.574C112.328 235.868 112.867 235.621 109.811 234.834C108.067 234.384 104.907 233.957 103.145 234.221Z" fill={theme.primaryLight} opacity={0.95} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M66.2201 235.799C67.2369 235.597 68.7253 235.482 69.6327 235.871C70.6194 237.804 69.227 250.719 70.2009 254.308C71.6129 259.512 79.5627 256.26 86.0687 257.42C86.2784 258.013 86.3924 259.38 86.3011 260.166C86.1673 261.32 85.4021 261.059 84.2132 261.065C68.3071 261.15 65.8032 261.94 66.0529 248.241C66.1014 245.581 65.6965 237.781 66.2201 235.799ZM86.5923 257.075C86.1897 256.255 78.7938 256.679 77.5793 256.681C74.4139 256.684 71.4352 257.136 70.6998 254.012C69.7639 250.037 71.4683 235.78 69.9731 235.286C69.7008 235.196 69.9212 235.205 69.4146 235.139C69.1148 235.099 68.4208 235.134 68.0853 235.138C67.1322 235.149 66.3882 235.137 65.4314 235.248C66.2851 238.755 64.1865 253.421 66.57 257.911C68.0279 260.658 70.8479 261.6 74.7006 261.649C76.644 261.674 85.478 261.856 86.6361 261.494C87.1055 260.567 86.8618 258.243 86.8036 257.076L86.5923 257.075Z" fill={theme.primary} opacity={0.75} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M149.75 250.022L148.272 255.479L148.764 255.6C149.243 254.022 149.742 252.137 150.163 250.552C150.792 248.182 153.626 236.967 154.392 235.825C159.64 234.82 157.927 236.502 156.351 242.235C155.59 245.002 151.348 259.78 150.77 260.485C149.835 261.624 145.864 261.58 144.984 259.942C144.138 258.367 142.047 250.205 141.173 247.826C140.62 246.32 139.494 243.466 139.15 241.846L138.778 242.001C138.986 243.532 144.237 260.019 144.814 260.746C145.88 262.089 150.351 262.246 151.35 260.827C151.784 260.211 158.847 236.455 158.924 235.07L153.815 235.166C152.964 237.212 152.298 240.37 151.686 242.623C151.161 244.555 149.95 248.263 149.75 250.022Z" fill={theme.primary} opacity={0.75} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M138.161 241.885C137.791 241.62 138.44 241.544 137.75 241.686L135.784 247.897C134.815 250.347 133.177 257.563 131.933 259.989C131.053 261.704 127.325 261.682 126.263 260.318C125.396 259.204 118.956 236.799 119.061 235.85C120.073 235.646 121.716 235.574 122.712 235.823C123.215 236.166 126.434 248.543 127.078 250.628C127.544 252.139 128.097 253.829 128.53 255.398C129.08 255.591 128.605 255.483 128.873 255.246L126.124 245.196C122.856 234.622 125.224 234.59 118.22 235.212C118.301 236.82 121.198 245.788 121.846 248.159C122.431 250.293 124.97 259.702 125.807 260.755C126.845 262.061 130.925 262.292 132.16 260.841C132.888 259.986 137.977 243.6 138.161 241.885Z" fill={theme.primary} opacity={0.75} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M108.672 241.881C109.149 242.218 108.842 241.426 109.653 242.929C110.651 244.779 110.668 249.725 110.369 251.861C110.034 254.254 110.335 253.427 109.213 254.705C108.465 255.557 107.806 255.851 106.537 256.04C105.563 256.186 97.4263 256.106 96.1925 255.254C93.8525 253.637 94.1974 243.825 95.7078 242.069C97.2825 240.239 103.201 240.538 106.309 240.684C107.153 240.724 108.234 240.89 108.638 241.63C109.064 242.413 108.518 241.772 108.672 241.881ZM99.5515 239.918C96.6741 240.259 95.0925 240.889 94.3106 243.34C93.494 245.901 92.6571 254.829 97.1748 256.467C98.9102 257.096 103.349 257.024 105.408 256.878C108.109 256.688 109.968 255.73 110.696 253.53C111.449 251.252 112.575 241.766 107.693 240.253C105.808 239.668 101.556 239.681 99.5515 239.918Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M99.5515 239.918C101.556 239.681 105.808 239.668 107.692 240.253C112.575 241.766 111.449 251.252 110.696 253.53C109.968 255.73 108.109 256.688 105.408 256.878C103.349 257.024 98.9102 257.096 97.1747 256.467C92.657 254.829 93.494 245.901 94.3106 243.34C95.0925 240.889 96.6741 240.259 99.5515 239.918ZM99.163 239.266C97.4181 239.576 97.0811 239.525 95.6088 240.424C92.3466 242.418 91.1091 254.871 97.0263 257.126C98.6942 257.762 109.619 259.355 111.339 253.628C112.309 250.397 113.267 241.224 107.813 239.594C105.468 238.893 101.615 238.83 99.163 239.266Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M114.17 257.912C113.25 258.067 113.43 258.194 112.742 258.887C112.422 259.209 111.985 259.542 111.495 259.825C110.571 260.358 109.166 260.748 107.985 260.962C105.604 261.394 101.778 261.448 99.2379 261.215C93.5097 260.689 90.2547 258.427 89.6487 252.738C89.4389 250.769 89.3849 246.294 89.6594 244.152C91.2002 232.124 102.712 236.716 108.338 235.491C108.29 235.455 108.214 235.346 108.188 235.393C108.162 235.439 108.074 235.317 108.037 235.301C107.756 235.177 107.773 235.168 107.538 235.11C104.651 234.395 95.5713 234.649 92.3842 237.197C88.622 240.206 88.387 246.879 88.999 252.681C89.58 258.188 92.9626 261.303 98.8108 261.784C102.826 262.114 112.456 262.304 114.17 257.912Z" fill={theme.primary} opacity={0.75} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M65.4314 235.248C66.3881 235.137 67.1322 235.149 68.0853 235.138C68.4208 235.134 69.1147 235.099 69.4145 235.138C69.9212 235.205 69.7007 235.196 69.9731 235.286C71.4683 235.78 69.7639 250.037 70.6997 254.012C71.4352 257.135 74.4138 256.684 77.5793 256.68C78.7938 256.679 86.1897 256.255 86.5922 257.075C87.1258 256.654 87.191 257.688 86.9718 256.414C86.1581 255.121 77.3304 256.105 73.568 255.601C71.8281 255.368 71.587 254.609 71.3188 252.953C70.8367 249.976 71.442 242.51 71.1594 238.766C70.8012 234.017 71.466 234.537 68.0866 234.551C66.7153 234.557 66.0562 234.28 65.4314 235.248Z" fill={theme.primaryLight} opacity={0.95} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M129.362 255.464C130.565 254.923 131.176 251.336 131.517 250.211C132.085 248.336 132.619 246.603 133.221 244.906C135.154 239.457 134.369 235.689 138.32 235.68C141.423 235.672 141.416 236.595 142.131 239.13C142.604 240.806 143.253 242.775 143.791 244.494L146.378 252.757C147.102 255.042 146.748 254.721 147.662 255.106L142.508 238.336C141.732 235.783 141.333 235.056 138.323 235.096C135.184 235.137 135.318 236.066 134.453 238.63L129.362 255.464Z" fill={theme.primary} opacity={0.75} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M74.7496 200.5C74.9254 200.159 74.6886 200.302 75.2561 200.472L75.7854 200.189L83.1107 218.096C84.0783 220.271 84.4679 221.923 87.68 221.677C88.9562 221.579 89.6485 220.931 90.1043 220.151C91.114 218.424 92.8693 213.19 93.6897 211.033L97.2438 202.044C97.627 201.106 97.9341 200.024 98.8087 199.685C100.576 199.463 100.161 203.491 100.155 204.576L100.158 216.922C100.155 218.5 99.7247 221.588 100.663 222.49C101.326 222.969 102.967 222.784 103.638 222.489C104.202 221.206 103.989 208.564 103.935 206.058C103.747 197.226 105.28 194.386 98.7897 194.57C96.0705 194.646 95.5065 196.687 94.7346 198.704L88.9821 213.92C88.2831 215.858 88.2991 216.145 87.3321 216.398C86.9445 216.232 87.0463 216.337 86.8214 215.989C86.5496 216.466 86.9877 216.294 86.3274 216.322L83.8342 210.352C83.0964 208.367 82.3752 206.292 81.5321 204.258C80.686 202.217 80.0637 200.163 79.1946 198.212C78.0783 195.704 77.7831 194.637 74.6172 194.577C71.3124 194.514 70.1873 194.831 70.0178 198.145C69.8332 201.751 69.632 221.208 70.3509 222.696L73.6233 222.622C74.418 220.268 73.8665 207.18 74.0024 202.835C74.0811 200.317 74.4256 200.8 74.7496 200.5Z" fill={theme.primary} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M116.083 218.03L116.183 217.909C115.078 216.9 115.383 214.441 115.426 212.221C115.432 211.923 115.436 211.534 115.484 211.246C115.799 209.365 115.135 212.602 115.595 210.815C115.608 210.762 115.66 210.724 115.671 210.616C115.718 210.154 116.384 209.988 116.836 209.911C117.138 209.86 117.963 209.865 118.309 209.862C119.222 209.856 120.119 209.867 121.031 209.886C127.413 210.017 133.768 208.766 133.324 214.406C132.975 218.841 130.765 218.92 126.464 218.958L118.053 218.911C115.616 218.845 116.232 218.392 116.083 218.03ZM115.637 198.915C118.165 197.437 123.219 198.111 127.205 198.145C129.422 198.164 131.35 198.025 132.185 199.799C132.828 201.167 133.13 203.521 132.332 204.996C131.374 206.766 129.694 206.914 127.452 206.9L117.305 206.994C115.904 206.91 115.56 206.815 115.422 205.342C115.281 203.838 115.378 200.401 115.637 198.915ZM135.42 208.587C134.79 208.251 134.902 208.4 134.953 207.763C135.056 206.115 135.656 207.158 136.424 204.667C137.107 202.45 136.777 197.167 133.575 195.47C130.79 193.993 121.263 194.623 117.327 194.591C113.683 194.562 111.681 194.056 111.428 196.898C111.182 199.671 111.258 221.728 111.62 222.159C113.282 223.032 128.984 222.86 131.717 222.469C134.77 222.033 136.764 220.234 137.003 217.183C137.212 214.52 137.242 210.319 135.021 209.349C134.764 207.788 134.842 209.015 135.42 208.587Z" fill={theme.primary} opacity={0.8} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M177.715 208.929L177.606 208.851C176.831 208.556 177.204 209.119 176.978 207.811L176.994 203.836C176.999 197.488 175.411 198.437 187.953 198.607C191.961 198.662 193.51 199.845 193.492 204.083C193.463 210.843 188.144 209.638 179.783 209.58C179.508 209.578 178.853 209.578 178.616 209.512C177.538 209.213 178.112 209.354 177.715 208.929ZM177.636 213.729L187.205 213.853C188.23 214.27 192.153 223.183 193.911 223.46C194.987 223.63 198.498 223.665 199.216 223.282C199.637 222.923 199.387 222.982 198.561 221.623C198.159 220.963 197.953 220.362 197.373 220.021L196.505 219.978C195.577 217.42 192.708 215.374 192.664 212.734C194.466 211.342 196.503 210.469 197.286 207.592C197.997 204.979 197.979 201.581 197.077 199.058C195.065 193.426 187.149 194.532 182.267 194.596C170.996 194.743 172.516 192.465 172.524 204.083C172.527 207.285 172.488 210.513 172.529 213.712C172.563 216.264 171.848 220.887 173.077 222.605C173.973 222.767 175.894 223.014 176.397 222.406C177.9 220.857 175.632 214.78 177.636 213.729Z" fill={theme.primary} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M6.24269 200.425C6.24386 200.424 6.39756 199.341 7.6125 200.688C7.83356 200.933 12.9013 209.072 14.104 210.517C15.3484 212.011 16.1827 214.354 17.5747 216.223C18.9051 218.009 18.9494 218.564 19.8179 219.607L21.4038 221.72C22.8658 223.084 27.1863 223.437 28.2767 221.747C28.862 220.841 28.6121 205.556 28.5835 203.342C28.5538 201.032 29.1198 196.243 27.944 194.788L24.7328 194.73C24.3522 197.891 24.5351 202.717 24.5473 206.058L24.5753 214.958C24.4855 216.263 24.4246 216.501 23.4995 216.912C22.5628 216.43 23.081 216.668 22.8862 216.259C21.8392 215.99 20.146 212.669 19.0483 210.994C17.9144 209.264 16.7307 207.466 15.5286 205.623C13.8179 203 9.95665 196.163 8.18702 194.966C7.67141 194.618 2.22545 193.287 1.50716 196.372C1.11754 198.044 1.38263 202.937 1.38088 205.07C1.37797 208.802 0.905233 219.979 1.52291 222.856L5.22898 222.849C5.92161 221.13 5.50953 214.01 5.53286 211.49C5.55095 209.518 5.58069 207.536 5.57136 205.564C5.56524 204.226 5.22344 200.426 6.24269 200.425Z" fill={theme.primary} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M147.608 210.925C147.874 209.84 149.147 210.294 151.896 210.286L164.209 210.126C164.987 209.945 164.621 209.913 165.166 209.515C165.371 206.746 165.217 206.785 162.517 206.812L149.409 206.8C149.185 206.802 148.429 206.792 148.249 206.731C147.123 206.348 147.735 206.756 147.634 206.096C146.305 204.982 147.034 201.778 148.005 200.462C151.225 196.096 163.479 200.111 166.282 197.979L166.218 194.698C162.396 194.573 151.186 194.152 148.385 195.179C143.008 197.15 142.976 202.007 142.962 208.527C142.948 214.983 142.765 220.112 148.269 221.965C150.415 222.688 164.097 223.249 166.23 222.402C166.635 220.796 166.235 220.034 166.217 218.896C161.751 218.781 156.736 219.178 152.376 218.819C150.09 218.631 148.647 217.909 147.744 216.373C147.391 215.772 146.124 210.777 147.608 210.925Z" fill={theme.primary} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M36.091 195.192C36.0715 198.658 36.0426 202.095 36.0543 205.564C36.089 215.884 34.5159 222.865 49.6727 223.063C56.8865 223.157 61.4628 221.528 62.6028 215.158C63.1607 212.04 63.1648 198.12 62.7603 194.637L59.0542 194.698C58.6701 196.801 58.9136 200.774 58.8982 203.095C58.8168 215.152 60.3698 219.029 49.4257 219.061C43.1707 219.08 40.2156 217.956 40.0004 211.502C39.9222 209.16 40.2626 195.97 39.6907 195.072C39.0666 194.401 37.7726 194.622 36.5792 194.719L36.091 195.192Z" fill={theme.primary} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M90.1656 221.62C83.8925 224.198 83.1877 220.522 80.5434 213.951L75.2561 200.472C74.6886 200.302 74.9254 200.159 74.7496 200.5L74.6921 223.419C73.2902 223.543 70.5267 223.784 69.3436 223.194C68.8866 218.306 69.2622 211.177 69.2712 206.058C69.2884 196.671 67.9609 193.8 74.3643 193.849C77.8592 193.876 78.4935 194.383 79.6907 197.285C80.5323 199.326 81.2544 201.537 82.0389 203.577C83.6178 207.681 85.3845 211.746 86.8214 215.989C87.0463 216.337 86.9445 216.232 87.3321 216.398L92.0915 203.534C94.7527 196.796 94.4403 193.785 99.5468 193.766C102.906 193.754 104.185 194.342 104.642 197.478C104.972 199.746 104.738 203.627 104.732 206.058C104.725 208.784 104.929 221.89 104.61 223.408C104.994 223.531 105.363 223.097 105.481 222.574C105.76 221.343 105.276 218.001 105.265 216.181L105.33 198.399C105.214 192.914 102.58 192.729 97.457 193.223C97.3686 193.231 96.7463 193.294 96.7442 193.295C95.1887 193.634 94.2406 195.467 93.7174 196.792L93.4301 197.487C92.363 199.908 92.1335 201.551 91.5841 202.544C90.5523 204.409 91.0005 204.357 90.3971 205.785L88.4388 210.53C87.9113 212.427 88.1198 213.114 86.9567 213.493C86.0713 212.886 85.7433 210.803 85.4525 209.784C84.8013 207.502 84.0678 206.435 83.0223 204.352C79.6834 197.702 82.2437 192.168 71.8898 193.126C70.7192 193.234 69.6571 193.875 69.1765 194.691C68.1945 196.358 68.303 204.393 68.2599 207.049C68.2144 209.832 68.6696 212.601 68.6276 215.438C68.592 217.836 68.1735 222.114 69.1975 223.824C70.6705 224.294 73.7093 224.687 74.8793 223.855C76.1643 222.942 75.4693 214.096 75.516 211.243C75.5349 210.088 75.5154 208.938 75.5276 207.785C75.5428 206.379 75.4334 205.576 76.0925 204.845L76.5306 205.826C78.2072 208.698 77.9791 210.931 79.3063 213.221C79.3265 213.256 79.5411 213.693 79.5513 213.717L81.6123 218.562C83.1489 221.672 83.3635 223.005 86.9623 223.067C88.7617 223.098 89.8445 222.977 90.1656 221.62Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M36.091 195.192L36.5792 194.719C37.7726 194.622 39.0666 194.401 39.6906 195.072C40.2625 195.97 39.9222 209.16 40.0004 211.502C40.2156 217.956 43.1707 219.08 49.4256 219.061C60.3698 219.029 58.8168 215.152 58.8982 203.095C58.9136 200.774 58.6701 196.801 59.0542 194.698L62.7603 194.637C63.1648 198.12 63.1607 212.04 62.6028 215.158C61.4628 221.528 56.8865 223.157 49.6727 223.063C34.5159 222.865 36.089 215.884 36.0543 205.564C36.0426 202.095 36.0715 198.658 36.091 195.192ZM63.2438 216.119C63.6311 212.694 63.9685 196.94 63.5162 193.946C62.1904 193.835 59.3689 193.654 58.2306 194.11C56.9454 212.153 62.163 218.319 49.4256 218.266C36.4608 218.211 42.2133 211.937 40.6256 193.896L35.3713 193.847C34.7857 196.622 35.2243 206.81 35.2249 210.255C35.2255 216.131 36.2062 220.032 40.0275 222.137C43.4836 224.041 49.8118 224.219 54.3502 223.559C62.3164 222.401 62.0338 218.421 63.2438 216.119Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M87.3321 216.398C88.2992 216.145 88.2831 215.858 88.9822 213.92L94.7346 198.704C95.5066 196.687 96.0706 194.646 98.7898 194.57C105.28 194.386 103.747 197.226 103.935 206.058C103.989 208.564 104.202 221.206 103.638 222.489C102.967 222.784 101.326 222.969 100.663 222.49C99.7248 221.588 100.155 218.5 100.158 216.922L100.155 204.576C100.161 203.491 100.576 199.463 98.8087 199.685C97.9341 200.024 97.627 201.106 97.2438 202.044L93.6897 211.033C92.8693 213.19 91.114 218.424 90.1044 220.151C89.6485 220.931 88.9562 221.579 87.68 221.677C84.468 221.923 84.0784 220.271 83.1107 218.096L75.7855 200.189L75.2562 200.472L80.5435 213.951C83.1877 220.522 83.8926 224.198 90.1656 221.62L92.5579 216.581C93.6008 213.915 98.2826 200.673 99.1371 200.3C99.637 203.143 99.2197 218.714 99.3617 223.311C100.541 223.645 103.377 223.625 104.61 223.408C104.929 221.89 104.725 208.784 104.732 206.058C104.738 203.627 104.972 199.746 104.642 197.478C104.185 194.342 102.906 193.754 99.5469 193.766C94.4404 193.785 94.7527 196.796 92.0916 203.534L87.3321 216.398Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M147.608 210.925C146.124 210.777 147.391 215.772 147.744 216.372C148.647 217.909 150.09 218.631 152.376 218.819C156.736 219.178 161.751 218.781 166.217 218.896C166.235 220.034 166.635 220.796 166.23 222.402C164.097 223.249 150.415 222.688 148.268 221.965C142.765 220.112 142.948 214.983 142.962 208.527C142.976 202.007 143.008 197.15 148.385 195.179C151.186 194.152 162.396 194.573 166.218 194.698L166.282 197.979C163.479 200.111 151.225 196.096 148.005 200.462C147.034 201.778 146.305 204.982 147.634 206.096C148.18 200.736 147.825 199.254 153.868 199.266C154.684 199.267 166.116 199.614 166.762 198.944C167.243 198.111 167.298 195.082 166.774 194.206C166.102 193.522 150.786 193.493 147.858 194.586C142.228 196.688 142.075 202.296 142.085 208.774C142.096 215.526 142.433 220.802 148.063 222.745C150.938 223.737 153.778 223.523 157.081 223.523C158.778 223.523 166.008 223.859 166.868 223.285C167.378 222.837 167.2 222.326 167.186 220.874C167.151 217.222 167.693 218.105 160.538 218.065C158.315 218.053 156.091 218.06 153.868 218.042C147.576 217.992 148.285 216.171 147.608 210.925Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M110.564 195.064C110.892 199.029 110.096 220.807 110.832 222.443C111.566 224.075 116.588 223.463 118.809 223.478C123.402 223.509 132.532 224.259 135.459 221.97C138.582 219.526 139.465 211.768 135.42 208.587C134.842 209.015 134.764 207.788 135.021 209.349C137.242 210.319 137.212 214.52 137.003 217.183C136.764 220.234 134.77 222.033 131.717 222.469C128.984 222.86 113.282 223.032 111.62 222.159C111.258 221.728 111.182 199.671 111.428 196.898C111.681 194.056 113.683 194.562 117.327 194.591C121.263 194.623 130.79 193.993 133.575 195.47C136.777 197.167 137.107 202.45 136.424 204.667C135.656 207.158 135.056 206.115 134.953 207.763C138.605 206.69 139.458 194.934 131.625 193.934C129.078 193.609 118.992 193.885 115.105 193.882C113.773 193.881 112.316 193.688 111.346 194.394L110.564 195.064Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M134.953 207.763C134.902 208.4 134.79 208.251 135.42 208.587C139.465 211.768 138.582 219.526 135.458 221.97C132.532 224.259 123.402 223.509 118.809 223.478C116.588 223.463 111.566 224.075 110.832 222.443C110.096 220.807 110.892 199.029 110.564 195.063L111.346 194.394C112.316 193.688 113.773 193.881 115.105 193.882C118.992 193.885 129.078 193.609 131.625 193.934C139.458 194.934 138.605 206.69 134.953 207.763ZM110.564 195.063C110.003 195.411 110.371 194.971 110.074 195.646C110.001 195.81 109.924 196.325 109.913 196.455L109.608 210.008C109.573 212.782 109.808 215.098 109.853 217.658C109.899 220.272 109.529 223.071 111.545 223.927C112.56 224.358 126.143 224.237 128.905 224.373L133.433 223.877C136.168 222.953 137.271 221.176 137.685 220.972L138.137 220.958C137.678 219.511 138.191 221.24 138.675 218.118C139.552 212.464 138.88 212.417 137.127 208.952C136.394 207.503 137.084 207.542 137.672 206.167C138.927 203.231 138.168 198.591 136.913 196.362C134.565 192.194 130.183 193.19 124.735 193.203L112.885 193.236C111.214 193.35 110.42 193.787 110.564 195.063Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M195.143 216.018L197.373 220.021C197.953 220.362 198.159 220.963 198.561 221.623C199.387 222.982 199.637 222.923 199.216 223.282C198.498 223.665 194.987 223.63 193.911 223.46C192.153 223.183 188.23 214.27 187.205 213.853L177.636 213.729C177.37 215.99 177.837 222.752 177.24 223.277C177.239 223.278 172.322 224.557 171.918 222.585L171.892 200.626C171.891 198.663 171.229 195.073 172.813 194.085C174.642 193.18 190.836 194.066 193.546 194.445C193.434 194.024 193.517 193.459 191.395 193.259L174.353 193.166C171.958 193.183 171.164 193.358 171.112 196.418C171.033 201.134 170.889 219.896 171.194 223.565C172.677 224.229 172.258 224.166 174.364 224.156C175.252 224.152 177.126 223.984 177.396 224.406C178.686 222.705 178.331 222.497 178.369 219.885C178.383 218.938 178.353 218.098 178.332 217.156C178.293 215.369 178.244 215.925 178.932 214.841L186.202 214.816C187.757 215.04 188.995 219.044 189.378 219.564C189.396 219.589 189.444 219.643 189.464 219.668C189.5 219.715 189.619 219.858 189.659 219.911L191.004 221.526C191.535 222.162 192.154 223.295 192.683 223.789C193.852 224.88 197.743 224.356 199.662 224.182C199.992 222.745 200.643 222.76 198.271 219.674C196.904 217.898 196.414 216.168 195.143 216.018Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M22.8862 216.259C23.081 216.668 22.5628 216.43 23.4995 216.912C24.4245 216.501 24.4855 216.263 24.5753 214.958L24.5473 206.058C24.5351 202.717 24.3522 197.891 24.7328 194.73L27.944 194.788C29.1198 196.243 28.5538 201.032 28.5835 203.342C28.6121 205.556 28.862 220.841 28.2767 221.747C27.1863 223.437 22.8658 223.084 21.4038 221.72L19.8179 219.607C18.9494 218.564 18.9051 218.009 17.5747 216.223C16.1827 214.354 15.3483 212.011 14.1039 210.517C12.9012 209.072 7.83354 200.933 7.61248 200.688C6.39754 199.341 6.24384 200.424 6.24268 200.425C6.95776 200.683 10.6408 206.723 11.0558 207.387L15.6023 214.435C17.2355 216.804 18.5747 219.338 20.1679 221.484C22.4093 224.503 26.4432 224.043 28.9306 222.611C29.6363 218.679 29.4497 220.992 29.4467 216.181C29.443 209.996 29.7273 199.15 29.3931 193.981C28.0638 193.732 25.0827 193.629 23.8588 194.052L23.7689 215.439C23.4178 216.748 23.9136 215.99 22.8862 216.259Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M177.636 213.729C175.632 214.78 177.9 220.857 176.397 222.406C175.894 223.014 173.973 222.767 173.077 222.605C171.848 220.887 172.563 216.264 172.529 213.712C172.488 210.513 172.527 207.285 172.524 204.083C172.516 192.465 170.996 194.743 182.267 194.596C187.149 194.532 195.065 193.426 197.077 199.058C197.979 201.581 197.997 204.979 197.286 207.592C196.503 210.469 194.466 211.342 192.664 212.734C192.708 215.374 195.577 217.42 196.505 219.978L197.373 220.021L195.143 216.018C194.347 215.445 193.642 213.981 193.22 213.03C197.03 211.486 198.532 208.857 198.528 203.837C198.521 195.938 195.147 195.813 193.546 194.445C190.836 194.066 174.642 193.18 172.813 194.085C171.229 195.073 171.891 198.663 171.892 200.626L171.918 222.585C172.322 224.557 177.239 223.278 177.24 223.277C177.837 222.752 177.37 215.99 177.636 213.729Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M74.7496 200.5C74.4256 200.8 74.0812 200.317 74.0024 202.835C73.8665 207.18 74.418 220.268 73.6233 222.622L70.3509 222.696C69.632 221.208 69.8332 201.751 70.0178 198.145C70.1873 194.831 71.3124 194.514 74.6172 194.577C77.7832 194.637 78.0783 195.704 79.1947 198.212C80.0637 200.163 80.6861 202.217 81.5321 204.258C82.3752 206.292 83.0964 208.367 83.8342 210.352L86.3274 216.322C86.9877 216.294 86.5496 216.466 86.8214 215.989C85.3846 211.746 83.6178 207.681 82.0389 203.577C81.2545 201.537 80.5324 199.326 79.6907 197.285C78.4936 194.383 77.8593 193.876 74.3643 193.849C67.9609 193.8 69.2885 196.671 69.2713 206.058C69.2622 211.177 68.8866 218.306 69.3436 223.194C70.5267 223.784 73.2903 223.543 74.6921 223.419L74.7496 200.5Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M5.96536 223.647C6.42352 221.747 6.18817 214.672 6.17038 211.984C6.14501 208.112 6.21092 204.288 6.24271 200.425C5.22345 200.426 5.56525 204.226 5.57137 205.564C5.58071 207.536 5.55096 209.518 5.53288 211.49C5.50954 214.01 5.92162 221.131 5.22899 222.849L1.52292 222.856C0.905244 219.979 1.37798 208.802 1.38089 205.07C1.38264 202.937 1.11755 198.044 1.50717 196.372C2.22546 193.287 7.67142 194.618 8.18703 194.966C9.95666 196.164 13.8179 203 15.5286 205.623C16.7307 207.466 17.9144 209.264 19.0483 210.994C20.146 212.669 21.8392 215.99 22.8862 216.259C22.5879 214.355 20.2574 212.778 19.9323 210.918C18.8961 210.188 12.1424 198.902 10.2261 196.126C8.58889 193.755 7.71808 193.6 3.97789 193.843C0.89241 194.043 0.690891 195.907 0.667269 198.897C0.635772 202.832 0.411213 222.253 0.884242 223.451C2.52672 223.518 4.43896 223.238 5.96536 223.647Z" fill={theme.primary} opacity={0.75} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M40.6256 193.896C42.2133 211.937 36.4608 218.211 49.4256 218.266C62.163 218.319 56.9454 212.153 58.2306 194.11C59.3689 193.654 62.1904 193.835 63.5162 193.946C63.9685 196.94 63.6311 212.694 63.2438 216.119C63.5302 215.823 63.9816 215.953 64.0052 213.728C64.016 212.745 63.9924 211.737 63.9924 210.749C63.9924 207.3 64.3129 195.159 63.7145 193.5L57.9025 193.434C56.1868 199.035 59.0029 213.117 56.2711 216.123C54.6406 217.918 48.8908 217.439 46.1999 217.235C44.9284 217.139 43.9709 216.672 43.0992 216.096C41.1955 214.839 41.4699 211.288 41.4789 209.514C41.4929 206.798 41.5326 204.084 41.5122 201.366L41.3054 195.674C41.2611 193.517 40.9788 194.107 40.6256 193.896Z" fill={theme.primaryLight} opacity={0.8} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M5.96535 223.647C4.43894 223.238 2.5267 223.518 0.884226 223.451C0.411197 222.253 0.635756 202.832 0.667253 198.897C0.690875 195.907 0.892394 194.043 3.97787 193.843C7.71806 193.6 8.58888 193.755 10.2261 196.126C12.1424 198.902 18.8961 210.188 19.9322 210.918C20.0956 209.412 16.6199 204.585 15.4446 202.759L12.4113 197.552C11.9826 196.74 12.043 196.867 11.5096 196.344C8.71516 193.607 10.3081 192.957 3.73581 193.171C0.467483 193.278 0.137067 195.016 0 198.151L0.0422854 223.581C2.77139 224.523 0.235928 223.899 3.21933 224.135C4.7959 224.259 5.00325 224.724 5.96535 223.647Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M5.96533 223.647C6.63405 223.475 6.75624 223.277 6.8067 221.875L6.86269 203.464C7.56756 203.813 7.16744 202.719 8.11 204.104L11.2894 209.384C12.1602 210.684 12.7047 211.374 13.5714 212.776C14.0135 213.491 14.4087 213.864 14.5673 214.726C14.7137 215.52 14.3696 214.938 14.7409 215.222C14.7566 215.235 14.8228 215.263 14.8418 215.276C16.8963 216.759 17.9383 220.467 20.1635 222.727C21.6596 224.246 21.9331 224.198 24.2253 224.191C25.2172 224.188 26.2274 224.238 27.2204 224.138C28.3706 224.021 28.6751 223.81 28.9306 222.611C26.4432 224.043 22.4093 224.503 20.1679 221.484C18.5747 219.338 17.2355 216.804 15.6023 214.435L11.0558 207.387C10.6408 206.723 6.95776 200.683 6.24268 200.425C6.21089 204.288 6.14498 208.112 6.17035 211.984C6.18814 214.672 6.42349 221.747 5.96533 223.647Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M116.171 199.208C118.38 198.834 123.464 199.106 125.97 199.116C129.679 199.131 132.279 198.612 132.121 202.854C131.98 206.641 129.202 206.187 125.723 206.19C122.827 206.193 119.054 206.378 116.197 206.134L116.171 199.208ZM115.637 198.915C115.378 200.401 115.281 203.838 115.422 205.342C115.56 206.815 115.904 206.91 117.305 206.994L127.452 206.9C129.694 206.914 131.374 206.766 132.332 204.996C133.13 203.521 132.828 201.167 132.185 199.799C131.35 198.025 129.422 198.164 127.205 198.145C123.219 198.111 118.165 197.437 115.637 198.915Z" fill={theme.primary} opacity={0.6} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M131.156 201.07C132.806 206.693 126.588 205.306 120.784 205.378C117.89 205.414 117.151 205.56 117.049 203.93C116.721 198.65 116.792 199.744 122.036 200.047C124.932 200.214 129.389 199.44 131.156 201.07ZM116.197 206.134C119.054 206.378 122.827 206.193 125.723 206.19C129.202 206.187 131.98 206.641 132.121 202.855C132.279 198.612 129.679 199.131 125.97 199.116C123.464 199.106 118.381 198.834 116.171 199.208L116.197 206.134Z" fill={theme.primaryLight} opacity={0.9} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M147.608 210.925C149.416 211.239 165.105 211.268 165.954 210.749C166.227 210.425 166.219 207.84 166.169 207.291L165.798 206.209C164.88 205.808 149.395 205.791 147.634 206.096C147.735 206.756 147.123 206.348 148.249 206.731C148.429 206.792 149.185 206.802 149.409 206.8L162.517 206.812C165.217 206.784 165.371 206.746 165.166 209.514C164.621 209.913 164.987 209.945 164.209 210.126L151.896 210.286C149.147 210.294 147.874 209.84 147.608 210.925Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M116.183 217.909L116.201 210.827C118.293 210.433 123.554 210.671 125.97 210.674C129.822 210.677 132.565 209.988 132.5 214.455C132.44 218.618 129.952 218.109 126.216 218.105C123.208 218.102 118.936 218.355 116.083 218.03C116.232 218.392 115.616 218.845 118.053 218.911L126.464 218.958C130.765 218.92 132.975 218.841 133.324 214.406C133.768 208.766 127.413 210.017 121.031 209.886C120.119 209.867 119.222 209.856 118.309 209.862C117.963 209.865 117.138 209.86 116.836 209.911C116.384 209.988 115.718 210.154 115.671 210.616C115.66 210.724 115.608 210.761 115.595 210.815C115.135 212.602 115.799 209.365 115.484 211.246C115.436 211.534 115.432 211.922 115.426 212.221C115.383 214.441 115.078 216.9 116.183 217.909Z" fill={theme.primary} opacity={0.7} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M177.606 208.851C177.437 207.192 177.324 200.671 177.649 199.251C180.896 199.114 184.425 199.22 187.701 199.22C191.475 199.22 193.004 200.108 192.951 204.084C192.898 208.067 191.501 208.807 187.707 208.882C184.376 208.949 181.045 208.953 177.715 208.929C178.112 209.354 177.538 209.213 178.616 209.512C178.853 209.578 179.508 209.578 179.783 209.58C188.144 209.638 193.463 210.843 193.492 204.083C193.51 199.845 191.961 198.662 187.953 198.607C175.411 198.437 176.999 197.488 176.993 203.835L176.978 207.811C177.204 209.119 176.831 208.556 177.606 208.851Z" fill={theme.primary} opacity={0.75} />
-      <Path fillRule="evenodd" clipRule="evenodd" d="M178.274 199.877C179.625 199.687 188.124 199.606 189.358 199.834C193.377 200.578 192.207 206.643 190.883 207.513C189.644 208.328 182.842 208.512 180.528 208.501C177.662 208.488 178.077 208.012 178.083 205.319C178.086 203.923 177.88 201.043 178.274 199.877ZM177.606 208.851L177.715 208.929C181.045 208.953 184.376 208.949 187.707 208.882C191.501 208.807 192.898 208.067 192.951 204.084C193.004 200.108 191.475 199.22 187.701 199.22C184.425 199.22 180.896 199.114 177.648 199.251C177.324 200.671 177.437 207.192 177.606 208.851Z" fill={theme.primaryLight} opacity={0.8} />
     </Svg>
   );
 };
 
-const PlayIcon = () => (
-  <Svg width={40} height={40} viewBox="0 0 24 24">
-    <Path d="M8 5v14l11-7z" fill="#000" />
-  </Svg>
-);
+const getStyles = (theme) => {
+  const good = theme.good || '#34d399';
+  const warn = theme.warn || '#fbbf24';
+  const bad = theme.bad || '#f87171';
 
-// ─────────────────────────────────────────────
-// STYLES
-// ─────────────────────────────────────────────
-const getStyles = (theme) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.background,
-    justifyContent: 'space-between',
-    paddingVertical: 20,
-  },
-  balanceBar: {
-    flexDirection: 'row', gap: 10, paddingHorizontal: 20,
-    paddingVertical: 10, justifyContent: 'flex-end',
-  },
-  balancePill: {
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: theme.surface, borderRadius: 20,
-    borderWidth: 1.5, borderColor: theme.border,
-    paddingHorizontal: 14, paddingVertical: 6,
-  },
-  balanceIcon: { fontSize: 16 },
-  balanceVal: { fontSize: 15, fontWeight: '800', color: theme.text },
-  hero: { alignItems: 'center', marginTop: 10 },
-  subtitle: { color: theme.muted, marginTop: 5, letterSpacing: 2, fontSize: 12 },
-  playWrapper: { alignItems: 'center', marginVertical: 10 },
-  playBtn: {
-    width: 140, height: 140, borderRadius: 70,
-    backgroundColor: theme.primary,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  playBtnDisabled: { opacity: 0.6 },
-  playText: { marginTop: 2, fontWeight: 'bold', color: theme.background, fontSize: 14 },
-  levelText: { marginTop: 2, fontWeight: 'bold', color: theme.background, fontSize: 12 },
-  actionRow: {
-    flexDirection: 'row', gap: 10,
-    justifyContent: 'center', paddingHorizontal: 20,
-    marginVertical: 6,
-  },
-  actionBtn: {
-    flex: 1, backgroundColor: theme.surface,
-    borderWidth: 1.5, borderColor: theme.border,
-    borderRadius: 20, paddingVertical: 14,
-    alignItems: 'center', gap: 4,
-  },
-  claimableActionBtn: {
-    borderColor: '#FFD700',
-    borderWidth: 1.5,
-    backgroundColor: 'rgba(255, 215, 0, 0.03)',
-  },
-  claimableBtnLabel: {
-    color: '#FFD700',
-    fontWeight: '800',
-  },
-  iconWrapper: {
-    position: 'relative',
-  },
-  rewardBadge: {
-    position: 'absolute',
-    top: -4,
-    right: -10,
-    backgroundColor: '#FF3B30',
-    borderRadius: 8,
-    paddingHorizontal: 3,
-    paddingVertical: 0.5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.surface,
-  },
-  rewardBadgeText: {
-    fontSize: 9,
-  },
-  actionBtnIcon: { fontSize: 24 },
-  actionBtnLabel: { fontSize: 12, fontWeight: '700', color: theme.muted, letterSpacing: 0.5 },
-  footer: { alignItems: 'center', marginTop: 8 },
-  privacyText: { color: theme.muted, fontSize: 14, textDecorationLine: 'underline' },
-});
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: theme.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    levelChip: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 6,
+      backgroundColor: theme.surfaceRaised,
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 20,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+    },
+    levelChipLabel: {
+      color: theme.muted,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1.4,
+    },
+    levelChipValue: {
+      color: theme.text,
+      fontSize: 15,
+      fontWeight: '900',
+    },
+    coinPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: 'rgba(251,191,36,0.12)',
+      borderWidth: 1.5,
+      borderColor: 'rgba(251,191,36,0.4)',
+      borderRadius: 20,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    coinPillIcon: {
+      fontSize: 13,
+    },
+    coinPillText: {
+      color: warn,
+      fontSize: 14,
+      fontWeight: '900',
+    },
+    coinPillDivider: {
+      color: theme.border,
+      fontSize: 12,
+      marginHorizontal: 2,
+    },
+    headerIconBtn: {
+      width: 38,
+      height: 38,
+      borderRadius: 14,
+      backgroundColor: theme.surfaceRaised,
+      borderWidth: 1.5,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    scrollBody: {
+      flexGrow: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: 18,
+      paddingBottom: 24,
+      gap: 20,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      width: '100%',
+      gap: 8,
+    },
+    titleCenter: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    eyebrow: {
+      color: theme.primaryLight || '#60a5fa',
+      fontSize: 10,
+      letterSpacing: 3,
+      fontWeight: '700',
+      textAlign: 'center',
+    },
+    title: {
+      fontSize: 26,
+      fontWeight: '900',
+      color: theme.text,
+      letterSpacing: 2.5,
+      marginTop: 3,
+      textAlign: 'center',
+    },
+    titleAlt: {
+      fontSize: 26,
+      fontWeight: '900',
+      color: theme.primary,
+      letterSpacing: 5,
+      textAlign: 'center',
+    },
+    titleAction: {
+      alignItems: 'center',
+      width: 64,
+      gap: 6,
+    },
+    titleActionOrb: {
+      width: 54,
+      height: 54,
+      borderRadius: 27,
+      borderWidth: 1.5,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    titleActionIcon: {
+      fontSize: 24,
+    },
+    titleActionLabel: {
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 0.8,
+    },
+    titleActionBadge: {
+      position: 'absolute',
+      top: -4,
+      right: -4,
+      minWidth: 21,
+      height: 21,
+      borderRadius: 11,
+      paddingHorizontal: 5,
+      backgroundColor: bad,
+      borderWidth: 2,
+      borderColor: theme.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    titleActionBadgeText: {
+      color: '#ffffff',
+      fontSize: 10,
+      fontWeight: '900',
+    },
+    heroWrap: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    hero: {
+      width: 186,
+      height: 186,
+      borderRadius: 28,
+      backgroundColor: theme.surface,
+      borderWidth: 1.5,
+      borderColor: theme.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.25,
+      shadowRadius: 12,
+      elevation: 6,
+    },
+    puzzleIcon: {
+      width: 130,
+      height: 130,
+      position: 'relative',
+    },
+    puzzleCell: {
+      position: 'absolute',
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: theme.surfaceRaised,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    puzzleCellActive: {
+      backgroundColor: 'rgba(77,169,255,0.16)',
+      borderColor: theme.primary,
+    },
+    puzzleLine1: {
+      position: 'absolute',
+      top: 17,
+      left: 18,
+      width: 96,
+      height: 3,
+      borderRadius: 2,
+      backgroundColor: theme.primary,
+      opacity: 0.65,
+    },
+    puzzleLine2: {
+      position: 'absolute',
+      top: 17,
+      left: 110,
+      width: 3,
+      height: 96,
+      borderRadius: 2,
+      backgroundColor: theme.primary,
+      opacity: 0.65,
+    },
+    playBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      width: '100%',
+      maxWidth: 320,
+      backgroundColor: theme.primary,
+      paddingVertical: 16,
+      borderRadius: 20,
+      elevation: 8,
+      shadowColor: theme.primary,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.45,
+      shadowRadius: 14,
+    },
+    playBtnDisabled: {
+      opacity: 0.5,
+    },
+    playText: {
+      fontSize: 19,
+      fontWeight: '900',
+      color: theme.background,
+      letterSpacing: 3,
+    },
+    levelBadgeText: {
+      fontSize: 12,
+      fontWeight: '800',
+      color: theme.background,
+      opacity: 0.85,
+      marginLeft: 4,
+    },
+    tileRow: {
+      flexDirection: 'row',
+      gap: 10,
+      width: '100%',
+      maxWidth: 380,
+    },
+    tile: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: theme.surface,
+      borderWidth: 1.5,
+      borderColor: theme.border,
+      borderRadius: 18,
+      paddingVertical: 14,
+      paddingHorizontal: 8,
+    },
+    tileGlyph: {
+      width: 44,
+      height: 44,
+      borderRadius: 14,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tileIcon: {
+      fontSize: 21,
+    },
+    tileLabel: {
+      color: theme.text,
+      fontSize: 13,
+      fontWeight: '800',
+    },
+    tileSub: {
+      fontSize: 10,
+      fontWeight: '700',
+    },
+    tileDot: {
+      position: 'absolute',
+      top: 10,
+      right: 10,
+      width: 9,
+      height: 9,
+      borderRadius: 5,
+    },
+  });
+};

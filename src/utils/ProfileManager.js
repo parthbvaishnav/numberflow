@@ -8,42 +8,63 @@ const MISSIONS_LIST_KEY = 'zipDailyMissionsList_v1';
 
 export const RANKS = [
   { name: 'Bronze', xpNeeded: 0, rewardCoins: 0 },
-  { name: 'Silver', xpNeeded: 1000, rewardCoins: 100 },
-  { name: 'Gold', xpNeeded: 3000, rewardCoins: 250 },
-  { name: 'Platinum', xpNeeded: 6000, rewardCoins: 400 },
-  { name: 'Diamond', xpNeeded: 10000, rewardCoins: 600 },
-  { name: 'Master', xpNeeded: 15000, rewardCoins: 1000 },
-  { name: 'Grandmaster', xpNeeded: 22000, rewardCoins: 1500 },
-  { name: 'Legend', xpNeeded: 30000, rewardCoins: 2500 }
+  { name: 'Silver', xpNeeded: 1000, rewardCoins: 25 },
+  { name: 'Gold', xpNeeded: 3000, rewardCoins: 60 },
+  { name: 'Platinum', xpNeeded: 6000, rewardCoins: 100 },
+  { name: 'Diamond', xpNeeded: 10000, rewardCoins: 150 },
+  { name: 'Master', xpNeeded: 15000, rewardCoins: 250 },
+  { name: 'Grandmaster', xpNeeded: 22000, rewardCoins: 375 },
+  { name: 'Legend', xpNeeded: 30000, rewardCoins: 625 }
 ];
 
 export const AVATARS = ['🦊', '🐱', '🐼', '🦁', '🐻', '🐨', '🐯', '🐸', '🐙', '🦖', '🦄', '🐲'];
 export const AVATAR_COSTS = {
   '🦊': 0, '🐱': 0, '🐼': 0,
-  '🦁': 200, '🐻': 200, '🐨': 200,
-  '🐯': 500, '🐸': 500, '🐙': 500,
-  '🦖': 1000, '🦄': 1000, '🐲': 1500
+  '🦁': 800, '🐻': 800, '🐨': 800,
+  '🐯': 2000, '🐸': 2000, '🐙': 2000,
+  '🦖': 4000, '🦄': 4000, '🐲': 6000
 };
 
-// Raw Achievements definitions
+// Raw Achievements definitions (22 Lifetime Tasks)
 export const ACHIEVEMENTS = [
-  { id: 'beg', name: 'Beginner', desc: 'Complete 10 Levels', target: 10, rewardCoins: 100 },
-  { id: 'exp', name: 'Explorer', desc: 'Complete 50 Levels', target: 50, rewardCoins: 250 },
-  { id: 'master', name: 'Master', desc: 'Complete 200 Levels', target: 200, rewardCoins: 800 },
-  { id: 'speed', name: 'Speed Runner', desc: 'Complete 10 Levels in One Day', target: 10, rewardCoins: 150 },
-  { id: 'nohint', name: 'No Hint Challenge', desc: 'Complete 10 Levels without Hints', target: 10, rewardCoins: 200 },
-  { id: 'collector', name: 'Coin Collector', desc: 'Accumulate 3,000 Total Coins', target: 3000, rewardCoins: 300 },
-  { id: 'streak_7', name: 'Daily Player', desc: 'Reach a 7-Day Daily Streak', target: 7, rewardCoins: 200 },
-  { id: 'wheel', name: 'Wheel Spinner', desc: 'Spin the wheel 5 times', target: 5, rewardCoins: 100 },
-  { id: 'hint_use', name: 'Hint Spender', desc: 'Use 5 Hints in total', target: 5, rewardCoins: 100 }
+  { id: 'beg', name: 'Beginner', desc: 'Complete 10 Levels', target: 10, rewardCoins: 25 },
+  { id: 'exp', name: 'Explorer', desc: 'Complete 50 Levels', target: 50, rewardCoins: 60 },
+  { id: 'master', name: 'Master', desc: 'Complete 200 Levels', target: 200, rewardCoins: 200 },
+  { id: 'champ', name: 'Champion', desc: 'Complete 500 Levels', target: 500, rewardCoins: 375 },
+  { id: 'legend_solver', name: 'Legend Solver', desc: 'Complete 1,000 Levels', target: 1000, rewardCoins: 750 },
+  { id: 'speed', name: 'Speed Runner', desc: 'Complete 10 Levels in One Day', target: 10, rewardCoins: 35 },
+  { id: 'marathon', name: 'Marathon Runner', desc: 'Complete 25 Levels in One Day', target: 25, rewardCoins: 75 },
+  { id: 'nohint_novice', name: 'No Hint Novice', desc: 'Complete 5 Levels without Hints', target: 5, rewardCoins: 25 },
+  { id: 'nohint', name: 'No Hint Master', desc: 'Complete 15 Levels without Hints', target: 15, rewardCoins: 50 },
+  { id: 'nohint_god', name: 'Pure Genius', desc: 'Complete 30 Levels without Hints', target: 30, rewardCoins: 125 },
+  { id: 'saver', name: 'Coin Saver', desc: 'Accumulate 1,000 Total Coins', target: 1000, rewardCoins: 35 },
+  { id: 'collector', name: 'Coin Collector', desc: 'Accumulate 3,000 Total Coins', target: 3000, rewardCoins: 75 },
+  { id: 'tycoon', name: 'Coin Tycoon', desc: 'Accumulate 10,000 Total Coins', target: 10000, rewardCoins: 250 },
+  { id: 'streak_3', name: 'Getting Started', desc: 'Reach a 3-Day Daily Streak', target: 3, rewardCoins: 25 },
+  { id: 'streak_7', name: 'Daily Player', desc: 'Reach a 7-Day Daily Streak', target: 7, rewardCoins: 50 },
+  { id: 'streak_30', name: 'Dedicated Gamer', desc: 'Reach a 30-Day Daily Streak', target: 30, rewardCoins: 200 },
+  { id: 'wheel', name: 'Lucky Spinner', desc: 'Spin the wheel 5 times', target: 5, rewardCoins: 25 },
+  { id: 'wheel_master', name: 'Wheel Fanatic', desc: 'Spin the wheel 25 times', target: 25, rewardCoins: 75 },
+  { id: 'hint_use', name: 'Hint Spender', desc: 'Use 5 Hints in total', target: 5, rewardCoins: 25 },
+  { id: 'hint_master', name: 'Hint Collector', desc: 'Use 25 Hints in total', target: 25, rewardCoins: 60 },
+  { id: 'referral', name: 'Social Butterfly', desc: 'Claim a Referral Code', target: 1, rewardCoins: 50 },
+  { id: 'play_hours', name: 'Time Lord', desc: 'Play for 5 Hours in total', target: 18000, rewardCoins: 150 }
 ];
 
-// Raw Daily Missions options
+// Raw Daily Missions options (12 Tasks Pool)
 const MISSION_POOL = [
-  { id: 'm_lvls', name: 'Complete 5 Levels', target: 5, rewardCoins: 100, type: 'levels' },
-  { id: 'm_hints', name: 'Use 2 Hints', target: 2, rewardCoins: 50, type: 'hints' },
-  { id: 'm_ads', name: 'Watch 2 Ads', target: 2, rewardCoins: 60, type: 'ads' },
-  { id: 'm_coins', name: 'Earn 300 Coins', target: 300, rewardCoins: 70, type: 'coins' }
+  { id: 'm_lvls', name: 'Complete 5 Levels', target: 5, rewardCoins: 25, type: 'levels' },
+  { id: 'm_hints', name: 'Use 2 Hints', target: 2, rewardCoins: 12, type: 'hints' },
+  { id: 'm_ads', name: 'Watch 2 Ads', target: 2, rewardCoins: 15, type: 'ads' },
+  { id: 'm_coins', name: 'Earn 150 Coins', target: 150, rewardCoins: 18, type: 'coins' },
+  { id: 'm_lvls_10', name: 'Complete 10 Levels', target: 10, rewardCoins: 30, type: 'levels' },
+  { id: 'm_nohint', name: 'Win 3 Levels No Hint', target: 3, rewardCoins: 20, type: 'nohint' },
+  { id: 'm_spin', name: 'Spin Wheel 2 Times', target: 2, rewardCoins: 15, type: 'spin' },
+  { id: 'm_spend', name: 'Spend 500 Coins', target: 500, rewardCoins: 22, type: 'spend' },
+  { id: 'm_playtime', name: 'Play for 15 Mins', target: 900, rewardCoins: 18, type: 'playtime' },
+  { id: 'm_daily_login', name: 'Claim Daily Reward', target: 1, rewardCoins: 10, type: 'daily_login' },
+  { id: 'm_avatar', name: 'Equip/Unlock Avatar', target: 1, rewardCoins: 15, type: 'avatar' },
+  { id: 'm_streak', name: 'Keep 2-Day Streak', target: 2, rewardCoins: 20, type: 'streak' }
 ];
 
 function getTodayString() {
@@ -376,25 +397,42 @@ export async function getAchievements() {
       case 'beg':
       case 'exp':
       case 'master':
+      case 'champ':
+      case 'legend_solver':
         progress = profile.levelsCompleted;
         break;
       case 'speed':
+      case 'marathon':
         progress = profile.levelsCompletedToday;
         break;
+      case 'nohint_novice':
       case 'nohint':
+      case 'nohint_god':
         progress = profile.noHintStreak;
         break;
+      case 'saver':
       case 'collector':
-        progress = profile.coins; // total current balance
+      case 'tycoon':
+        progress = profile.coins;
         break;
+      case 'streak_3':
       case 'streak_7':
+      case 'streak_30':
         progress = profile.currentStreak;
         break;
       case 'wheel':
+      case 'wheel_master':
         progress = profile.wheelSpinsCount;
         break;
       case 'hint_use':
+      case 'hint_master':
         progress = profile.hintsUsedCount;
+        break;
+      case 'referral':
+        progress = profile.referralClaimed ? 1 : 0;
+        break;
+      case 'play_hours':
+        progress = profile.totalPlayTime;
         break;
     }
     const completed = progress >= ach.target;
