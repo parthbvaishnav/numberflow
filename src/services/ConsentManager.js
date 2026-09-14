@@ -1,6 +1,6 @@
 // src/services/ConsentManager.js
 //
-// Central Privacy, COPPA & Ad Consent Manager for Number Flow.
+// Central Privacy, COPPA & Ad Consent Manager for Number Link Puzzle.
 // Ensures strict compliance with AppLovin Policies for Publishers,
 // Google AdMob policies, COPPA, GDPR, and CCPA/U.S. Multistate privacy laws.
 

@@ -128,7 +128,7 @@ export default function SettingsModal({ visible, onClose }) {
                 style={s.menuRow}
                 activeOpacity={0.7}
                 onPress={() =>
-                  Linking.openURL('https://friendly-cassata-b8985a.netlify.app/privacy-policy.html')
+                  Linking.openURL('https://npgamestudio.netlify.app/privacy-policy')
                 }
               >
                 <Text style={s.menuRowIcon}>🔐</Text>
@@ -138,8 +138,8 @@ export default function SettingsModal({ visible, onClose }) {
 
               <View style={s.menuRow}>
                 <Text style={s.menuRowIcon}>🎮</Text>
-                <Text style={s.menuRowText}>Number Flow</Text>
-                <Text style={[s.menuRowArrow, { color: theme.muted, fontSize: 12 }]}>v1.0.0</Text>
+                <Text style={s.menuRowText}>Number Link Puzzle</Text>
+                <Text style={[s.menuRowArrow, { color: theme.muted, fontSize: 12 }]}>v1.6</Text>
               </View>
             </View>
 
@@ -147,9 +147,9 @@ export default function SettingsModal({ visible, onClose }) {
             <View style={s.divider} />
 
             {/* Crashlytics Test Section */}
-            <View style={s.section}>
+            {/* <View style={s.section}>
               <Text style={s.sectionLabel}>CRASHLYTICS TESTING</Text>
-              
+
               <TouchableOpacity
                 style={s.menuRow}
                 activeOpacity={0.7}
@@ -169,7 +169,7 @@ export default function SettingsModal({ visible, onClose }) {
                 <Text style={s.menuRowText}>Trigger Test Crash</Text>
                 <Text style={s.menuRowArrow}>›</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
 
             <View style={{ height: 30 }} />
           </ScrollView>

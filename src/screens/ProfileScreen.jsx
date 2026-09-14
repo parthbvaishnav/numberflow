@@ -262,7 +262,7 @@ export default function ProfileScreen() {
   const handleShareApp = async () => {
     try {
       await Share.share({
-        message: '🎮 Play Number Flow - the ultimate puzzle challenge! Connect the numbers and test your logic: https://play.google.com/store/apps/details?id=com.parthbvaishnav.numberflow',
+        message: '🎮 Play Number Link Puzzle - the ultimate puzzle challenge! Connect the numbers and test your logic: https://play.google.com/store/apps/details?id=com.numberflow.game',
       });
     } catch (err) {
       console.error(err);
@@ -652,7 +652,7 @@ export default function ProfileScreen() {
         <View style={styles.shareCard}>
           <Text style={styles.shareIcon}>📤</Text>
           <View style={styles.shareRight}>
-            <Text style={styles.shareTitle}>Share Number Flow</Text>
+            <Text style={styles.shareTitle}>Share Number Link Puzzle</Text>
             <Text style={styles.shareSub}>Invite friends to test their logic limits!</Text>
             <TouchableOpacity style={styles.shareButton} onPress={handleShareApp}>
               <Text style={styles.shareButtonText}>Share Invite Link</Text>
