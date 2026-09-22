@@ -96,6 +96,24 @@ class AdManager {
     return shown;
   }
 
+  /**
+   * Intent-based preloading for Google + Meta mediated ads.
+   * Call when user enters a screen with high ad intent (Shop, Spin Wheel, Level Complete).
+   *
+   * @param {'inter'|'rewarded'|'open'} type
+   */
+  preloadAd(type) {
+    const config = RemoteConfigService.getAdsConfig();
+    const adList = getAdList(type, config);
+    if (!adList || adList.length === 0) return;
+    const primary = adList[0];
+    if (primary && primary.provider === 'G' && primary.id) {
+      if (type === 'inter') GoogleAds.preloadInterstitial(primary.id);
+      if (type === 'rewarded') GoogleAds.preloadRewarded(primary.id);
+      if (type === 'open') GoogleAds.preloadAppOpen(primary.id);
+    }
+  }
+
   // ─── Internal dispatcher ──────────────────────────────────────────────────
 
   _dispatch(provider, type, id, onReward) {

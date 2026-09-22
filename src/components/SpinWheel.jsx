@@ -248,7 +248,7 @@ export default function SpinWheel({ onResult, disabled }) {
       <View style={styles.wheelStage}>
         <View style={[styles.glowRing, { backgroundColor: `${theme.primary}1f` }]} />
 
-        <View style={[styles.wheelRim, { borderColor: theme.warn || '#fbbf24' }]}>
+        <View style={[styles.wheelRim, { borderColor: theme.warn || '#fbbf24', backgroundColor: theme.surface }]}>
           <Animated.View style={[styles.wheelSpinner, { transform: [{ rotate }] }]}>
             <WheelFace bulbPhase={bulbPhase} />
           </Animated.View>

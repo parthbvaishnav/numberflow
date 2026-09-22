@@ -3,68 +3,74 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getCoins, setCoins, getHints, setHints } from './CoinManager';
 
 const PROFILE_KEY = 'zipPlayerProfile_v1';
-const MISSION_DATE_KEY = 'zipDailyMissionDate_v1';
-const MISSIONS_LIST_KEY = 'zipDailyMissionsList_v1';
 
-export const RANKS = [
-  { name: 'Bronze', xpNeeded: 0, rewardCoins: 0 },
-  { name: 'Silver', xpNeeded: 1000, rewardCoins: 25 },
-  { name: 'Gold', xpNeeded: 3000, rewardCoins: 60 },
-  { name: 'Platinum', xpNeeded: 6000, rewardCoins: 100 },
-  { name: 'Diamond', xpNeeded: 10000, rewardCoins: 150 },
-  { name: 'Master', xpNeeded: 15000, rewardCoins: 250 },
-  { name: 'Grandmaster', xpNeeded: 22000, rewardCoins: 375 },
-  { name: 'Legend', xpNeeded: 30000, rewardCoins: 625 }
-];
+// 50 Curated Daily Achievements (Reset Every Calendar Day)
+export const DAILY_ACHIEVEMENTS_50 = [
+  // ── Levels Solved Today (12 tasks) ──────────────────────────────────────
+  { id: 'da_lvl_1', name: 'Quick Start', desc: 'Solve 1 level today', target: 1, rewardCoins: 10, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_2', name: 'Warming Up', desc: 'Solve 2 levels today', target: 2, rewardCoins: 15, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_3', name: 'Flowing Along', desc: 'Solve 3 levels today', target: 3, rewardCoins: 20, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_4', name: 'Grid Navigator', desc: 'Solve 4 levels today', target: 4, rewardCoins: 25, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_5', name: 'Five Down', desc: 'Solve 5 levels today', target: 5, rewardCoins: 30, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_7', name: 'Lucky Seven', desc: 'Solve 7 levels today', target: 7, rewardCoins: 40, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_10', name: 'Deca Solver', desc: 'Solve 10 levels today', target: 10, rewardCoins: 50, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_12', name: 'Dozen Master', desc: 'Solve 12 levels today', target: 12, rewardCoins: 60, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_15', name: 'Flow Maestro', desc: 'Solve 15 levels today', target: 15, rewardCoins: 75, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_20', name: 'Twenty Streak', desc: 'Solve 20 levels today', target: 20, rewardCoins: 100, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_25', name: 'Silver Marathon', desc: 'Solve 25 levels today', target: 25, rewardCoins: 150, category: 'levels', icon: '🧩' },
+  { id: 'da_lvl_30', name: 'Puzzle Champion', desc: 'Solve 30 levels today', target: 30, rewardCoins: 200, category: 'levels', icon: '🧩' },
 
-export const AVATARS = ['🦊', '🐱', '🐼', '🦁', '🐻', '🐨', '🐯', '🐸', '🐙', '🦖', '🦄', '🐲'];
-export const AVATAR_COSTS = {
-  '🦊': 0, '🐱': 0, '🐼': 0,
-  '🦁': 800, '🐻': 800, '🐨': 800,
-  '🐯': 2000, '🐸': 2000, '🐙': 2000,
-  '🦖': 4000, '🦄': 4000, '🐲': 6000
-};
+  // ── No-Hint Solves Today (8 tasks) ──────────────────────────────────────
+  { id: 'da_nh_1', name: 'Pure Intuition', desc: 'Win 1 level with no hints', target: 1, rewardCoins: 15, category: 'nohint', icon: '🧠' },
+  { id: 'da_nh_2', name: 'Self-Reliant', desc: 'Win 2 levels with no hints', target: 2, rewardCoins: 25, category: 'nohint', icon: '🧠' },
+  { id: 'da_nh_3', name: 'Sharp Mind', desc: 'Win 3 levels with no hints', target: 3, rewardCoins: 35, category: 'nohint', icon: '🧠' },
+  { id: 'da_nh_5', name: 'Genius Streak', desc: 'Win 5 levels with no hints', target: 5, rewardCoins: 50, category: 'nohint', icon: '🧠' },
+  { id: 'da_nh_7', name: 'Pristine Logic', desc: 'Win 7 levels with no hints', target: 7, rewardCoins: 75, category: 'nohint', icon: '🧠' },
+  { id: 'da_nh_10', name: 'Flawless Ten', desc: 'Win 10 levels with no hints', target: 10, rewardCoins: 100, category: 'nohint', icon: '🧠' },
+  { id: 'da_nh_15', name: 'Master Mind', desc: 'Win 15 levels with no hints', target: 15, rewardCoins: 150, category: 'nohint', icon: '🧠' },
+  { id: 'da_nh_20', name: 'Number Deity', desc: 'Win 20 levels with no hints', target: 20, rewardCoins: 200, category: 'nohint', icon: '🧠' },
 
-// Raw Achievements definitions (22 Lifetime Tasks)
-export const ACHIEVEMENTS = [
-  { id: 'beg', name: 'Beginner', desc: 'Complete 10 Levels', target: 10, rewardCoins: 25 },
-  { id: 'exp', name: 'Explorer', desc: 'Complete 50 Levels', target: 50, rewardCoins: 60 },
-  { id: 'master', name: 'Master', desc: 'Complete 200 Levels', target: 200, rewardCoins: 200 },
-  { id: 'champ', name: 'Champion', desc: 'Complete 500 Levels', target: 500, rewardCoins: 375 },
-  { id: 'legend_solver', name: 'Legend Solver', desc: 'Complete 1,000 Levels', target: 1000, rewardCoins: 750 },
-  { id: 'speed', name: 'Speed Runner', desc: 'Complete 10 Levels in One Day', target: 10, rewardCoins: 35 },
-  { id: 'marathon', name: 'Marathon Runner', desc: 'Complete 25 Levels in One Day', target: 25, rewardCoins: 75 },
-  { id: 'nohint_novice', name: 'No Hint Novice', desc: 'Complete 5 Levels without Hints', target: 5, rewardCoins: 25 },
-  { id: 'nohint', name: 'No Hint Master', desc: 'Complete 15 Levels without Hints', target: 15, rewardCoins: 50 },
-  { id: 'nohint_god', name: 'Pure Genius', desc: 'Complete 30 Levels without Hints', target: 30, rewardCoins: 125 },
-  { id: 'saver', name: 'Coin Saver', desc: 'Accumulate 1,000 Total Coins', target: 1000, rewardCoins: 35 },
-  { id: 'collector', name: 'Coin Collector', desc: 'Accumulate 3,000 Total Coins', target: 3000, rewardCoins: 75 },
-  { id: 'tycoon', name: 'Coin Tycoon', desc: 'Accumulate 10,000 Total Coins', target: 10000, rewardCoins: 250 },
-  { id: 'streak_3', name: 'Getting Started', desc: 'Reach a 3-Day Daily Streak', target: 3, rewardCoins: 25 },
-  { id: 'streak_7', name: 'Daily Player', desc: 'Reach a 7-Day Daily Streak', target: 7, rewardCoins: 50 },
-  { id: 'streak_30', name: 'Dedicated Gamer', desc: 'Reach a 30-Day Daily Streak', target: 30, rewardCoins: 200 },
-  { id: 'wheel', name: 'Lucky Spinner', desc: 'Spin the wheel 5 times', target: 5, rewardCoins: 25 },
-  { id: 'wheel_master', name: 'Wheel Fanatic', desc: 'Spin the wheel 25 times', target: 25, rewardCoins: 75 },
-  { id: 'hint_use', name: 'Hint Spender', desc: 'Use 5 Hints in total', target: 5, rewardCoins: 25 },
-  { id: 'hint_master', name: 'Hint Collector', desc: 'Use 25 Hints in total', target: 25, rewardCoins: 60 },
-  { id: 'referral', name: 'Social Butterfly', desc: 'Claim a Referral Code', target: 1, rewardCoins: 50 },
-  { id: 'play_hours', name: 'Time Lord', desc: 'Play for 5 Hours in total', target: 18000, rewardCoins: 150 }
-];
+  // ── Coins Earned Today (8 tasks) ────────────────────────────────────────
+  { id: 'da_ce_25', name: 'Pocket Change', desc: 'Earn 25 coins today', target: 25, rewardCoins: 10, category: 'coins', icon: '🪙' },
+  { id: 'da_ce_50', name: 'Coin Pouch', desc: 'Earn 50 coins today', target: 50, rewardCoins: 20, category: 'coins', icon: '🪙' },
+  { id: 'da_ce_100', name: 'Treasure Seeker', desc: 'Earn 100 coins today', target: 100, rewardCoins: 35, category: 'coins', icon: '🪙' },
+  { id: 'da_ce_200', name: 'Gold Stash', desc: 'Earn 200 coins today', target: 200, rewardCoins: 60, category: 'coins', icon: '🪙' },
+  { id: 'da_ce_300', name: 'Vault Builder', desc: 'Earn 300 coins today', target: 300, rewardCoins: 90, category: 'coins', icon: '🪙' },
+  { id: 'da_ce_500', name: 'Coin Collector', desc: 'Earn 500 coins today', target: 500, rewardCoins: 150, category: 'coins', icon: '🪙' },
+  { id: 'da_ce_750', name: 'Wealthy Solver', desc: 'Earn 750 coins today', target: 750, rewardCoins: 200, category: 'coins', icon: '🪙' },
+  { id: 'da_ce_1000', name: 'Daily Tycoon', desc: 'Earn 1,000 coins today', target: 1000, rewardCoins: 300, category: 'coins', icon: '🪙' },
 
-// Raw Daily Missions options (12 Tasks Pool)
-const MISSION_POOL = [
-  { id: 'm_lvls', name: 'Complete 5 Levels', target: 5, rewardCoins: 25, type: 'levels' },
-  { id: 'm_hints', name: 'Use 2 Hints', target: 2, rewardCoins: 12, type: 'hints' },
-  { id: 'm_ads', name: 'Watch 2 Ads', target: 2, rewardCoins: 15, type: 'ads' },
-  { id: 'm_coins', name: 'Earn 150 Coins', target: 150, rewardCoins: 18, type: 'coins' },
-  { id: 'm_lvls_10', name: 'Complete 10 Levels', target: 10, rewardCoins: 30, type: 'levels' },
-  { id: 'm_nohint', name: 'Win 3 Levels No Hint', target: 3, rewardCoins: 20, type: 'nohint' },
-  { id: 'm_spin', name: 'Spin Wheel 2 Times', target: 2, rewardCoins: 15, type: 'spin' },
-  { id: 'm_spend', name: 'Spend 500 Coins', target: 500, rewardCoins: 22, type: 'spend' },
-  { id: 'm_playtime', name: 'Play for 15 Mins', target: 900, rewardCoins: 18, type: 'playtime' },
-  { id: 'm_daily_login', name: 'Claim Daily Reward', target: 1, rewardCoins: 10, type: 'daily_login' },
-  { id: 'm_avatar', name: 'Equip/Unlock Avatar', target: 1, rewardCoins: 15, type: 'avatar' },
-  { id: 'm_streak', name: 'Keep 2-Day Streak', target: 2, rewardCoins: 20, type: 'streak' }
+  // ── Coins Spent in Shop Today (5 tasks) ─────────────────────────────────
+  { id: 'da_cs_100', name: 'First Purchase', desc: 'Spend 100 coins in shop', target: 100, rewardCoins: 25, category: 'spend', icon: '🛍️' },
+  { id: 'da_cs_500', name: 'Shop Patron', desc: 'Spend 500 coins in shop', target: 500, rewardCoins: 60, category: 'spend', icon: '🛍️' },
+  { id: 'da_cs_1000', name: 'Big Spender', desc: 'Spend 1,000 coins in shop', target: 1000, rewardCoins: 120, category: 'spend', icon: '🛍️' },
+  { id: 'da_cs_2000', name: 'Shopaholic', desc: 'Spend 2,000 coins in shop', target: 2000, rewardCoins: 250, category: 'spend', icon: '🛍️' },
+  { id: 'da_cs_5000', name: 'VIP Investor', desc: 'Spend 5,000 coins in shop', target: 5000, rewardCoins: 500, category: 'spend', icon: '🛍️' },
+
+  // ── Hints Used Today (5 tasks) ──────────────────────────────────────────
+  { id: 'da_h_1', name: 'Helpful Clue', desc: 'Use 1 hint today', target: 1, rewardCoins: 10, category: 'hints', icon: '💡' },
+  { id: 'da_h_2', name: 'Double Clue', desc: 'Use 2 hints today', target: 2, rewardCoins: 20, category: 'hints', icon: '💡' },
+  { id: 'da_h_3', name: 'Triple Clue', desc: 'Use 3 hints today', target: 3, rewardCoins: 30, category: 'hints', icon: '💡' },
+  { id: 'da_h_5', name: 'Hint Strategist', desc: 'Use 5 hints today', target: 5, rewardCoins: 50, category: 'hints', icon: '💡' },
+  { id: 'da_h_8', name: 'Master Inquirer', desc: 'Use 8 hints today', target: 8, rewardCoins: 80, category: 'hints', icon: '💡' },
+
+  // ── Spin Wheel Spins Today (4 tasks) ────────────────────────────────────
+  { id: 'da_sp_1', name: 'Daily Spin', desc: 'Spin the wheel 1 time', target: 1, rewardCoins: 15, category: 'activity', icon: '🎡' },
+  { id: 'da_sp_2', name: 'Twice as Lucky', desc: 'Spin the wheel 2 times', target: 2, rewardCoins: 25, category: 'activity', icon: '🎡' },
+  { id: 'da_sp_3', name: 'Triple Spinner', desc: 'Spin the wheel 3 times', target: 3, rewardCoins: 40, category: 'activity', icon: '🎡' },
+  { id: 'da_sp_5', name: 'Wheel Enthusiast', desc: 'Spin the wheel 5 times', target: 5, rewardCoins: 75, category: 'activity', icon: '🎡' },
+
+  // ── Ads Watched Today (4 tasks) ─────────────────────────────────────────
+  { id: 'da_ad_1', name: 'Sponsor Support', desc: 'Watch 1 video ad today', target: 1, rewardCoins: 20, category: 'activity', icon: '📺' },
+  { id: 'da_ad_2', name: 'Ad Enthusiast', desc: 'Watch 2 video ads today', target: 2, rewardCoins: 35, category: 'activity', icon: '📺' },
+  { id: 'da_ad_3', name: 'Triple Viewer', desc: 'Watch 3 video ads today', target: 3, rewardCoins: 50, category: 'activity', icon: '📺' },
+  { id: 'da_ad_5', name: 'Loyal Supporter', desc: 'Watch 5 video ads today', target: 5, rewardCoins: 100, category: 'activity', icon: '📺' },
+
+  // ── Play Time Today (4 tasks) ───────────────────────────────────────────
+  { id: 'da_pt_3', name: 'Warm-Up Time', desc: 'Play for 3 minutes today', target: 180, rewardCoins: 15, category: 'activity', icon: '⏱️' },
+  { id: 'da_pt_10', name: 'Tenacious Solver', desc: 'Play for 10 minutes today', target: 600, rewardCoins: 30, category: 'activity', icon: '⏱️' },
+  { id: 'da_pt_20', name: 'Dedicated Gamer', desc: 'Play for 20 minutes today', target: 1200, rewardCoins: 60, category: 'activity', icon: '⏱️' },
+  { id: 'da_pt_30', name: 'Flow Mastermind', desc: 'Play for 30 minutes today', target: 1800, rewardCoins: 120, category: 'activity', icon: '⏱️' },
 ];
 
 function getTodayString() {
@@ -73,30 +79,32 @@ function getTodayString() {
 }
 
 const defaultProfile = {
-  playerName: 'Guest Solver',
+  playerName: 'Flow Solver',
   avatar: '🦊',
+  avatarUrl: 'https://api.dicebear.com/9.x/adventurer/png?seed=Jack&size=128',
+  avatarId: 'adv_1',
   xp: 0,
   levelsCompleted: 0,
   totalPlayTime: 0, // seconds
   currentStreak: 1,
   bestStreak: 1,
   lastLoginDate: '',
-  unlockedAvatars: ['🦊', '🐱', '🐼'],
+  unlockedAvatars: ['adv_1'],
   unlockedThemes: ['default'],
-  claimedAchievements: [], // array of id
-  claimedMissions: [], // array of mission ids today
-  referralClaimed: false,
-  loginType: 'Guest',
-  streakBroken: false,
-  restoreAdWatched: false,
   hintsUsedCount: 0,
   noHintStreak: 0,
   wheelSpinsCount: 0,
   accumulatedCoins: 0,
   levelsCompletedToday: 0,
+  noHintLevelsToday: 0,
   hintsUsedToday: 0,
   adsWatchedToday: 0,
-  coinsEarnedToday: 0
+  coinsEarnedToday: 0,
+  coinsSpentToday: 0,
+  wheelSpinsToday: 0,
+  playTimeToday: 0,
+  claimedDailyAchievements: [],
+  lastDailyAchievementDate: '',
 };
 
 export async function getProfile() {
@@ -118,22 +126,6 @@ export async function getProfile() {
     if (coinDiff > 0) {
       profile.accumulatedCoins = (profile.accumulatedCoins || 0) + coinDiff;
       profile.coinsEarnedToday = (profile.coinsEarnedToday || 0) + coinDiff;
-      
-      const savedMissions = await AsyncStorage.getItem(MISSIONS_LIST_KEY);
-      if (savedMissions) {
-        const missions = JSON.parse(savedMissions);
-        let updated = false;
-        const updatedMissions = missions.map(m => {
-          if (m.type === 'coins') {
-            m.progress = Math.min(m.target, (m.progress || 0) + coinDiff);
-            updated = true;
-          }
-          return m;
-        });
-        if (updated) {
-          await AsyncStorage.setItem(MISSIONS_LIST_KEY, JSON.stringify(updatedMissions));
-        }
-      }
     }
 
     profile.coins = syncCoins;
@@ -152,22 +144,6 @@ export async function saveProfile(profile) {
     if (coinDiff > 0) {
       profile.accumulatedCoins = (profile.accumulatedCoins || 0) + coinDiff;
       profile.coinsEarnedToday = (profile.coinsEarnedToday || 0) + coinDiff;
-      
-      const savedMissions = await AsyncStorage.getItem(MISSIONS_LIST_KEY);
-      if (savedMissions) {
-        const missions = JSON.parse(savedMissions);
-        let updated = false;
-        const updatedMissions = missions.map(m => {
-          if (m.type === 'coins') {
-            m.progress = Math.min(m.target, (m.progress || 0) + coinDiff);
-            updated = true;
-          }
-          return m;
-        });
-        if (updated) {
-          await AsyncStorage.setItem(MISSIONS_LIST_KEY, JSON.stringify(updatedMissions));
-        }
-      }
     }
 
     await setCoins(profile.coins);
@@ -176,282 +152,39 @@ export async function saveProfile(profile) {
   } catch (e) { }
 }
 
-export async function addXp(amount) {
-  const profile = await getProfile();
-  const oldRankIndex = getRankIndex(profile.xp);
-  profile.xp += amount;
-  const newRankIndex = getRankIndex(profile.xp);
-
-  let promoted = false;
-  let promotionMsg = '';
-
-  if (newRankIndex > oldRankIndex) {
-    promoted = true;
-    const rank = RANKS[newRankIndex];
-    profile.coins += rank.rewardCoins;
-    promotionMsg = `🎉 Promoted to ${rank.name}! +${rank.rewardCoins} Coins unlocked!`;
-  }
-
-  await saveProfile(profile);
-  return { profile, promoted, promotionMsg };
-}
-
-export function getRankIndex(xp) {
-  let idx = 0;
-  for (let i = 0; i < RANKS.length; i++) {
-    if (xp >= RANKS[i].xpNeeded) {
-      idx = i;
-    }
-  }
-  return idx;
-}
-
-export function getNextRankInfo(xp) {
-  const idx = getRankIndex(xp);
-  if (idx >= RANKS.length - 1) {
-    return { currentRank: RANKS[idx].name, nextRank: 'Max Rank', xpRemaining: 0, progress: 1.0 };
-  }
-  const curr = RANKS[idx];
-  const next = RANKS[idx + 1];
-  const range = next.xpNeeded - curr.xpNeeded;
-  const progressXp = xp - curr.xpNeeded;
-  return {
-    currentRank: curr.name,
-    nextRank: next.name,
-    xpRemaining: next.xpNeeded - xp,
-    progress: Math.min(1.0, Math.max(0.0, progressXp / range))
-  };
-}
-
-export async function checkDailyLogin() {
-  const profile = await getProfile();
-  const today = getTodayString();
-
-  if (profile.lastLoginDate === today) {
-    return { streak: profile.currentStreak, broken: false };
-  }
-
-  const lastDate = profile.lastLoginDate;
-  profile.lastLoginDate = today;
-
-  // Reset daily task counters
-  profile.levelsCompletedToday = 0;
-  profile.hintsUsedToday = 0;
-  profile.adsWatchedToday = 0;
-  profile.coinsEarnedToday = 0;
-
-  if (!lastDate) {
-    profile.currentStreak = 1;
-    profile.streakBroken = false;
-    await saveProfile(profile);
-    return { streak: 1, broken: false };
-  }
-
-  const last = new Date(lastDate);
-  const curr = new Date(today);
-  const diffTime = Math.abs(curr - last);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 1) {
-    profile.currentStreak += 1;
-    if (profile.currentStreak > profile.bestStreak) {
-      profile.bestStreak = profile.currentStreak;
-    }
-    profile.streakBroken = false;
-    // Check daily streak achievements
-    await saveProfile(profile);
-    return { streak: profile.currentStreak, broken: false };
-  } else if (diffDays > 1) {
-    profile.streakBroken = true;
-    await saveProfile(profile);
-    return { streak: profile.currentStreak, broken: true };
-  }
-
-  return { streak: profile.currentStreak, broken: false };
-}
-
-export async function restoreStreak() {
-  const profile = await getProfile();
-  if (profile.streakBroken) {
-    profile.streakBroken = false;
-    profile.restoreAdWatched = true;
-    await saveProfile(profile);
-  }
-  return profile;
-}
-
 export async function incrementMissionProgress(type, count = 1) {
   const profile = await getProfile();
-  const missions = await getDailyMissions();
-
-  let updated = false;
-  const updatedMissions = missions.map(m => {
-    if (m.type === type) {
-      m.progress = Math.min(m.target, m.progress + count);
-      updated = true;
-    }
-    return m;
-  });
-
-  if (updated) {
-    await AsyncStorage.setItem(MISSIONS_LIST_KEY, JSON.stringify(updatedMissions));
-  }
 
   if (type === 'hints') {
-    profile.hintsUsedCount += count;
-    profile.hintsUsedToday += count;
+    profile.hintsUsedCount = (profile.hintsUsedCount || 0) + count;
+    profile.hintsUsedToday = (profile.hintsUsedToday || 0) + count;
   } else if (type === 'ads') {
-    profile.adsWatchedToday += count;
+    profile.adsWatchedToday = (profile.adsWatchedToday || 0) + count;
+  } else if (type === 'levels') {
+    profile.levelsCompletedToday = (profile.levelsCompletedToday || 0) + count;
   }
   await saveProfile(profile);
 }
 
 export async function completeLevel(levelNum, timeSpent, usedHint, difficulty = 'Medium') {
-  // Update daily mission completed levels first to avoid overwriting state
   await incrementMissionProgress('levels', 1);
 
   const profile = await getProfile();
   profile.levelsCompleted += 1;
-  profile.levelsCompletedToday += 1;
+  profile.levelsCompletedToday = (profile.levelsCompletedToday || 0) + 1;
   profile.totalPlayTime += timeSpent;
-
-  // Award 5 XP for every completed level
-  const xpReward = 5;
-  const oldRankIndex = getRankIndex(profile.xp);
-  profile.xp += xpReward;
-  const newRankIndex = getRankIndex(profile.xp);
-
-  let promoted = false;
-  let promotionMsg = '';
-
-  if (newRankIndex > oldRankIndex) {
-    promoted = true;
-    const rank = RANKS[newRankIndex];
-    profile.coins += rank.rewardCoins;
-    promotionMsg = `🎉 Promoted to ${rank.name}! +${rank.rewardCoins} Coins unlocked!`;
-  }
+  profile.xp = (profile.xp || 0) + 5;
+  profile.playTimeToday = (profile.playTimeToday || 0) + timeSpent;
 
   if (usedHint) {
     profile.noHintStreak = 0;
   } else {
     profile.noHintStreak += 1;
+    profile.noHintLevelsToday = (profile.noHintLevelsToday || 0) + 1;
   }
 
   await saveProfile(profile);
-  return { profile, promoted, promotionMsg };
-}
-
-export async function getDailyMissions() {
-  const today = getTodayString();
-  const savedDate = await AsyncStorage.getItem(MISSION_DATE_KEY);
-  const savedMissions = await AsyncStorage.getItem(MISSIONS_LIST_KEY);
-
-  if (savedDate === today && savedMissions) {
-    return JSON.parse(savedMissions);
-  }
-
-  // Generate 3 randomized missions
-  const pool = [...MISSION_POOL];
-  const shuffled = pool.sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, 3).map(m => ({
-    ...m,
-    progress: 0,
-    claimed: false
-  }));
-
-  await AsyncStorage.setItem(MISSION_DATE_KEY, today);
-  await AsyncStorage.setItem(MISSIONS_LIST_KEY, JSON.stringify(selected));
-
-  // Reset claimed mission list in profile
-  const profile = await getProfile();
-  profile.claimedMissions = [];
-  await saveProfile(profile);
-
-  return selected;
-}
-
-export async function claimMissionReward(missionId) {
-  const missions = await getDailyMissions();
-  const idx = missions.findIndex(m => m.id === missionId);
-  if (idx === -1) return false;
-
-  const mission = missions[idx];
-  if (mission.progress < mission.target || mission.claimed) return false;
-
-  const profile = await getProfile();
-  profile.coins += mission.rewardCoins;
-  profile.claimedMissions.push(missionId);
-  mission.claimed = true;
-
-  await saveProfile(profile);
-  await AsyncStorage.setItem(MISSIONS_LIST_KEY, JSON.stringify(missions));
-  return true;
-}
-
-export async function getAchievements() {
-  const profile = await getProfile();
-
-  return ACHIEVEMENTS.map(ach => {
-    let progress = 0;
-    switch (ach.id) {
-      case 'beg':
-      case 'exp':
-      case 'master':
-      case 'champ':
-      case 'legend_solver':
-        progress = profile.levelsCompleted;
-        break;
-      case 'speed':
-      case 'marathon':
-        progress = profile.levelsCompletedToday;
-        break;
-      case 'nohint_novice':
-      case 'nohint':
-      case 'nohint_god':
-        progress = profile.noHintStreak;
-        break;
-      case 'saver':
-      case 'collector':
-      case 'tycoon':
-        progress = profile.coins;
-        break;
-      case 'streak_3':
-      case 'streak_7':
-      case 'streak_30':
-        progress = profile.currentStreak;
-        break;
-      case 'wheel':
-      case 'wheel_master':
-        progress = profile.wheelSpinsCount;
-        break;
-      case 'hint_use':
-      case 'hint_master':
-        progress = profile.hintsUsedCount;
-        break;
-      case 'referral':
-        progress = profile.referralClaimed ? 1 : 0;
-        break;
-      case 'play_hours':
-        progress = profile.totalPlayTime;
-        break;
-    }
-    const completed = progress >= ach.target;
-    const claimed = profile.claimedAchievements.includes(ach.id);
-    return { ...ach, progress, completed, claimed };
-  });
-}
-
-export async function claimAchievementReward(achId) {
-  const achs = await getAchievements();
-  const ach = achs.find(a => a.id === achId);
-  if (!ach || !ach.completed || ach.claimed) return false;
-
-  const profile = await getProfile();
-  profile.coins += ach.rewardCoins;
-  profile.claimedAchievements.push(achId);
-
-  await saveProfile(profile);
-  return true;
+  return { profile, promoted: false, promotionMsg: '' };
 }
 
 export async function unlockTheme(themeId, cost) {
@@ -465,30 +198,99 @@ export async function unlockTheme(themeId, cost) {
   return true;
 }
 
-export async function unlockAvatar(avatar, cost) {
+export async function updatePlayerName(name) {
+  if (!name || !name.trim()) return false;
   const profile = await getProfile();
-  if (profile.unlockedAvatars.includes(avatar)) return true;
-  if (profile.coins < cost) return false;
-
-  profile.coins -= cost;
-  profile.unlockedAvatars.push(avatar);
+  profile.playerName = name.trim().slice(0, 20);
   await saveProfile(profile);
-  return true;
+  return profile.playerName;
 }
 
-export async function enterReferralCode(code) {
+export async function updatePlayerAvatar(avatarUrl, avatarId) {
+  if (!avatarUrl) return false;
   const profile = await getProfile();
-  if (profile.referralClaimed) return { success: false, msg: 'Referral reward already claimed!' };
-  if (!code || code.trim().length < 4) return { success: false, msg: 'Invalid referral code!' };
-
-  profile.coins += 300;
-  profile.referralClaimed = true;
+  profile.avatarUrl = avatarUrl;
+  if (avatarId) profile.avatarId = avatarId;
   await saveProfile(profile);
-  return { success: true, msg: 'Referral claimed! 🪙 +300 Coins added!' };
+  return { avatarUrl: profile.avatarUrl, avatarId: profile.avatarId };
 }
 
-export async function recordWheelSpin() {
+// ── 50 Daily Achievements Core Engine ──────────────────────────────────────
+export async function getDailyAchievements() {
   const profile = await getProfile();
-  profile.wheelSpinsCount += 1;
+  const today = getTodayString();
+
+  // Next-day automatic reset logic
+  if (profile.lastDailyAchievementDate !== today) {
+    profile.lastDailyAchievementDate = today;
+    profile.levelsCompletedToday = 0;
+    profile.noHintLevelsToday = 0;
+    profile.coinsEarnedToday = 0;
+    profile.coinsSpentToday = 0;
+    profile.hintsUsedToday = 0;
+    profile.wheelSpinsToday = 0;
+    profile.adsWatchedToday = 0;
+    profile.playTimeToday = 0;
+    profile.claimedDailyAchievements = [];
+    await saveProfile(profile);
+  }
+
+  const claimedSet = new Set(profile.claimedDailyAchievements || []);
+
+  return DAILY_ACHIEVEMENTS_50.map((task) => {
+    let progress = 0;
+    switch (task.category) {
+      case 'levels':
+        progress = profile.levelsCompletedToday || 0;
+        break;
+      case 'nohint':
+        progress = profile.noHintLevelsToday || 0;
+        break;
+      case 'coins':
+        progress = profile.coinsEarnedToday || 0;
+        break;
+      case 'spend':
+        progress = profile.coinsSpentToday || 0;
+        break;
+      case 'hints':
+        progress = profile.hintsUsedToday || 0;
+        break;
+      case 'activity':
+        if (task.id.startsWith('da_sp')) {
+          progress = profile.wheelSpinsToday || 0;
+        } else if (task.id.startsWith('da_ad')) {
+          progress = profile.adsWatchedToday || 0;
+        } else if (task.id.startsWith('da_pt')) {
+          progress = profile.playTimeToday || 0;
+        }
+        break;
+      default:
+        progress = 0;
+    }
+
+    const completed = progress >= task.target;
+    const claimed = claimedSet.has(task.id);
+    return {
+      ...task,
+      progress: Math.min(progress, task.target),
+      currentValue: progress,
+      completed,
+      claimed,
+    };
+  });
+}
+
+export async function claimDailyAchievement(taskId) {
+  const achievements = await getDailyAchievements();
+  const task = achievements.find((t) => t.id === taskId);
+  if (!task || !task.completed || task.claimed) return false;
+
+  const profile = await getProfile();
+  if (!profile.claimedDailyAchievements) {
+    profile.claimedDailyAchievements = [];
+  }
+  profile.claimedDailyAchievements.push(taskId);
+  profile.coins = (profile.coins || 0) + task.rewardCoins;
   await saveProfile(profile);
+  return { success: true, rewardCoins: task.rewardCoins };
 }

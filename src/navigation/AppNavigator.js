@@ -12,6 +12,7 @@ import HomeScreen from '../screens/HomeScreen';
 import ZipGameScreen from '../screens/ZipGameScreen';
 import SpinWheelScreen from '../screens/SpinWheelScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 import RemoteConfigService from '../services/RemoteConfigService';
 import AppOpenAdManager from '../ads/Appopenadmanager';
@@ -43,6 +44,7 @@ export default function AppNavigator() {
             <Stack.Screen name="Game" component={ZipGameScreen} />
             <Stack.Screen name="SpinWheel" component={SpinWheelScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </View>
@@ -63,6 +65,11 @@ const styles = StyleSheet.create({
   },
   banner: {
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+    paddingTop: 4,
+    paddingBottom: 2,
+    minHeight: 52,
   }
 });

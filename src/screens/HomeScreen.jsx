@@ -12,9 +12,10 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Circle, Rect, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, { Path, Circle, Rect, Defs, LinearGradient, Stop, G, Line, Text as SvgText } from 'react-native-svg';
 
 import {
   generateLevel,
@@ -25,17 +26,19 @@ import {
 import RatingModal from '../components/RatingModal';
 import DailyRewardModal from '../components/DailyRewardModal';
 import CoinShopModal from '../components/CoinShopModal';
-import SettingsModal from '../components/SettingsModal';
+import UpdateModal, { compareVersions } from '../components/UpdateModal';
 
 import { getCoins, getHints, getDailyRewardStatus } from '../utils/CoinManager';
-import { getDailyMissions, getAchievements } from '../utils/ProfileManager';
+import { getProfile, getDailyAchievements } from '../utils/ProfileManager';
 import { useTheme } from '../constants/theme';
+import { DEFAULT_AVATAR } from '../constants/avatars';
+import RemoteConfigService from '../services/RemoteConfigService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Icons
 // ─────────────────────────────────────────────────────────────────────────────
 const PlayIcon = ({ color = '#000' }) => (
-  <Svg width={26} height={26} viewBox="0 0 24 24">
+  <Svg width={24} height={24} viewBox="0 0 24 24">
     <Path d="M8 5v14l11-7z" fill={color} />
   </Svg>
 );
@@ -57,35 +60,28 @@ const SettingsIcon = ({ size = 20, color }) => (
 // Reusable sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Round action orb flanking the title. */
-const TitleAction = ({ icon, label, tint, badge, onPress, theme }) => {
+/** Premium 2x2 Hub Card for main app destinations. */
+const HubCard = ({ icon, label, sub, tint, badge, dot, onPress, theme }) => {
   const styles = getStyles(theme);
   return (
-    <TouchableOpacity style={styles.titleAction} onPress={onPress} activeOpacity={0.8}>
-      <View style={[styles.titleActionOrb, { borderColor: tint, backgroundColor: `${tint}1a` }]}>
-        <Text style={styles.titleActionIcon}>{icon}</Text>
+    <TouchableOpacity style={styles.hubCard} onPress={onPress} activeOpacity={0.82}>
+      <View style={styles.hubCardTop}>
+        <View style={[styles.hubCardGlyph, { backgroundColor: `${tint}1c`, borderColor: `${tint}4d` }]}>
+          <Text style={styles.hubCardIcon}>{icon}</Text>
+        </View>
         {badge != null && badge > 0 && (
-          <View style={styles.titleActionBadge}>
-            <Text style={styles.titleActionBadgeText}>{badge > 9 ? '9+' : badge}</Text>
+          <View style={[styles.hubCardBadge, { backgroundColor: theme.bad || '#f87171' }]}>
+            <Text style={styles.hubCardBadgeText}>{badge > 9 ? '9+' : badge}</Text>
           </View>
         )}
+        {dot && (
+          <View style={[styles.hubCardDot, { backgroundColor: tint }]} />
+        )}
       </View>
-      <Text style={[styles.titleActionLabel, { color: tint }]} numberOfLines={1}>{label}</Text>
-    </TouchableOpacity>
-  );
-};
-
-/** Wide action tile in the bottom row. */
-const ActionTile = ({ icon, label, sub, tint, dot, onPress, theme }) => {
-  const styles = getStyles(theme);
-  return (
-    <TouchableOpacity style={styles.tile} onPress={onPress} activeOpacity={0.85}>
-      <View style={[styles.tileGlyph, { backgroundColor: `${tint}1f`, borderColor: `${tint}59` }]}>
-        <Text style={styles.tileIcon}>{icon}</Text>
+      <View style={styles.hubCardBottom}>
+        <Text style={styles.hubCardLabel} numberOfLines={1}>{label}</Text>
+        <Text style={[styles.hubCardSub, { color: tint }]} numberOfLines={1}>{sub}</Text>
       </View>
-      <Text style={styles.tileLabel} numberOfLines={1}>{label}</Text>
-      <Text style={[styles.tileSub, { color: tint }]} numberOfLines={1}>{sub}</Text>
-      {dot && <View style={[styles.tileDot, { backgroundColor: tint }]} />}
     </TouchableOpacity>
   );
 };
@@ -108,13 +104,37 @@ export default function HomeScreen() {
 
   const [showShop, setShowShop] = useState(false);
   const [showDailyReward, setShowDailyReward] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+
+  // ── Profile / Avatar & Update Modal State ───────────────────────────────
+  const [playerName, setPlayerName] = useState('Flow Solver');
+  const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR.url);
+  const [avatarId, setAvatarId] = useState(DEFAULT_AVATAR.id);
+
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState(null);
 
   const heroPulse = useRef(new Animated.Value(0)).current;
   const coinScale = useRef(new Animated.Value(1)).current;
   const pregen = useRef(null);
 
   const LS_LEVEL = 'zipCurrentLevel';
+
+  // ── Version Check (Remote Config) ─────────────────────────────────────────
+  useEffect(() => {
+    try {
+      const config = RemoteConfigService.getAdsConfig();
+      if (config?.ads?.update_info) {
+        const info = config.ads.update_info;
+        setUpdateInfo(info);
+        const currentVersion = '1.3.0';
+        if (compareVersions(currentVersion, info.latest_version) < 0) {
+          setShowUpdateModal(true);
+        }
+      }
+    } catch (e) {
+      console.warn('[HomeScreen] Version check error:', e);
+    }
+  }, []);
 
   // ── Hero breathing animation ─────────────────────────────────────────────
   useEffect(() => {
@@ -138,18 +158,26 @@ export default function HomeScreen() {
     setHints(await getHints());
 
     try {
+      const p = await getProfile();
+      if (p) {
+        if (p.playerName) setPlayerName(p.playerName);
+        if (p.avatarUrl) setAvatarUrl(p.avatarUrl);
+        if (p.avatarId) setAvatarId(p.avatarId);
+      }
+    } catch (e) {
+      console.warn('[HomeScreen] Profile load error:', e);
+    }
+
+    try {
       const dailyStatus = await getDailyRewardStatus();
       setCanClaimDaily(dailyStatus?.canClaim ?? false);
 
-      const m = await getDailyMissions();
-      const claimableM = m.filter(x => x.progress >= x.target && !x.claimed).length;
+      const dailyAch = await getDailyAchievements();
+      const claimableCount = dailyAch.filter(x => x.completed && !x.claimed).length;
 
-      const a = await getAchievements();
-      const claimableA = a.filter(x => x.completed && !x.claimed).length;
-
-      setClaimableQuestsCount(claimableM + claimableA);
+      setClaimableQuestsCount(claimableCount);
     } catch (e) {
-      console.error('Failed to load missions/achievements on home:', e);
+      console.error('Failed to load daily achievements on home:', e);
     }
   }, []);
 
@@ -222,12 +250,29 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={theme.background} />
 
-      {/* ── Header Bar: Level Chip · Coin Pill · Settings ────────────────── */}
+      {/* ── Header Bar: Player Profile Pill · Coin Pill · Settings ────────────────── */}
       <View style={styles.header}>
-        <View style={styles.levelChip}>
-          <Text style={styles.levelChipLabel}>LEVEL</Text>
-          <Text style={styles.levelChipValue}>{displayLevel || 1}</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.profilePill}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('Settings')}
+        >
+          <View style={styles.headerAvatarRing}>
+            <Image
+              source={{ uri: avatarUrl }}
+              style={styles.headerAvatarImg}
+              resizeMode="cover"
+            />
+          </View>
+          <View style={styles.profilePillInfo}>
+            <Text style={styles.profilePillName} numberOfLines={1}>
+              {playerName}
+            </Text>
+            <Text style={styles.profilePillLevel}>
+              LEVEL {displayLevel || 1}
+            </Text>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.headerRight}>
           <TouchableOpacity
@@ -246,7 +291,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.headerIconBtn}
             activeOpacity={0.75}
-            onPress={() => setShowSettings(true)}
+            onPress={() => navigation.navigate('Settings')}
           >
             <SettingsIcon color={theme.text} />
           </TouchableOpacity>
@@ -255,38 +300,19 @@ export default function HomeScreen() {
 
       <ScrollView contentContainerStyle={styles.scrollBody} showsVerticalScrollIndicator={false}>
 
-        {/* ── Title Row: Spin — TITLE — Quests ──────────────────────────── */}
-        <View style={styles.titleRow}>
-          <TitleAction
-            icon="🎡"
-            label="Spin"
-            tint={theme.warn || '#fbbf24'}
-            onPress={handleSpin}
-            theme={theme}
-          />
-          <View style={{ alignItems: 'center' }} pointerEvents="none">
-            <BrainIcon />
-            <View style={styles.titleCenter}>
-              <Text style={styles.eyebrow}>SYSTEM ONLINE</Text>
-              <Text style={styles.title}>NUMBER LINK</Text>
-              <Text style={styles.titleAlt}>PUZZLE</Text>
-            </View>
+        {/* ── Brand Hero Showcase (Centerpiece) ── */}
+        <Animated.View style={[styles.heroSection, { transform: [{ scale: heroScale }] }]}>
+          <PuzzleHeroEmblem theme={theme} />
+          <View style={styles.systemStatusPill}>
+            <View style={[styles.systemStatusDot, { backgroundColor: theme.good || '#34d399' }]} />
+            <Text style={styles.systemStatusText}>SYSTEM ONLINE</Text>
           </View>
+          <Text style={styles.heroTitle}>NUMBER LINK</Text>
+          <Text style={styles.heroSubtitle}>PUZZLE</Text>
+          <Text style={styles.heroTagline}>CONNECT  •  FLOW  •  SOLVE</Text>
+        </Animated.View>
 
-          <TitleAction
-            icon="🏆"
-            label="Quests"
-            tint={theme.good || '#34d399'}
-            badge={claimableQuestsCount}
-            onPress={handleQuests}
-            theme={theme}
-          />
-        </View>
-
-        {/* ── Animated Hero ─────────────────────────────────────────────── */}
-
-
-        {/* ── Primary Play Button ───────────────────────────────────────── */}
+        {/* ── Primary 3D Play Button ── */}
         <TouchableOpacity
           style={[styles.playBtn, !ready && styles.playBtnDisabled]}
           activeOpacity={0.88}
@@ -294,37 +320,48 @@ export default function HomeScreen() {
           disabled={!ready}
         >
           {ready ? (
-            <PlayIcon color={theme.background} />
+            <PlayIcon color={theme.background || '#000000'} />
           ) : (
-            <ActivityIndicator color={theme.background} size="small" />
+            <ActivityIndicator color={theme.background || '#000000'} size="small" />
           )}
           <Text style={styles.playText}>PLAY</Text>
           {displayLevel != null && (
-            <Text style={styles.levelBadgeText}>LEVEL {displayLevel}</Text>
+            <View style={styles.playLevelBadge}>
+              <Text style={styles.playLevelText}>LEVEL {displayLevel}</Text>
+            </View>
           )}
         </TouchableOpacity>
 
-        {/* ── Action Tiles Row ──────────────────────────────────────────── */}
-        <View style={styles.tileRow}>
-          <ActionTile
+        {/* ── 4-Card Gaming Action Hub (2x2 Balanced Deck) ── */}
+        <View style={styles.hubGrid}>
+          <HubCard
             icon="🛍️"
             label="Shop"
-            sub="Skins & boosts"
+            sub="40 Themes"
             tint={theme.primaryLight || '#60a5fa'}
             onPress={() => setShowShop(true)}
             theme={theme}
           />
-          <ActionTile
-            icon="⚡"
-            label="Game"
-            sub="Level Play"
-            tint={theme.bad || '#f87171'}
-            onPress={handlePlay}
+          <HubCard
+            icon="🎡"
+            label="Lucky Spin"
+            sub="Win Coins"
+            tint={theme.warn || '#fbbf24'}
+            onPress={handleSpin}
             theme={theme}
           />
-          <ActionTile
+          <HubCard
+            icon="🏆"
+            label="Quests"
+            sub="50 Missions"
+            tint={theme.good || '#34d399'}
+            badge={claimableQuestsCount}
+            onPress={handleQuests}
+            theme={theme}
+          />
+          <HubCard
             icon="🎁"
-            label="Reward"
+            label="Daily Gift"
             sub={canClaimDaily ? 'Ready!' : 'Claimed'}
             tint={theme.warn || '#fbbf24'}
             dot={canClaimDaily}
@@ -350,9 +387,11 @@ export default function HomeScreen() {
         onUpdate={refreshBalance}
       />
 
-      <SettingsModal
-        visible={showSettings}
-        onClose={() => setShowSettings(false)}
+      <UpdateModal
+        visible={showUpdateModal}
+        updateInfo={updateInfo}
+        currentVersion="1.3.0"
+        onClose={() => setShowUpdateModal(false)}
       />
     </SafeAreaView>
   );
@@ -361,132 +400,89 @@ export default function HomeScreen() {
 // ─────────────────────────────────────────────────────────────────────────────
 // Dynamic Theme Styles
 // ─────────────────────────────────────────────────────────────────────────────
-const BrainIcon = () => {
-  const { theme } = useTheme();
+const PuzzleHeroEmblem = ({ theme }) => {
   const primary = theme.primary || '#38bdf8';
   const light = theme.primaryLight || '#93c5fd';
+  const good = theme.good || '#34d399';
 
   return (
-    <Svg width="150" height="95" viewBox="0 0 240 120" fill="none">
+    <Svg width="150" height="120" viewBox="0 0 200 160" fill="none">
       <Defs>
-        <LinearGradient id="nlpGrad" x1="0" y1="0" x2="240" y2="120" gradientUnits="userSpaceOnUse">
+        <LinearGradient id="heroCardGrad" x1="0" y1="0" x2="200" y2="160" gradientUnits="userSpaceOnUse">
+          <Stop offset="0%" stopColor={primary} stopOpacity={0.16} />
+          <Stop offset="100%" stopColor={primary} stopOpacity={0.03} />
+        </LinearGradient>
+        <LinearGradient id="heroLineGrad" x1="40" y1="40" x2="160" y2="120" gradientUnits="userSpaceOnUse">
           <Stop offset="0%" stopColor={light} />
           <Stop offset="50%" stopColor={primary} />
-          <Stop offset="100%" stopColor="#00e5ff" />
-        </LinearGradient>
-        <LinearGradient id="nlpBg" x1="0" y1="0" x2="240" y2="120" gradientUnits="userSpaceOnUse">
-          <Stop offset="0%" stopColor={primary} stopOpacity={0.12} />
-          <Stop offset="100%" stopColor="#00e5ff" stopOpacity={0.03} />
+          <Stop offset="100%" stopColor="#00f2fe" />
         </LinearGradient>
       </Defs>
 
-      {/* Outer rounded capsule border */}
+      {/* Cyber shield background */}
       <Rect
-        x="6"
-        y="6"
-        width="228"
-        height="108"
-        rx="24"
-        fill="url(#nlpBg)"
+        x="10"
+        y="10"
+        width="180"
+        height="140"
+        rx="28"
+        fill="url(#heroCardGrad)"
         stroke={primary}
         strokeWidth="1.5"
         strokeOpacity={0.35}
       />
 
-      {/* Decorative corner target pins */}
-      <Circle cx="24" cy="24" r="2.5" fill={light} opacity={0.4} />
-      <Circle cx="216" cy="24" r="2.5" fill={light} opacity={0.4} />
-      <Circle cx="24" cy="96" r="2.5" fill={light} opacity={0.4} />
-      <Circle cx="216" cy="96" r="2.5" fill={light} opacity={0.4} />
+      {/* Grid ambient dots */}
+      <Circle cx="50" cy="45" r="2" fill={light} opacity={0.35} />
+      <Circle cx="100" cy="45" r="2" fill={light} opacity={0.35} />
+      <Circle cx="150" cy="45" r="2" fill={light} opacity={0.35} />
+      <Circle cx="50" cy="80" r="2" fill={light} opacity={0.35} />
+      <Circle cx="100" cy="80" r="2" fill={light} opacity={0.35} />
+      <Circle cx="150" cy="80" r="2" fill={light} opacity={0.35} />
+      <Circle cx="50" cy="115" r="2" fill={light} opacity={0.35} />
+      <Circle cx="100" cy="115" r="2" fill={light} opacity={0.35} />
+      <Circle cx="150" cy="115" r="2" fill={light} opacity={0.35} />
 
-      {/* Interconnecting dashed puzzle link between N - L - P */}
+      {/* Connected Neon Laser Path (1 -> 2 -> 3 -> 4) */}
       <Path
-        d="M 72 82 C 86 82, 90 38, 104 38 S 128 82, 138 82 S 154 38, 168 38"
+        d="M 50 45 L 150 45 L 150 115 L 50 115"
         fill="none"
         stroke={primary}
-        strokeWidth="3"
+        strokeWidth="14"
         strokeLinecap="round"
-        strokeDasharray="4 6"
-        opacity={0.45}
+        strokeLinejoin="round"
+        opacity={0.3}
+      />
+      <Path
+        d="M 50 45 L 150 45 L 150 115 L 50 115"
+        fill="none"
+        stroke="url(#heroLineGrad)"
+        strokeWidth="6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M 50 45 L 150 45 L 150 115 L 50 115"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={0.9}
       />
 
-      {/* ── Letter N ────────────────────────────────────── */}
-      {/* Glow Layer */}
-      <Path
-        d="M 38 82 L 38 38 L 72 82 L 72 38"
-        fill="none"
-        stroke={light}
-        strokeWidth="9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={0.25}
-      />
-      {/* Core Stroke */}
-      <Path
-        d="M 38 82 L 38 38 L 72 82 L 72 38"
-        fill="none"
-        stroke="url(#nlpGrad)"
-        strokeWidth="5.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* N Nodes */}
-      <Circle cx="38" cy="38" r="5" fill="#ffffff" />
-      <Circle cx="38" cy="38" r="2.5" fill={primary} />
-      <Circle cx="72" cy="82" r="5" fill="#ffffff" />
-      <Circle cx="72" cy="82" r="2.5" fill={primary} />
+      {/* Numbered Power Nodes */}
+      <Circle cx="50" cy="45" r="14" fill={theme.surfaceRaised || '#1c2d3a'} stroke={primary} strokeWidth="2.5" />
+      <SvgText x="50" y="50" fontSize="12" fontWeight="900" fill="#ffffff" textAnchor="middle">1</SvgText>
 
-      {/* ── Letter L ────────────────────────────────────── */}
-      {/* Glow Layer */}
-      <Path
-        d="M 104 38 L 104 82 L 138 82"
-        fill="none"
-        stroke={light}
-        strokeWidth="9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={0.25}
-      />
-      {/* Core Stroke */}
-      <Path
-        d="M 104 38 L 104 82 L 138 82"
-        fill="none"
-        stroke="url(#nlpGrad)"
-        strokeWidth="5.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* L Nodes */}
-      <Circle cx="104" cy="38" r="5" fill="#ffffff" />
-      <Circle cx="104" cy="38" r="2.5" fill={primary} />
-      <Circle cx="138" cy="82" r="5" fill="#ffffff" />
-      <Circle cx="138" cy="82" r="2.5" fill={primary} />
+      <Circle cx="150" cy="45" r="14" fill={theme.surfaceRaised || '#1c2d3a'} stroke={primary} strokeWidth="2.5" />
+      <SvgText x="150" y="50" fontSize="12" fontWeight="900" fill="#ffffff" textAnchor="middle">2</SvgText>
 
-      {/* ── Letter P ────────────────────────────────────── */}
-      {/* Glow Layer */}
-      <Path
-        d="M 168 82 L 168 38 C 188 38, 202 40, 202 54 C 202 68, 188 70, 168 70"
-        fill="none"
-        stroke={light}
-        strokeWidth="9"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={0.25}
-      />
-      {/* Core Stroke */}
-      <Path
-        d="M 168 82 L 168 38 C 188 38, 202 40, 202 54 C 202 68, 188 70, 168 70"
-        fill="none"
-        stroke="url(#nlpGrad)"
-        strokeWidth="5.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* P Nodes */}
-      <Circle cx="168" cy="82" r="5" fill="#ffffff" />
-      <Circle cx="168" cy="82" r="2.5" fill={primary} />
-      <Circle cx="202" cy="54" r="5" fill="#ffffff" />
-      <Circle cx="202" cy="54" r="2.5" fill={primary} />
+      <Circle cx="150" cy="115" r="14" fill={theme.surfaceRaised || '#1c2d3a'} stroke={primary} strokeWidth="2.5" />
+      <SvgText x="150" y="120" fontSize="12" fontWeight="900" fill="#ffffff" textAnchor="middle">3</SvgText>
+
+      <Circle cx="50" cy="115" r="14" fill={theme.surfaceRaised || '#1c2d3a'} stroke={good} strokeWidth="2.5" />
+      <SvgText x="50" y="120" fontSize="12" fontWeight="900" fill={good} textAnchor="middle">4</SvgText>
     </Svg>
   );
 };
@@ -512,6 +508,51 @@ const getStyles = (theme) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 10,
+    },
+    profilePill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.surfaceRaised,
+      borderWidth: 1.5,
+      borderColor: 'rgba(139, 92, 246, 0.35)',
+      borderRadius: 24,
+      paddingLeft: 4,
+      paddingRight: 12,
+      paddingVertical: 4,
+      maxWidth: 165,
+    },
+    headerAvatarRing: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: 'rgba(139, 92, 246, 0.2)',
+      borderWidth: 1.5,
+      borderColor: '#8B5CF6',
+      justifyContent: 'center',
+      alignItems: 'center',
+      overflow: 'hidden',
+      marginRight: 6,
+    },
+    headerAvatarImg: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+    },
+    profilePillInfo: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+    },
+    profilePillName: {
+      color: theme.text,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 0.3,
+    },
+    profilePillLevel: {
+      color: '#8B5CF6',
+      fontSize: 9,
+      fontWeight: '800',
+      letterSpacing: 0.8,
     },
     levelChip: {
       flexDirection: 'row',
@@ -573,216 +614,167 @@ const getStyles = (theme) => {
       flexGrow: 1,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 18,
+      paddingHorizontal: 20,
+      paddingTop: 10,
       paddingBottom: 24,
-      gap: 20,
+      gap: 18,
     },
-    titleRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      width: '100%',
-      gap: 8,
-    },
-    titleCenter: {
-      flex: 1,
-      alignItems: 'center',
-    },
-    eyebrow: {
-      color: theme.primaryLight || '#60a5fa',
-      fontSize: 10,
-      letterSpacing: 3,
-      fontWeight: '700',
-      textAlign: 'center',
-    },
-    title: {
-      fontSize: 26,
-      fontWeight: '900',
-      color: theme.text,
-      letterSpacing: 2.5,
-      marginTop: 3,
-      textAlign: 'center',
-    },
-    titleAlt: {
-      fontSize: 26,
-      fontWeight: '900',
-      color: theme.primary,
-      letterSpacing: 5,
-      textAlign: 'center',
-    },
-    titleAction: {
-      alignItems: 'center',
-      width: 64,
-      gap: 6,
-    },
-    titleActionOrb: {
-      width: 54,
-      height: 54,
-      borderRadius: 27,
-      borderWidth: 1.5,
+    heroSection: {
       alignItems: 'center',
       justifyContent: 'center',
+      width: '100%',
     },
-    titleActionIcon: {
-      fontSize: 24,
+    systemStatusPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      backgroundColor: 'rgba(52,211,153,0.12)',
+      borderWidth: 1,
+      borderColor: 'rgba(52,211,153,0.3)',
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 4,
+      marginTop: 12,
+      marginBottom: 6,
     },
-    titleActionLabel: {
+    systemStatusDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+    },
+    systemStatusText: {
+      color: good,
       fontSize: 10,
       fontWeight: '800',
-      letterSpacing: 0.8,
+      letterSpacing: 1.5,
     },
-    titleActionBadge: {
-      position: 'absolute',
-      top: -4,
-      right: -4,
-      minWidth: 21,
-      height: 21,
-      borderRadius: 11,
-      paddingHorizontal: 5,
-      backgroundColor: bad,
-      borderWidth: 2,
-      borderColor: theme.background,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    titleActionBadgeText: {
-      color: '#ffffff',
-      fontSize: 10,
+    heroTitle: {
+      fontSize: 28,
       fontWeight: '900',
+      color: theme.text,
+      letterSpacing: 2,
+      textAlign: 'center',
     },
-    heroWrap: {
-      alignItems: 'center',
-      justifyContent: 'center',
+    heroSubtitle: {
+      fontSize: 28,
+      fontWeight: '900',
+      color: theme.primary,
+      letterSpacing: 6,
+      textAlign: 'center',
+      marginTop: -2,
     },
-    hero: {
-      width: 186,
-      height: 186,
-      borderRadius: 28,
-      backgroundColor: theme.surface,
-      borderWidth: 1.5,
-      borderColor: theme.border,
-      alignItems: 'center',
-      justifyContent: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 6 },
-      shadowOpacity: 0.25,
-      shadowRadius: 12,
-      elevation: 6,
-    },
-    puzzleIcon: {
-      width: 130,
-      height: 130,
-      position: 'relative',
-    },
-    puzzleCell: {
-      position: 'absolute',
-      width: 36,
-      height: 36,
-      borderRadius: 10,
-      backgroundColor: theme.surfaceRaised,
-      borderWidth: 1,
-      borderColor: theme.border,
-    },
-    puzzleCellActive: {
-      backgroundColor: 'rgba(77,169,255,0.16)',
-      borderColor: theme.primary,
-    },
-    puzzleLine1: {
-      position: 'absolute',
-      top: 17,
-      left: 18,
-      width: 96,
-      height: 3,
-      borderRadius: 2,
-      backgroundColor: theme.primary,
-      opacity: 0.65,
-    },
-    puzzleLine2: {
-      position: 'absolute',
-      top: 17,
-      left: 110,
-      width: 3,
-      height: 96,
-      borderRadius: 2,
-      backgroundColor: theme.primary,
-      opacity: 0.65,
+    heroTagline: {
+      fontSize: 10,
+      fontWeight: '800',
+      color: theme.muted || '#94A3B8',
+      letterSpacing: 2,
+      textAlign: 'center',
+      marginTop: 6,
     },
     playBtn: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 10,
+      gap: 12,
       width: '100%',
-      maxWidth: 320,
+      maxWidth: 340,
+      height: 58,
       backgroundColor: theme.primary,
-      paddingVertical: 16,
       borderRadius: 20,
       elevation: 8,
       shadowColor: theme.primary,
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.45,
       shadowRadius: 14,
+      marginVertical: 4,
     },
     playBtnDisabled: {
       opacity: 0.5,
     },
     playText: {
-      fontSize: 19,
+      fontSize: 20,
       fontWeight: '900',
-      color: theme.background,
+      color: theme.background || '#000000',
       letterSpacing: 3,
     },
-    levelBadgeText: {
-      fontSize: 12,
-      fontWeight: '800',
-      color: theme.background,
-      opacity: 0.85,
+    playLevelBadge: {
+      backgroundColor: 'rgba(0,0,0,0.18)',
+      borderWidth: 1,
+      borderColor: 'rgba(0,0,0,0.22)',
+      borderRadius: 12,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
       marginLeft: 4,
     },
-    tileRow: {
-      flexDirection: 'row',
-      gap: 10,
-      width: '100%',
-      maxWidth: 380,
+    playLevelText: {
+      fontSize: 11,
+      fontWeight: '900',
+      color: theme.background || '#000000',
+      letterSpacing: 0.5,
     },
-    tile: {
-      flex: 1,
-      alignItems: 'center',
-      gap: 6,
+    hubGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 12,
+      width: '100%',
+      maxWidth: 360,
+      justifyContent: 'space-between',
+    },
+    hubCard: {
+      width: '48%',
       backgroundColor: theme.surface,
       borderWidth: 1.5,
       borderColor: theme.border,
-      borderRadius: 18,
-      paddingVertical: 14,
-      paddingHorizontal: 8,
+      borderRadius: 20,
+      padding: 13,
+      gap: 10,
     },
-    tileGlyph: {
-      width: 44,
-      height: 44,
-      borderRadius: 14,
+    hubCardTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    hubCardGlyph: {
+      width: 42,
+      height: 42,
+      borderRadius: 13,
       borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    tileIcon: {
-      fontSize: 21,
+    hubCardIcon: {
+      fontSize: 20,
     },
-    tileLabel: {
-      color: theme.text,
-      fontSize: 13,
-      fontWeight: '800',
+    hubCardBadge: {
+      minWidth: 22,
+      height: 22,
+      borderRadius: 11,
+      paddingHorizontal: 5,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    tileSub: {
+    hubCardBadgeText: {
+      color: '#ffffff',
       fontSize: 10,
-      fontWeight: '700',
+      fontWeight: '900',
     },
-    tileDot: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
+    hubCardDot: {
       width: 9,
       height: 9,
       borderRadius: 5,
+    },
+    hubCardBottom: {
+      gap: 2,
+    },
+    hubCardLabel: {
+      color: theme.text,
+      fontSize: 14,
+      fontWeight: '800',
+    },
+    hubCardSub: {
+      fontSize: 11,
+      fontWeight: '700',
     },
   });
 };

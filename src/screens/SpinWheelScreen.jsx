@@ -23,6 +23,7 @@ import {
   formatCountdown,
 } from '../utils/CoinManager';
 import { useTheme } from '../constants/theme';
+import AdManager from '../ads/AdManager';
 
 export default function SpinWheelScreen() {
   const navigation = useNavigation();
@@ -50,6 +51,7 @@ export default function SpinWheelScreen() {
 
   useEffect(() => {
     refresh();
+    AdManager.preloadAd('rewarded');
     const interval = setInterval(async () => {
       const available = await canSpin();
       setSpinAvailable(available);

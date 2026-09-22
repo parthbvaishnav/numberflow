@@ -48,6 +48,7 @@ export default function DailyRewardModal({
   useEffect(() => {
     if (visible) {
       checkReward();
+      AdManager.preloadAd('rewarded');
     }
   }, [visible]);
 
@@ -214,8 +215,8 @@ export default function DailyRewardModal({
                     <LinearGradient
                       key={r.day}
                       colors={[
-                        '#0B132B',
-                        '#060B1A',
+                        theme.surfaceAlt || 'rgba(255, 255, 255, 0.08)',
+                        theme.surface,
                       ]}
                       style={[
                         styles.rewardCard,
@@ -369,7 +370,7 @@ const getStyles = (theme) => {
       borderRadius: 22,
       padding: 10,
       borderWidth: 1,
-      borderColor: '#4da9ff40',
+      borderColor: theme.border || 'rgba(255, 255, 255, 0.1)',
 
       shadowColor: theme.primary,
       shadowOffset: {
@@ -408,7 +409,7 @@ const getStyles = (theme) => {
       padding: 8,
       alignItems: 'center',
       borderWidth: 1,
-      borderColor: '#4da9ff60',
+      borderColor: theme.border || 'rgba(255, 255, 255, 0.08)',
       marginBottom: 12,
     },
 
@@ -466,15 +467,15 @@ const getStyles = (theme) => {
     },
 
     disabledBtn: {
-      backgroundColor: '#3A3F47',
+      backgroundColor: theme.surfaceAlt || 'rgba(255, 255, 255, 0.08)',
     },
 
     disabledText: {
-      color: '#9AA0A6',
+      color: theme.muted || '#9AA0A6',
     },
 
     collectedBtn: {
-      backgroundColor: '#4A4F57',
+      backgroundColor: theme.surfaceAlt || 'rgba(255, 255, 255, 0.12)',
       paddingVertical: 5,
       paddingHorizontal: 14,
       borderRadius: 8,

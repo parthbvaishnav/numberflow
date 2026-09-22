@@ -14,11 +14,11 @@ export const DEFAULT_ADS_CONFIG = {
     // ── Per-type strategy ─────────────────────────────────────────────────────
     // Values: e.g. "GFL" | "GLF" | "FLG" | "FGL" | "LFG" | "LGF" | "G" | "F" | "L"
     default: {
-      inter: 'FGL',   // Interstitial
-      interReward: 'FGL',   // Rewarded Interstitial
-      rewarded: 'FGL',   // Rewarded
-      open: 'FGL',   // App Open
-      BannerBottom: 'FGL',   // Bottom Banner
+      inter: 'GFL',   // Interstitial (AdMob Mediation with Meta Bidding)
+      interReward: 'GFL',   // Rewarded Interstitial
+      rewarded: 'GFL',   // Rewarded
+      open: 'GFL',   // App Open
+      BannerBottom: 'GFL',   // Bottom Banner
 
       // ── Google (AdMob) IDs ──────────────────────────────────────────────────
       G: {
@@ -46,6 +46,20 @@ export const DEFAULT_ADS_CONFIG = {
         IR: 'YOUR_APPLOVIN_REWARDED_INTERSTITIAL_AD_UNIT_ID',
         BB: 'YOUR_APPLOVIN_BANNER_AD_UNIT_ID',
       },
+    },
+    privacy_policy: 'https://npgamestudio.netlify.app/privacy-policy',
+    update_info: {
+      latest_version: '1.7',
+      min_supported_version: '1.3',
+      force_update: false,
+      update_url: 'https://play.google.com/store/apps/details?id=com.numberflow.game',
+      title: 'Exciting New Update! 🚀',
+      message: 'A fresh new update is available with new levels and features!',
+      release_notes: [
+        '✨ 5000+ New Challenging Levels',
+        '🎨 Brand New Themes & Smooth Effects',
+        '⚡ Performance improvements & bug fixes',
+      ],
     },
   },
 };

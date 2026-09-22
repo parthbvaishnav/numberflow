@@ -135,6 +135,9 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics")
     implementation 'com.google.firebase:firebase-analytics'
 
+    // Google Mobile Ads Mediation Adapter for Meta Audience Network
+    implementation 'com.google.ads.mediation:facebook:6.22.0.1'
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

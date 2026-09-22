@@ -7,6 +7,8 @@ import ConsentManager from './src/services/ConsentManager';
 import AgeGateModal from './src/components/AgeGateModal';
 import { ThemeProvider } from './src/constants/theme';
 
+import LocalNotificationService from './src/services/LocalNotificationService';
+
 export default function App() {
   const [showAgeGate, setShowAgeGate] = useState(false);
 
@@ -26,16 +28,21 @@ export default function App() {
     // ✅ Initialize Remote Config
     RemoteConfigService.init();
 
+    // ✅ Initialize Automated Local Notifications (Notifee)
+    LocalNotificationService.init();
+
     // ✅ Initialize OneSignal
     notificationService.initialize(
       '10bd33b0-498e-44e6-8008-e1e1ae5b35a2'
     );
 
-    // ✅ Re-check age consent whenever app returns to active foreground
+    // ✅ Re-check age consent & schedule notifications on app state change
     const handleAppStateChange = (state: any) => {
       console.log("App State:", state);
       if (state === "active") {
         checkConsentStatus();
+      } else if (state === "background") {
+        LocalNotificationService.scheduleAllReminders();
       }
     };
 
@@ -59,14 +66,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-
-// import React from "react";
-// import { View, Text } from "react-native";
-
-// export default function App() {
-//   return (
-//     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-//       <Text>App Working ✅</Text>
-//     </View>
-//   );
-// }

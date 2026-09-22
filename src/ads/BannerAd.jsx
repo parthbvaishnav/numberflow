@@ -35,6 +35,8 @@ try {
   }
 } catch (e) {}
 
+import ConsentManager from '../services/ConsentManager';
+
 export default function BannerAdComponent() {
   const [providerIndex, setProviderIndex] = React.useState(0);
   const config = RemoteConfigService.getAdsConfig();
@@ -56,11 +58,18 @@ export default function BannerAdComponent() {
   };
 
   if (currentAd.provider === 'G') {
+    const consentOpts = ConsentManager.getAdRequestOptions();
     return (
       <BannerAd
         unitId={currentAd.id}
-        size={BannerAdSize.FULL_BANNER}
-        requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+        size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+        requestOptions={{
+          ...consentOpts,
+          networkExtras: {
+            collapsible: 'bottom',
+          },
+        }}
+        onAdLoaded={() => console.log('[BannerAd] Google + Meta collapsible banner loaded successfully.')}
         onAdFailedToLoad={(err) => handleNextFallback('Google', err)}
       />
     );

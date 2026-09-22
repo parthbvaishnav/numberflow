@@ -1,9 +1,10 @@
 // src/components/AgeGateModal.jsx
 //
-// First-launch Age Gate & Privacy Consent Dialog for Number Link Puzzle.
-// Guarantees compliance with AppLovin, Meta & Google AdMob Policies for Publishers & COPPA rules.
+// First-launch Age Gate & Privacy Consent Dialog for Number Flow: Connect Puzzle.
+// Compliant with COPPA, GDPR, Google AdMob, Meta Audience Network & AppLovin MAX policies.
+// Fully integrated with dynamic app theme (useTheme).
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -13,33 +14,43 @@ import {
   StyleSheet,
   Linking,
   ScrollView,
-  FlatList,
 } from 'react-native';
 import ConsentManager from '../services/ConsentManager';
+import { useTheme } from '../constants/theme';
 
-// Generate age list from 5 to 99
-const AGE_OPTIONS = Array.from({ length: 95 }, (_, i) => i + 5);
+export const AGE_BRACKETS = [
+  { id: '12-15', label: '12 - 15', min: 12, max: 15, defaultAge: 14, isMinor: true, icon: '🎒' },
+  { id: '16-17', label: '16 - 17', min: 16, max: 17, defaultAge: 16, isMinor: true, icon: '🎧' },
+  { id: '18-20', label: '18 - 20', min: 18, max: 20, defaultAge: 19, isMinor: false, icon: '⚡' },
+  { id: '21-25', label: '21 - 25', min: 21, max: 25, defaultAge: 23, isMinor: false, icon: '🚀' },
+  { id: '26-30', label: '26 - 30', min: 26, max: 30, defaultAge: 28, isMinor: false, icon: '🌟' },
+  { id: '31-40', label: '31 - 40', min: 31, max: 40, defaultAge: 35, isMinor: false, icon: '🎯' },
+  { id: '41-45', label: '41 - 45', min: 41, max: 45, defaultAge: 43, isMinor: false, icon: '🏆' },
+  { id: '46+',   label: '46+',     min: 46, max: 99, defaultAge: 50, isMinor: false, icon: '👑' },
+];
 
 export default function AgeGateModal({ visible, onClose }) {
-  const [selectedAge, setSelectedAge] = useState(18);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { theme } = useTheme();
+  const styles = useMemo(() => getStyles(theme), [theme]);
+
+  const [selectedBracketId, setSelectedBracketId] = useState('18-20');
   const [allowPersonalized, setAllowPersonalized] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const numAge = selectedAge;
-  const isValidAge = typeof numAge === 'number' && numAge >= 5 && numAge <= 99;
-  const isChild = isValidAge && numAge < 13;
+  const selectedBracket = AGE_BRACKETS.find((b) => b.id === selectedBracketId);
+  const isMinor = selectedBracket ? selectedBracket.isMinor : false;
 
   const handleConfirm = async () => {
-    if (!isValidAge) {
-      setErrorMsg('Please select your age from the dropdown.');
+    if (!selectedBracket) {
+      setErrorMsg('Please select your age range to continue.');
       return;
     }
 
     setErrorMsg('');
     await ConsentManager.saveConsent({
-      age: numAge,
-      allowPersonalized: isChild ? false : allowPersonalized,
+      age: selectedBracket.defaultAge,
+      ageGroup: selectedBracket.id,
+      allowPersonalized: isMinor ? false : allowPersonalized,
     });
 
     if (onClose) {
@@ -48,7 +59,7 @@ export default function AgeGateModal({ visible, onClose }) {
   };
 
   const openPrivacyPolicy = () => {
-    Linking.openURL('https://legal.applovin.com/privacy/');
+    Linking.openURL('https://npgamestudio.netlify.app/privacy-policy');
   };
 
   if (!visible) return null;
@@ -59,7 +70,7 @@ export default function AgeGateModal({ visible, onClose }) {
       transparent
       animationType="fade"
       onRequestClose={() => {
-        // Prevent closing modal without confirming age
+        // Prevent closing modal without age confirmation
       }}
     >
       <View style={styles.overlay}>
@@ -74,108 +85,93 @@ export default function AgeGateModal({ visible, onClose }) {
               <Text style={{ fontSize: 28 }}>🛡️</Text>
             </View>
 
-            <Text style={styles.title}>Welcome to Number Link Puzzle</Text>
+            <Text style={styles.title}>Welcome to Number Flow</Text>
             <Text style={styles.subtitle}>
-              Please select your age to personalize your gameplay experience and privacy settings.
+              Select your age range to personalize your gameplay experience and privacy settings.
             </Text>
 
-            {/* Age Dropdown Selector */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Select Your Age:</Text>
-
-              <TouchableOpacity
-                style={[
-                  styles.dropdownBtn,
-                  dropdownOpen && styles.dropdownBtnActive,
-                ]}
-                onPress={() => setDropdownOpen(!dropdownOpen)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.dropdownBtnText}>
-                  {selectedAge ? `${selectedAge} Years Old` : 'Choose Your Age'}
-                </Text>
-                <Text style={styles.dropdownArrow}>{dropdownOpen ? '▲' : '▼'}</Text>
-              </TouchableOpacity>
-
-              {/* Dropdown Options Picker */}
-              {dropdownOpen && (
-                <View style={styles.dropdownListContainer}>
-                  <ScrollView
-                    style={{ maxHeight: 180 }}
-                    nestedScrollEnabled={true}
-                    showsVerticalScrollIndicator={true}
-                  >
-                    {AGE_OPTIONS.map((age) => (
-                      <TouchableOpacity
-                        key={age}
-                        style={[
-                          styles.dropdownItem,
-                          selectedAge === age && styles.dropdownItemActive,
-                        ]}
-                        onPress={() => {
-                          setSelectedAge(age);
-                          setDropdownOpen(false);
-                          setErrorMsg('');
-                        }}
-                      >
-                        <Text
-                          style={[
-                            styles.dropdownItemText,
-                            selectedAge === age && styles.dropdownItemTextActive,
-                          ]}
-                        >
-                          {age} Years Old
-                        </Text>
-                        {selectedAge === age && (
-                          <Text style={styles.checkmark}>✓</Text>
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </ScrollView>
-                </View>
-              )}
+            {/* Age Brackets Grid (8 options) */}
+            <View style={styles.gridContainer}>
+              <Text style={styles.sectionLabel}>SELECT YOUR AGE GROUP:</Text>
+              <View style={styles.grid}>
+                {AGE_BRACKETS.map((bracket) => {
+                  const isSelected = selectedBracketId === bracket.id;
+                  return (
+                    <TouchableOpacity
+                      key={bracket.id}
+                      style={[
+                        styles.chip,
+                        isSelected && styles.chipSelected,
+                      ]}
+                      onPress={() => {
+                        setSelectedBracketId(bracket.id);
+                        setErrorMsg('');
+                      }}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={styles.chipIcon}>{bracket.icon}</Text>
+                      <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                        {bracket.label}
+                      </Text>
+                      {isSelected && (
+                        <View style={styles.checkBadge}>
+                          <Text style={styles.checkIcon}>✓</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
             </View>
 
             {errorMsg ? <Text style={styles.errorText}>{errorMsg}</Text> : null}
 
-            {/* COPPA / Child Notice */}
-            {isValidAge && isChild && (
+            {/* COPPA / Minor Protection Notice */}
+            {isMinor && (
               <View style={styles.noticeBox}>
-                <Text style={styles.noticeTitle}>🛡️ Child Protection Active (COPPA)</Text>
+                <Text style={styles.noticeTitle}>🛡️ Privacy Protection Active</Text>
                 <Text style={styles.noticeBody}>
-                  Personalized ad tracking and targeted ads are automatically disabled for your age group to protect your privacy.
+                  Personalized ad tracking is disabled for your age group to keep your gameplay safe and private.
                 </Text>
               </View>
             )}
 
             {/* Personalized Ads Toggle (Adults only) */}
-            {isValidAge && !isChild && (
+            {!isMinor && (
               <View style={styles.toggleRow}>
                 <View style={{ flex: 1, paddingRight: 12 }}>
-                  <Text style={styles.toggleTitle}>Allow Personalized Ads</Text>
+                  <Text style={styles.toggleTitle}>Allow Tailored Ads</Text>
                   <Text style={styles.toggleDesc}>
-                    Receive tailored ad content and hints. You can change this anytime in settings.
+                    Enjoy relevant game rewards and hints. You can change this anytime in settings.
                   </Text>
                 </View>
                 <Switch
                   value={allowPersonalized}
                   onValueChange={setAllowPersonalized}
-                  trackColor={{ false: '#334155', true: '#8B5CF6' }}
-                  thumbColor={allowPersonalized ? '#FF2B91' : '#94A3B8'}
+                  trackColor={{ false: '#334155', true: theme.primary }}
+                  thumbColor={allowPersonalized ? '#ffffff' : '#94A3B8'}
                 />
               </View>
             )}
 
-            {/* Privacy Link */}
-            <TouchableOpacity onPress={openPrivacyPolicy} style={styles.privacyLinkBtn}>
+            {/* Privacy Policy Link */}
+            <TouchableOpacity
+              onPress={openPrivacyPolicy}
+              activeOpacity={0.7}
+              style={styles.privacyLinkBtn}
+            >
               <Text style={styles.privacyLinkText}>
-                We work with AppLovin, Meta & AdMob. Learn more in our Privacy Policy →
+                Read our Privacy Policy & Terms ↗
               </Text>
             </TouchableOpacity>
 
-            {/* Submit Button */}
-            <TouchableOpacity style={styles.submitBtn} onPress={handleConfirm} activeOpacity={0.85}>
-              <Text style={styles.submitBtnText}>Confirm & Start Game</Text>
+            {/* Continue Button */}
+            <TouchableOpacity
+              style={styles.submitBtn}
+              onPress={handleConfirm}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.submitBtnText}>CONTINUE PLAYING</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -184,207 +180,211 @@ export default function AgeGateModal({ visible, onClose }) {
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(5, 2, 12, 0.88)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  card: {
-    width: '100%',
-    maxHeight: '88%',
-    backgroundColor: '#120824',
-    borderRadius: 28,
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
-    padding: 24,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 12,
-  },
-  scrollContent: {
-    alignItems: 'center',
-  },
-  iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    marginBottom: 6,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#94A3B8',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 19,
-    paddingHorizontal: 8,
-  },
-  inputContainer: {
-    width: '100%',
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#CBD5E1',
-    marginBottom: 8,
-    letterSpacing: 0.5,
-  },
-  dropdownBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#1C0E38',
-    borderWidth: 1.5,
-    borderColor: '#3B82F6',
-    borderRadius: 16,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-  },
-  dropdownBtnActive: {
-    borderColor: '#8B5CF6',
-    backgroundColor: '#241246',
-  },
-  dropdownBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  dropdownArrow: {
-    color: '#8B5CF6',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  dropdownListContainer: {
-    marginTop: 6,
-    backgroundColor: '#1A0D34',
-    borderWidth: 1.5,
-    borderColor: 'rgba(139, 92, 246, 0.5)',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  dropdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
-  },
-  dropdownItemActive: {
-    backgroundColor: 'rgba(139, 92, 246, 0.25)',
-  },
-  dropdownItemText: {
-    color: '#CBD5E1',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  dropdownItemTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-  },
-  checkmark: {
-    color: '#FF2B91',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  errorText: {
-    color: '#FF2B91',
-    fontSize: 12,
-    marginBottom: 12,
-    fontWeight: '600',
-  },
-  noticeBox: {
-    width: '100%',
-    backgroundColor: 'rgba(255, 43, 145, 0.1)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 43, 145, 0.35)',
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 18,
-  },
-  noticeTitle: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    color: '#FF2B91',
-    marginBottom: 4,
-  },
-  noticeBody: {
-    fontSize: 12,
-    color: '#CBD5E1',
-    lineHeight: 17,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    backgroundColor: '#190B32',
-    padding: 14,
-    borderRadius: 16,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  toggleTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  toggleDesc: {
-    fontSize: 11,
-    color: '#94A3B8',
-    marginTop: 2,
-    lineHeight: 15,
-  },
-  privacyLinkBtn: {
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  privacyLinkText: {
-    fontSize: 12,
-    color: '#22D3EE',
-    textDecorationLine: 'underline',
-    textAlign: 'center',
-  },
-  submitBtn: {
-    width: '100%',
-    backgroundColor: '#8B5CF6',
-    paddingVertical: 15,
-    borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 6,
-  },
-  submitBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-    fontSize: 16,
-    letterSpacing: 0.5,
-  },
-});
+function getStyles(theme) {
+  const isDark = theme.dark !== false;
+  const primary = theme.primary || '#38bdf8';
+  const good = theme.good || '#10b981';
+
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.85)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 16,
+    },
+    card: {
+      width: '100%',
+      maxWidth: 420,
+      maxHeight: '90%',
+      backgroundColor: theme.surface,
+      borderRadius: 24,
+      borderWidth: 1.5,
+      borderColor: theme.border || 'rgba(255, 255, 255, 0.1)',
+      overflow: 'hidden',
+      shadowColor: primary,
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.35,
+      shadowRadius: 20,
+      elevation: 12,
+    },
+    scrollContent: {
+      padding: 20,
+      alignItems: 'center',
+    },
+    iconCircle: {
+      width: 58,
+      height: 58,
+      borderRadius: 29,
+      backgroundColor: isDark ? 'rgba(56, 189, 248, 0.12)' : 'rgba(14, 165, 233, 0.12)',
+      borderWidth: 1.5,
+      borderColor: primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 12,
+    },
+    title: {
+      fontSize: 21,
+      fontWeight: '800',
+      color: theme.text,
+      marginBottom: 6,
+      textAlign: 'center',
+      letterSpacing: 0.5,
+    },
+    subtitle: {
+      fontSize: 13,
+      color: theme.textSecondary || theme.muted || '#94A3B8',
+      textAlign: 'center',
+      marginBottom: 18,
+      lineHeight: 18,
+      paddingHorizontal: 8,
+    },
+    gridContainer: {
+      width: '100%',
+      marginBottom: 14,
+    },
+    sectionLabel: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: primary,
+      letterSpacing: 1.2,
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    chip: {
+      width: '48%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.surfaceAlt || 'rgba(255, 255, 255, 0.05)',
+      borderRadius: 14,
+      borderWidth: 1.5,
+      borderColor: theme.border || 'rgba(255, 255, 255, 0.1)',
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+      marginBottom: 10,
+      position: 'relative',
+    },
+    chipSelected: {
+      backgroundColor: isDark ? 'rgba(56, 189, 248, 0.18)' : 'rgba(14, 165, 233, 0.18)',
+      borderColor: primary,
+      shadowColor: primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.4,
+      shadowRadius: 8,
+      elevation: 4,
+    },
+    chipIcon: {
+      fontSize: 16,
+      marginRight: 6,
+    },
+    chipText: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: theme.textSecondary || theme.muted || '#94A3B8',
+    },
+    chipTextSelected: {
+      color: theme.text,
+      fontWeight: '800',
+    },
+    checkBadge: {
+      position: 'absolute',
+      top: 4,
+      right: 6,
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      backgroundColor: primary,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    checkIcon: {
+      color: '#000',
+      fontSize: 10,
+      fontWeight: '900',
+    },
+    errorText: {
+      color: theme.bad || '#EF4444',
+      fontSize: 12,
+      marginBottom: 10,
+      textAlign: 'center',
+    },
+    noticeBox: {
+      width: '100%',
+      backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)',
+      borderColor: good,
+      borderWidth: 1,
+      borderRadius: 14,
+      padding: 12,
+      marginBottom: 16,
+    },
+    noticeTitle: {
+      color: good,
+      fontSize: 13,
+      fontWeight: '700',
+      marginBottom: 4,
+    },
+    noticeBody: {
+      color: theme.textSecondary || theme.muted || '#94A3B8',
+      fontSize: 11,
+      lineHeight: 16,
+    },
+    toggleRow: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: theme.surfaceAlt || 'rgba(255, 255, 255, 0.04)',
+      borderColor: theme.border || 'rgba(255, 255, 255, 0.08)',
+      borderWidth: 1,
+      borderRadius: 14,
+      padding: 12,
+      marginBottom: 16,
+    },
+    toggleTitle: {
+      color: theme.text,
+      fontSize: 13,
+      fontWeight: '700',
+      marginBottom: 2,
+    },
+    toggleDesc: {
+      color: theme.textSecondary || theme.muted || '#64748B',
+      fontSize: 11,
+      lineHeight: 15,
+    },
+    privacyLinkBtn: {
+      paddingVertical: 6,
+      marginBottom: 18,
+    },
+    privacyLinkText: {
+      color: primary,
+      fontSize: 12,
+      textAlign: 'center',
+      textDecorationLine: 'underline',
+    },
+    submitBtn: {
+      width: '100%',
+      backgroundColor: primary,
+      borderRadius: 16,
+      paddingVertical: 14,
+      alignItems: 'center',
+      shadowColor: primary,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.5,
+      shadowRadius: 14,
+      elevation: 6,
+    },
+    submitBtnText: {
+      color: '#000',
+      fontSize: 15,
+      fontWeight: '800',
+      letterSpacing: 0.5,
+    },
+  });
+}

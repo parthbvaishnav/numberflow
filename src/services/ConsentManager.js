@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const STORAGE_KEYS = {
   AGE_GATE_COMPLETED: '@numberflow_age_gate_completed',
   USER_AGE: '@numberflow_user_age',
+  USER_AGE_GROUP: '@numberflow_user_age_group',
   ALLOW_PERSONALIZED: '@numberflow_allow_personalized_ads',
 };
 
@@ -16,6 +17,7 @@ class ConsentManager {
   _initialized = false;
   _ageGateCompleted = false;
   _userAge = null;
+  _userAgeGroup = null;
   _allowPersonalizedAds = false;
 
   /**
@@ -23,20 +25,23 @@ class ConsentManager {
    */
   async init() {
     try {
-      const [completedStr, ageStr, personalizedStr] = await Promise.all([
+      const [completedStr, ageStr, ageGroupStr, personalizedStr] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.AGE_GATE_COMPLETED),
         AsyncStorage.getItem(STORAGE_KEYS.USER_AGE),
+        AsyncStorage.getItem(STORAGE_KEYS.USER_AGE_GROUP),
         AsyncStorage.getItem(STORAGE_KEYS.ALLOW_PERSONALIZED),
       ]);
 
       this._ageGateCompleted = completedStr === 'true';
       this._userAge = ageStr ? parseInt(ageStr, 10) : null;
+      this._userAgeGroup = ageGroupStr || null;
       this._allowPersonalizedAds = personalizedStr === 'true';
       this._initialized = true;
 
       console.log('[ConsentManager] Initialized state:', {
         ageGateCompleted: this._ageGateCompleted,
         userAge: this._userAge,
+        userAgeGroup: this._userAgeGroup,
         allowPersonalizedAds: this._allowPersonalizedAds,
         isChild: this.isChild(),
       });
@@ -60,10 +65,18 @@ class ConsentManager {
   }
 
   /**
+   * Returns selected age group (e.g. "18-20", "21-25")
+   */
+  getUserAgeGroup() {
+    return this._userAgeGroup;
+  }
+
+  /**
    * Checks if user qualifies as a "Child" under COPPA / AppLovin guidelines (< 13 or < 16).
    * @returns {boolean}
    */
   isChild() {
+    if (this._userAgeGroup === '12-15') return true;
     if (this._userAge === null) return true; // Default safe fallback
     return this._userAge < 13;
   }
@@ -80,28 +93,35 @@ class ConsentManager {
 
   /**
    * Save user choices from Age Gate or Profile Settings.
-   * @param {{ age: number, allowPersonalized: boolean }} data
+   * @param {{ age: number, ageGroup?: string, allowPersonalized: boolean }} data
    */
-  async saveConsent({ age, allowPersonalized }) {
+  async saveConsent({ age, ageGroup, allowPersonalized }) {
     try {
       const parsedAge = parseInt(age, 10);
-      const isUnderage = parsedAge < 13;
+      const isUnderage = parsedAge < 13 || ageGroup === '12-15';
 
       // Children are NEVER allowed personalized ads
       const finalPersonalized = isUnderage ? false : !!allowPersonalized;
 
       this._userAge = parsedAge;
+      this._userAgeGroup = ageGroup || null;
       this._ageGateCompleted = true;
       this._allowPersonalizedAds = finalPersonalized;
 
-      await Promise.all([
+      const promises = [
         AsyncStorage.setItem(STORAGE_KEYS.AGE_GATE_COMPLETED, 'true'),
         AsyncStorage.setItem(STORAGE_KEYS.USER_AGE, parsedAge.toString()),
         AsyncStorage.setItem(STORAGE_KEYS.ALLOW_PERSONALIZED, finalPersonalized ? 'true' : 'false'),
-      ]);
+      ];
+      if (ageGroup) {
+        promises.push(AsyncStorage.setItem(STORAGE_KEYS.USER_AGE_GROUP, ageGroup));
+      }
+
+      await Promise.all(promises);
 
       console.log('[ConsentManager] Consent saved successfully:', {
         age: parsedAge,
+        ageGroup: ageGroup,
         allowPersonalized: finalPersonalized,
         isChild: isUnderage,
       });
