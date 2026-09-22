@@ -287,13 +287,6 @@ export default function ZipGameScreen() {
     usedHintThisLevel.current = false;
     setStatus(`Start from 1 · fill all ${lv.size * lv.size} cells`);
     if (n % 10 === 0) preloadLevelBatch(n + 1);
-
-    // 🎯 Smart Interstitial Pacing (Golden Rule 4):
-    // Level 2 (or 5, 8, 11...) par hi background me preload kar lo
-    // taaki level 3 par ad instant (0ms) ready mile.
-    if (n % 3 === 2) {
-      AdManager.preloadAd('inter');
-    }
   }, [stopTimer, setStatus]);
 
   const loadLevel = useCallback((n) => {

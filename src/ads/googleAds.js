@@ -419,7 +419,16 @@ class GoogleAds {
       const ad = AppOpenAd.createForAdRequest(id, getRequestOptions());
       this._appOpenAd = ad;
 
+      let hasTimedOut = false;
+      const timer = setTimeout(() => {
+        hasTimedOut = true;
+        this._teardownAppOpen();
+        resolve(false);
+      }, 7000);
+
       const uLoaded = ad.addAdEventListener(AdEventType.LOADED, () => {
+        if (hasTimedOut) return;
+        clearTimeout(timer);
         this._isAppOpenLoading = false;
         this._appOpenLoadedAt = Date.now();
         ad.show().catch(() => {
@@ -429,11 +438,13 @@ class GoogleAds {
       });
 
       const uClosed = ad.addAdEventListener(AdEventType.CLOSED, () => {
+        clearTimeout(timer);
         this._teardownAppOpen();
         resolve(true);
       });
 
       const uErr = ad.addAdEventListener(AdEventType.ERROR, (err) => {
+        clearTimeout(timer);
         console.warn('[GoogleAds] AppOpen on-demand error:', err);
         this._teardownAppOpen();
         resolve(false);
