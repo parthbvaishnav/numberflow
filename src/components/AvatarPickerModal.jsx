@@ -1,6 +1,6 @@
 // src/components/AvatarPickerModal.jsx
 //
-// 100 Dicebear Avatars & Username Customization Modal for Number Flow.
+// 100 Dicebear Avatars & Username Customization Modal for Number Link Puzzle.
 // Fully integrated with dynamic app theme (useTheme).
 
 import React, { useState, useEffect, useMemo } from 'react';

@@ -1,6 +1,6 @@
 // src/services/LocalNotificationService.js
 //
-// Automated Local Offline Notifications for Number Flow: Connect Puzzle.
+// Automated Local Offline Notifications for Number Link Puzzle.
 // Powered by @notifee/react-native.
 
 let notifee = null;
@@ -128,7 +128,7 @@ class LocalNotificationService {
         {
           id: 'inactivity_reminder_48h',
           title: 'We Miss You, Solver! 🧩',
-          body: 'New challenging Number Flow puzzles and secret rewards are waiting for you!',
+          body: 'New challenging Number Link puzzles and secret rewards are waiting for you!',
           android: {
             channelId: CHANNEL_ID,
             pressAction: { id: 'default' },
@@ -151,7 +151,7 @@ class LocalNotificationService {
     if (!notifee) return;
     try {
       await notifee.displayNotification({
-        title: 'Number Flow Alert 🚀',
+        title: 'Number Link Puzzle Alert 🚀',
         body: 'Local notifications are configured and working perfectly!',
         android: {
           channelId: CHANNEL_ID,

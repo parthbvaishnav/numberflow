@@ -154,7 +154,7 @@ export default function RatingModal() {
             ))}
           </View>
 
-          <Text style={styles.subtitle}>Thanks for playing Number Flow!</Text>
+          <Text style={styles.subtitle}>Thanks for playing Number Link Puzzle!</Text>
           <Text style={styles.description}>
             Your feedback helps us make the game better. Rate us on Google Play Store!
           </Text>

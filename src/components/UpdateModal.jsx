@@ -1,6 +1,6 @@
 // src/components/UpdateModal.jsx
 //
-// Remote Config Version Update Dialogue for Number Flow: Connect Puzzle.
+// Remote Config Version Update Dialogue for Number Link Puzzle.
 // Supports both Force Update (blocking) and Flexible/Optional Update.
 // Fully integrated with dynamic app theme (useTheme).
 

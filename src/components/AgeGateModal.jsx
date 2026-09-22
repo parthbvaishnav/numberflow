@@ -1,6 +1,6 @@
 // src/components/AgeGateModal.jsx
 //
-// First-launch Age Gate & Privacy Consent Dialog for Number Flow: Connect Puzzle.
+// First-launch Age Gate & Privacy Consent Dialog for Number Link Puzzle.
 // Compliant with COPPA, GDPR, Google AdMob, Meta Audience Network & AppLovin MAX policies.
 // Fully integrated with dynamic app theme (useTheme).
 
@@ -85,7 +85,7 @@ export default function AgeGateModal({ visible, onClose }) {
               <Text style={{ fontSize: 28 }}>🛡️</Text>
             </View>
 
-            <Text style={styles.title}>Welcome to Number Flow</Text>
+            <Text style={styles.title}>Welcome to Number Link Puzzle</Text>
             <Text style={styles.subtitle}>
               Select your age range to personalize your gameplay experience and privacy settings.
             </Text>
