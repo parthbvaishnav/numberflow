@@ -45,8 +45,6 @@ class ConsentManager {
         allowPersonalizedAds: this._allowPersonalizedAds,
         isChild: this.isChild(),
       });
-
-      this.syncAppLovinFlags();
     } catch (err) {
       console.warn('[ConsentManager] Error loading consent state:', err);
       // Safe fallback: treat as underage/non-personalized until user confirms
@@ -125,43 +123,8 @@ class ConsentManager {
         allowPersonalized: finalPersonalized,
         isChild: isUnderage,
       });
-
-      this.syncAppLovinFlags();
     } catch (err) {
       console.error('[ConsentManager] Failed to save consent:', err);
-    }
-  }
-
-  /**
-   * Syncs privacy flags with optional AppLovin SDK if installed.
-   */
-  syncAppLovinFlags() {
-    try {
-      const { NativeModules, TurboModuleRegistry } = require('react-native');
-      const isAvailable =
-        (typeof TurboModuleRegistry !== 'undefined' && TurboModuleRegistry.get && TurboModuleRegistry.get('AppLovinMAX')) ||
-        (NativeModules && NativeModules.AppLovinMAX);
-
-      if (!isAvailable) return;
-
-      const AppLovinMAX = require('react-native-applovin-max');
-      if (AppLovinMAX) {
-        const isChild = this.isChild();
-        const canPersonalize = this.canShowPersonalizedAds();
-
-        if (AppLovinMAX.setIsAgeRestrictedUser) {
-          AppLovinMAX.setIsAgeRestrictedUser(isChild);
-        }
-        if (AppLovinMAX.setHasUserConsent) {
-          AppLovinMAX.setHasUserConsent(canPersonalize);
-        }
-        if (AppLovinMAX.setDoNotSell) {
-          AppLovinMAX.setDoNotSell(!canPersonalize);
-        }
-        console.log('[ConsentManager] AppLovin MAX privacy flags updated.');
-      }
-    } catch (e) {
-      // AppLovin MAX module not native-linked yet — safe fallback
     }
   }
 

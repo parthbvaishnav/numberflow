@@ -162,7 +162,7 @@ class GoogleAds {
         hasTimedOut = true;
         this._teardownInter();
         resolve(false);
-      }, 7000);
+      }, 12000);
 
       const uLoaded = ad.addAdEventListener(AdEventType.LOADED, () => {
         if (hasTimedOut) return;
@@ -274,7 +274,7 @@ class GoogleAds {
         hasTimedOut = true;
         this._teardownRewarded();
         resolve(false);
-      }, 9000);
+      }, 14000);
 
       const uReward = ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
         rewarded = true;
@@ -424,7 +424,7 @@ class GoogleAds {
         hasTimedOut = true;
         this._teardownAppOpen();
         resolve(false);
-      }, 7000);
+      }, 9000);
 
       const uLoaded = ad.addAdEventListener(AdEventType.LOADED, () => {
         if (hasTimedOut) return;

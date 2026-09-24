@@ -34,6 +34,7 @@ import { getProfile, getDailyAchievements } from '../utils/ProfileManager';
 import { useTheme } from '../constants/theme';
 import { DEFAULT_AVATAR } from '../constants/avatars';
 import RemoteConfigService from '../services/RemoteConfigService';
+import AdManager from '../ads/AdManager';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Icons
@@ -120,7 +121,7 @@ export default function HomeScreen() {
 
   const LS_LEVEL = 'zipCurrentLevel';
 
-  // ── Version Check (Remote Config) ─────────────────────────────────────────
+  // ── Version Check (Remote Config) & Early Ad Warmup ─────────────────────────
   useEffect(() => {
     try {
       const config = RemoteConfigService.getAdsConfig();
@@ -134,6 +135,14 @@ export default function HomeScreen() {
       }
     } catch (e) {
       console.warn('[HomeScreen] Version check error:', e);
+    }
+
+    // 🚀 Warm up ads early so rewards and interstitials are ready when user interacts
+    try {
+      AdManager.preloadAd('rewarded');
+      AdManager.preloadAd('inter');
+    } catch (adErr) {
+      console.log('[HomeScreen] Early ad preload warning:', adErr);
     }
   }, []);
 

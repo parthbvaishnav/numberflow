@@ -55,21 +55,45 @@ class LocalNotificationService {
     }
   }
 
+  _lastScheduledAt = 0;
+
   /**
    * Schedule all periodic and inactivity retention reminders
    */
   async scheduleAllReminders() {
     if (!notifee || !TriggerType) return;
 
+    // Prevent duplicate calls if app state toggles rapidly
+    const now = Date.now();
+    if (now - this._lastScheduledAt < 5000) {
+      return;
+    }
+    this._lastScheduledAt = now;
+
     try {
+      // Check exact alarm permission status (Android 12+ / Android 14+ API 34+)
+      let canUseExactAlarm = false;
+      try {
+        const notifSettings = await notifee.getNotificationSettings();
+        // AndroidNotificationSetting.ENABLED is 1
+        if (notifSettings?.android?.alarm === 1) {
+          canUseExactAlarm = true;
+        }
+      } catch (e) {
+        console.log('[LocalNotificationService] Alarm setting check:', e?.message || e);
+      }
+
+      // If exact alarm is permitted, allowWhileIdle guarantees prompt delivery in Doze mode.
+      // If not permitted (default on Android 14+ Play Store installs), omitting alarmManager
+      // allows Notifee to fall back safely to WorkManager without throwing SecurityException.
+      const alarmConfig = canUseExactAlarm ? { allowWhileIdle: true } : undefined;
+
       // Cancel previous scheduled reminders to avoid duplicates
       await notifee.cancelTriggerNotifications([
         'daily_spin_reminder',
         'streak_protection_reminder',
         'inactivity_reminder_48h',
       ]);
-
-      const now = Date.now();
 
       // 1. Daily Spin & Coins Reminder (Next 8:00 PM)
       const next8PM = new Date();
@@ -82,6 +106,7 @@ class LocalNotificationService {
         type: TriggerType.TIMESTAMP,
         timestamp: next8PM.getTime(),
         repeatFrequency: RepeatFrequency ? RepeatFrequency.DAILY : undefined,
+        ...(alarmConfig ? { alarmManager: alarmConfig } : {}),
       };
 
       await notifee.createTriggerNotification(
@@ -102,6 +127,7 @@ class LocalNotificationService {
       const streakTrigger = {
         type: TriggerType.TIMESTAMP,
         timestamp: now + 24 * 60 * 60 * 1000, // +24 hours
+        ...(alarmConfig ? { alarmManager: alarmConfig } : {}),
       };
 
       await notifee.createTriggerNotification(
@@ -122,6 +148,7 @@ class LocalNotificationService {
       const inactivityTrigger = {
         type: TriggerType.TIMESTAMP,
         timestamp: now + 48 * 60 * 60 * 1000, // +48 hours
+        ...(alarmConfig ? { alarmManager: alarmConfig } : {}),
       };
 
       await notifee.createTriggerNotification(
@@ -138,7 +165,7 @@ class LocalNotificationService {
         inactivityTrigger
       );
 
-      console.log('[LocalNotificationService] Smart retention reminders successfully scheduled.');
+      console.log(`[LocalNotificationService] Smart retention reminders successfully scheduled (Exact Alarm: ${canUseExactAlarm}).`);
     } catch (err) {
       console.warn('[LocalNotificationService] Failed to schedule reminders:', err);
     }
