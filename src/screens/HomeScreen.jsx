@@ -27,6 +27,7 @@ import RatingModal from '../components/RatingModal';
 import DailyRewardModal from '../components/DailyRewardModal';
 import CoinShopModal from '../components/CoinShopModal';
 import UpdateModal, { compareVersions } from '../components/UpdateModal';
+import { APP_VERSION } from '../constants/appVersion';
 
 import { getCoins, getHints, getDailyRewardStatus } from '../utils/CoinManager';
 import { getProfile, getDailyAchievements } from '../utils/ProfileManager';
@@ -126,7 +127,7 @@ export default function HomeScreen() {
       if (config?.ads?.update_info) {
         const info = config.ads.update_info;
         setUpdateInfo(info);
-        const currentVersion = '1.3.0';
+        const currentVersion = APP_VERSION; // ✅ appVersion.js se aata hai
         if (compareVersions(currentVersion, info.latest_version) < 0) {
           setShowUpdateModal(true);
         }
@@ -390,7 +391,7 @@ export default function HomeScreen() {
       <UpdateModal
         visible={showUpdateModal}
         updateInfo={updateInfo}
-        currentVersion="1.3.0"
+        currentVersion={APP_VERSION}
         onClose={() => setShowUpdateModal(false)}
       />
     </SafeAreaView>

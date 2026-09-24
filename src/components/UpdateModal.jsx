@@ -15,6 +15,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useTheme } from '../constants/theme';
+import { APP_VERSION, MIN_SUPPORTED_VERSION } from '../constants/appVersion';
 
 /**
  * Compare two semver-like strings (e.g. "1.3" vs "1.7", or "1.0.0" vs "1.4.0")
@@ -37,7 +38,7 @@ export function compareVersions(v1 = '0.0.0', v2 = '0.0.0') {
 export default function UpdateModal({
   visible,
   updateInfo,
-  currentVersion = '1.3.0',
+  currentVersion = APP_VERSION, // ✅ appVersion.js se aata hai
   onClose,
 }) {
   const { theme } = useTheme();
@@ -46,8 +47,8 @@ export default function UpdateModal({
   if (!visible || !updateInfo) return null;
 
   const {
-    latest_version = '1.7',
-    min_supported_version = '1.3',
+    latest_version = APP_VERSION,
+    min_supported_version = MIN_SUPPORTED_VERSION,
     force_update = false,
     update_url = 'https://play.google.com/store/apps/details?id=com.numberflow.game',
     title = 'Exciting New Update! 🚀',

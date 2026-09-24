@@ -1,8 +1,12 @@
 // src/services/defaultAdsConfig.js
 //
 // Fallback config used when Firebase Remote Config is unavailable.
-// All Google IDs below are AdMob TEST IDs — safe to use during development.
-// Replace with your production IDs in the Remote Config dashboard.
+// All Google IDs below are production IDs.
+//
+// ✅ Version is imported from src/constants/appVersion.js
+// Sirf appVersion.js me update karo — yahan automatically reflect ho jayega.
+
+import { APP_VERSION, MIN_SUPPORTED_VERSION } from '../constants/appVersion';
 
 export const DEFAULT_ADS_CONFIG = {
   ads: {
@@ -38,7 +42,7 @@ export const DEFAULT_ADS_CONFIG = {
         BB: '1758887168477062_1758888461810266',  // Banner
       },
 
-      // ── AppLovin MAX Test IDs ───────────────────────────────────────────────
+      // ── AppLovin MAX IDs ────────────────────────────────────────────────────
       L: {
         I: 'YOUR_APPLOVIN_INTERSTITIAL_AD_UNIT_ID',
         O: 'YOUR_APPLOVIN_APP_OPEN_AD_UNIT_ID',
@@ -49,17 +53,19 @@ export const DEFAULT_ADS_CONFIG = {
     },
     privacy_policy: 'https://npgamestudio.netlify.app/privacy-policy',
     update_info: {
-      latest_version: '1.7',
-      min_supported_version: '1.3',
+      latest_version: APP_VERSION,           // ✅ appVersion.js se aata hai
+      min_supported_version: MIN_SUPPORTED_VERSION, // ✅ appVersion.js se aata hai
       force_update: false,
       update_url: 'https://play.google.com/store/apps/details?id=com.numberflow.game',
       title: 'Exciting New Update! 🚀',
       message: 'A fresh new update is available with new levels and features!',
       release_notes: [
-        '✨ 5000+ New Challenging Levels',
-        '🎨 Brand New Themes & Smooth Effects',
-        '⚡ Performance improvements & bug fixes',
+        '⚡ Faster & smarter ads — instant preloading, no more waiting!',
+        '🔔 Smart daily notifications — spin reminders & streak alerts',
+        '⚙️ New Settings screen — avatar, stats & profile in one place',
+        '🎨 40 unlockable themes with tier filters in Coin Shop',
+        '🐛 Performance improvements & bug fixes',
       ],
     },
   },
-};
+};

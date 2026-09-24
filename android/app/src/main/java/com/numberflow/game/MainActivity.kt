@@ -1,5 +1,6 @@
 package com.numberflow.game
 
+import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
@@ -12,6 +13,20 @@ class MainActivity : ReactActivity() {
    * rendering of the component.
    */
   override fun getMainComponentName(): String = "numberlink"
+
+  /**
+   * Fix for react-native-screens crash:
+   * "Screen fragments should never be restored"
+   *
+   * When Android kills the app in background (low memory) and user returns,
+   * the OS tries to restore Fragment state which ScreenStackFragment doesn't support.
+   * Clearing savedInstanceState prevents this crash.
+   *
+   * Reference: https://github.com/software-mansion/react-native-screens/issues/17
+   */
+  override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(null) // ← Pass null to prevent fragment restoration
+  }
 
   /**
    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]

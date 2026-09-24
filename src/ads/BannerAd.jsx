@@ -52,8 +52,16 @@ export default function BannerAdComponent() {
   const currentAd = adList[providerIndex];
   if (!currentAd || !currentAd.id) return null;
 
+  // 🔍 DEBUG: Log which provider is being attempted
+  console.log(`[BannerAd] Attempting provider [${providerIndex}/${adList.length - 1}]: ${currentAd.provider} | id: ${currentAd.id}`);
+
   const handleNextFallback = (providerName, err) => {
-    console.warn(`[BannerAd] ${providerName} banner failed (trying fallback):`, err);
+    // 🔍 DEBUG: Full error details for diagnosis
+    console.warn(`[BannerAd] ❌ ${providerName} banner FAILED — falling back to next provider.`);
+    console.warn(`[BannerAd] Error code   : ${err?.code ?? err?.errorCode ?? 'N/A'}`);
+    console.warn(`[BannerAd] Error message: ${err?.message ?? err?.errorMessage ?? JSON.stringify(err)}`);
+    console.warn(`[BannerAd] Error domain : ${err?.domain ?? 'N/A'}`);
+    console.warn(`[BannerAd] Full error   :`, err);
     setProviderIndex((prev) => prev + 1);
   };
 
@@ -65,11 +73,11 @@ export default function BannerAdComponent() {
         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
         requestOptions={{
           ...consentOpts,
-          networkExtras: {
-            collapsible: 'bottom',
-          },
+          // TIP: Collapsible banner (higher eCPM but lower fill rate)
+          // Uncomment when fill rate improves:
+          // networkExtras: { collapsible: 'bottom' },
         }}
-        onAdLoaded={() => console.log('[BannerAd] Google + Meta collapsible banner loaded successfully.')}
+        onAdLoaded={() => console.log('[BannerAd] ✅ Google (+ Meta mediation) banner loaded.')}
         onAdFailedToLoad={(err) => handleNextFallback('Google', err)}
       />
     );
@@ -80,7 +88,7 @@ export default function BannerAdComponent() {
       <FBBannerView
         placementId={currentAd.id}
         type="standard"
-        onLoad={() => console.log('[BannerAd] Facebook banner loaded.')}
+        onLoad={() => console.log('[BannerAd] ✅ Facebook banner loaded.')}
         onError={(err) =>
           handleNextFallback(
             'Facebook',
@@ -96,11 +104,11 @@ export default function BannerAdComponent() {
       <AppLovinAdView
         adUnitId={currentAd.id}
         adFormat={require('react-native-applovin-max').AdFormat.BANNER}
-        onAdLoaded={() => console.log('[BannerAd] AppLovin banner loaded.')}
+        onAdLoaded={() => console.log('[BannerAd] ✅ AppLovin banner loaded.')}
         onAdLoadFailed={(err) => handleNextFallback('AppLovin', err)}
       />
     );
   }
 
   return null;
-}
+}
